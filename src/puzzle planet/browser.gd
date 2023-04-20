@@ -10,7 +10,7 @@ signal picked_you(idx)
 @onready var camera_3d = $camrot/Camera3D
 
 var rot_h = 0.0
-var h_sensitivity = 0.0004
+var h_sensitivity = 0.003
 var h_acc
 
 var erx = 0.0
@@ -45,7 +45,8 @@ func _unhandled_input(event):
 			drag = true
 			slower = 1.0
 			stopped = false
-			erx = event.relative.x * h_sensitivity
+			erx = lerp(erx, event.relative.x * h_sensitivity, 0.1)
+			#erx = pow(event.relative.x * h_sensitivity, 2.0) * sign(event.relative.x)
 	if event is InputEventScreenTouch:
 		slower = 1.0
 		if event.pressed == false:
@@ -75,10 +76,11 @@ func _process(delta):
 		rot_h -= erx
 		if rot_h < 0.0:
 			rot_h = 2*PI-abs(rot_h)
+		#print(rot_h)
 		camrot.rotation.y = rot_h
 	elif not drag:
-		snap_ease = lerp(snap_ease, 20.0, 0.001)
-		erx = lerp(erx, 0.0, 0.03)
+		snap_ease = lerp(snap_ease, 20.0, 0.01)
+		erx = lerp(erx, 0.0, 0.1)
 		erx_acc = []
 		rot_h -= erx
 		if rot_h < 0.0:

@@ -110,10 +110,10 @@ func _process(delta):
 			self.rotation.y = good_global_rot.y - angle
 			position.x = 0.0
 			position.z = 0.0
-			position.y = lerp(self.position.y, 0.0, 0.05)
+			position.y = lerp(self.position.y, 0.0, 0.1)
 		if time_to_return:
 			picked = false
-			position.y = lerp(self.position.y, -10.0, 0.06)
+			position.y = lerp(self.position.y, -10.0, 0.1)
 			if position.y < -5.0:
 				emit_signal('take_me_home', idx)
 				time_to_return = false

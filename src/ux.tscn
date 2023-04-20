@@ -53,6 +53,7 @@ handle_input_locally = false
 size = Vector2i(1080, 1080)
 render_target_update_mode = 4
 script = ExtResource("3_1wbx7")
+target_res = 400.0
 
 [node name="Universe" parent="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("1_t863a")]
 
@@ -77,7 +78,7 @@ stretch = true
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
-scaling_3d_scale = 0.5
+scaling_3d_scale = 0.4
 size = Vector2i(769, 720)
 render_target_update_mode = 4
 
