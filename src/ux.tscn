@@ -1,17 +1,14 @@
-[gd_scene load_steps=8 format=3 uid="uid://cgecyl84gcd6c"]
+[gd_scene load_steps=5 format=3 uid="uid://cgecyl84gcd6c"]
 
-[ext_resource type="Script" path="res://VSplit.gd" id="1_7j5h3"]
+[ext_resource type="Texture2D" uid="uid://diqm2gn6d2x4u" path="res://tex/drag_handle_smol.png" id="1_5xoeg"]
 [ext_resource type="PackedScene" uid="uid://du8x4hxf8w3to" path="res://puzzle planet/puzzle ball test.tscn" id="1_t863a"]
-[ext_resource type="Texture2D" uid="uid://bbhnx3dqfpngk" path="res://tex/drag_handle.png" id="1_xswom"]
-[ext_resource type="Script" path="res://subv.gd" id="3_1wbx7"]
-[ext_resource type="Script" path="res://arc.gd" id="3_kvvga"]
 [ext_resource type="PackedScene" uid="uid://djs7hnxwgc3x8" path="res://puzzle planet/browser.tscn" id="5_40le5"]
 
 [sub_resource type="Theme" id="Theme_u37b7"]
 VSplitContainer/constants/autohide = 0
 VSplitContainer/constants/minimum_grab_thickness = 70
-VSplitContainer/constants/separation = 20
-VSplitContainer/icons/grabber = ExtResource("1_xswom")
+VSplitContainer/constants/separation = 0
+VSplitContainer/icons/grabber = ExtResource("1_5xoeg")
 
 [node name="UX" type="Control"]
 layout_mode = 3
@@ -20,6 +17,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 mouse_filter = 1
 theme = SubResource("Theme_u37b7")
 
@@ -32,11 +31,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="VSplit" type="VSplitContainer" parent="MainBG"]
+[node name="VSplit" type="VBoxContainer" parent="MainBG"]
 layout_mode = 2
-split_offset = 170
-script = ExtResource("1_7j5h3")
-max_offset = 800.0
 
 [node name="AspectRatioContainer" type="AspectRatioContainer" parent="MainBG/VSplit"]
 layout_mode = 2
@@ -46,40 +42,36 @@ alignment_vertical = 2
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="MainBG/VSplit/AspectRatioContainer"]
 layout_mode = 2
-stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="MainBG/VSplit/AspectRatioContainer/SubViewportContainer"]
 handle_input_locally = false
-size = Vector2i(1080, 1080)
+size = Vector2i(360, 360)
 render_target_update_mode = 4
-script = ExtResource("3_1wbx7")
-target_res = 400.0
 
 [node name="Universe" parent="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("1_t863a")]
 
 [node name="MarginContainer" type="MarginContainer" parent="MainBG/VSplit"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
 
-[node name="AspectRatioContainer" type="AspectRatioContainer" parent="MainBG/VSplit/MarginContainer"]
+[node name="AspectRatioContainer" type="Control" parent="MainBG/VSplit/MarginContainer"]
 layout_mode = 2
-ratio = 1.0683
-script = ExtResource("3_kvvga")
+mouse_filter = 1
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="MainBG/VSplit/MarginContainer/AspectRatioContainer"]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer"]
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
-scaling_3d_scale = 0.4
-size = Vector2i(769, 720)
+size = Vector2i(360, 276)
 render_target_update_mode = 4
 
 [node name="Browser" parent="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("5_40le5")]

@@ -9,5 +9,6 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	var rat = clamp((margin_container.size.x / margin_container.size.y), 1.6, 6.5)
-	ratio = rat
+	pass
+#	var rat = clamp((margin_container.size.x / margin_container.size.y), 1.6, 6.5)
+#	ratio = rat

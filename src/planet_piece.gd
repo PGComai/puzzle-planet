@@ -114,7 +114,7 @@ func _process(delta):
 		if time_to_return:
 			picked = false
 			position.y = lerp(self.position.y, -10.0, 0.1)
-			if position.y < -5.0:
+			if position.y < -3.0:
 				emit_signal('take_me_home', idx)
 				time_to_return = false
 		if back_from_space:
@@ -173,8 +173,8 @@ func _on_picked_you(_idx):
 func _picked_animation():
 	self.position.x = lerp(self.position.x, 0.0, 0.05)
 	self.position.z = lerp(self.position.z, 0.0, 0.05)
-	self.position.y = lerp(self.position.y, 20.0, 0.02)
-	if self.position.y > 12.0:
+	self.position.y = lerp(self.position.y, 15.0, 0.02)
+	if self.position.y > 9.0:
 		emit_signal("ready_for_launch", idx)
 		in_transit = false
 

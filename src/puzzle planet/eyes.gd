@@ -3,7 +3,7 @@ extends Node3D
 signal meshes_made2
 signal piece_placed2
 
-@onready var v_split = $"../../../.."
+#@onready var v_split = $"../../../.."
 @onready var ux = $"../../../../../.."
 @onready var camera_3d = $h/v/Camera3D
 
@@ -11,8 +11,8 @@ var rot_h = 0.0
 var rot_v = 0.0
 var v_min = -89.0
 var v_max = 89.0
-var h_sensitivity = 0.05
-var v_sensitivity = 0.05
+var h_sensitivity = 0.07
+var v_sensitivity = 0.07
 var h_acc
 var v_acc
 
@@ -26,14 +26,14 @@ var h: int
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
-	h = ux.size.y/2
+	h = ux.size.x
 	
 func _unhandled_input(event):
 #	if event is InputEventMouseMotion and click:
 #		erx = event.relative.x * h_sensitivity
 #		ery = event.relative.y * v_sensitivity
 	if event is InputEventScreenDrag:
-		var touchborder = h + v_split.split_offset
+		var touchborder = h# + v_split.split_offset - 15
 		#print(touchborder)
 		if event.position.y < touchborder:
 			drag = true
@@ -62,7 +62,7 @@ func _process(delta):
 	
 	$h.rotation_degrees.y = rot_h
 	$h/v.rotation_degrees.x = rot_v
-	camera_3d.fov = clamp(remap(v_split.split_offset + (v_split.split_offset/2), 0.0, v_split.viewsize.y, 75.0, 120.0), 75.0, 120.0)
+	#camera_3d.fov = clamp(remap(v_split.split_offset + (v_split.split_offset/2), 0.0, v_split.viewsize.y, 75.0, 120.0), 75.0, 120.0)
 	#print(v_split.viewsize.y)
 	drag = false
 
