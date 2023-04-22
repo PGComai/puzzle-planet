@@ -30,6 +30,8 @@ signal piece_placed(cidx)
 @onready var camera_3d = $"../h/v/Camera3D"
 @onready var where = $where
 @onready var sun = $"../Sun"
+@onready var space = $"../Space"
+@onready var sun_2 = $"../Sun2"
 
 var noise3d = FastNoiseLite.new()
 var saver = ResourceSaver
@@ -62,6 +64,8 @@ func _process(delta):
 		fit_timer = 0.0
 		shadow_light._on = false
 		sun._on = true
+		sun_2._on = true
+		space._on = false
 	if fit:
 		current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, 0.1)
 		if current_piece.global_position.is_equal_approx(current_piece.direction):
@@ -601,10 +605,14 @@ func _on_ready_for_launch(_idx):
 			if !p.is_connected('take_me_home', _on_piece_take_me_home):
 				p.take_me_home.connect(_on_piece_take_me_home)
 			shadow_light._on = true
+			space._on = true
 			sun._on = false
+			sun_2._on = false
 			looking = true
 			
 func _on_piece_take_me_home(_idx):
 	shadow_light._on = false
+	space._on = false
 	sun._on = true
+	sun_2._on = true
 	looking = false

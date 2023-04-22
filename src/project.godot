@@ -17,8 +17,8 @@ config/icon="res://icon.svg"
 
 [display]
 
-window/size/viewport_width=360
-window/size/viewport_height=640
+window/size/viewport_width=180
+window/size/viewport_height=320
 window/size/window_width_override=1080
 window/size/window_height_override=1920
 window/handheld/orientation=1
@@ -41,3 +41,18 @@ pointing/emulate_touch_from_mouse=true
 occlusion_culling/bvh_build_quality=1
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
+
+[shader_globals]
+
+atmo_fresnel_power={
+"type": "float",
+"value": 2.178
+}
+atmo_fresnel_max={
+"type": "float",
+"value": 0.553
+}
+atmo_color={
+"type": "color",
+"value": Color(0.898039, 0.0823529, 0.164706, 1)
+}

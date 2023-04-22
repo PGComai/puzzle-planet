@@ -3,8 +3,11 @@
 [ext_resource type="Script" path="res://planet_piece.gd" id="1_0vit8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iyjmg"]
+diffuse_mode = 3
+specular_mode = 1
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
+texture_filter = 0
 distance_fade_mode = 2
 distance_fade_max_distance = 0.3
 

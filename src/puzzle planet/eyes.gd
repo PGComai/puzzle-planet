@@ -11,8 +11,8 @@ var rot_h = 0.0
 var rot_v = 0.0
 var v_min = -89.0
 var v_max = 89.0
-var h_sensitivity = 0.07
-var v_sensitivity = 0.07
+var h_sensitivity = 0.15
+var v_sensitivity = 0.15
 var h_acc
 var v_acc
 

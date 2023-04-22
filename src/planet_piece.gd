@@ -145,7 +145,7 @@ func arrange(re = false):
 		var urv = upright_vec.rotated(ax, rot)
 		self.rotate(good_pos.normalized(), urv.signed_angle_to(Vector3.UP, good_pos.normalized()))
 	else:
-		self.rotate(Vector3.UP, ((((2*PI)/brothers) * (circle_idx))-angle) * -rearrange_offset)
+		self.rotate_object_local(Vector3.UP, ((((2*PI)/brothers) * (circle_idx))-(angle)) * rearrange_offset)
 	good_rot = self.rotation.y
 	good_global_rot = self.global_rotation
 	emit_signal("i_am_here",idx ,snappedf(angle, 0.01))
@@ -158,7 +158,7 @@ func _on_found_you(_idx):
 
 func found_rotate(delta):
 	found_spin += delta * 10
-	self.rotation.y = good_rot + sin(found_spin/20.0)/1.2
+	self.rotation.y = good_rot + sin(found_spin/20.0)/2.0
 	
 func _on_picked_you(_idx):
 	if in_space:
