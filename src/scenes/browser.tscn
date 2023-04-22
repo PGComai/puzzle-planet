@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://dgkcqaccoxiol"]
+
+[ext_resource type="Script" path="res://scripts/browser.gd" id="1_n1lns"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dvmvx"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_6rrgr"]
+sky_material = SubResource("ProceduralSkyMaterial_dvmvx")
+
+[sub_resource type="Environment" id="Environment_44v1c"]
+sky = SubResource("Sky_6rrgr")
+tonemap_mode = 2
+
+[node name="Browser" type="Node3D"]
+script = ExtResource("1_n1lns")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_44v1c")
+
+[node name="Orbit" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.44511)
+
+[node name="camrot" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="camrot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10.8)
+fov = 90.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="camrot/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)

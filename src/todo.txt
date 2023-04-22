@@ -1,0 +1,3 @@
+- menu/gui
+- fix puzzle piece gaps/seams
+- increase browser scroll speed as it shrinks

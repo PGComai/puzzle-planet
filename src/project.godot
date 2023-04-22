@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="puzzle_planet"
-run/main_scene="res://ux.tscn"
+run/main_scene="res://scenes/ux.tscn"
 config/features=PackedStringArray("4.0", "Mobile")
 config/icon="res://icon.svg"
 
