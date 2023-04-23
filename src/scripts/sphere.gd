@@ -5,14 +5,13 @@ signal piece_placed(cidx)
 
 @export var max_points = 500
 @export var generations = 100
-@export var max_border = 600
-@export var border_factor = 30
-@export var calc_border = true
 @export var height_noise_frequency: float = 1.5
 @export var save: bool = false
 @export_enum('load', 'generate') var mesh_source: int = 1
 @export var mesh_resource: Resource
 @export var percent_complete: int = 50
+@export var border_offset := 0.0
+@export var vertex_fill_threshold := 0.1
 @export_category('Colors')
 @export var land_snow_color := Color('dbdbdb')
 @export var land_green_color := Color('4a6c3f')
@@ -42,12 +41,16 @@ var current_piece: MeshInstance3D
 var fit_timer: float = 0.0
 var fit: bool = false
 var puzzle_fits: Dictionary
+var placed_signal := false
+var placed_timer := 0.0
+var placed_counting := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	randomize()
 	noise3d.noise_type = 4
 	noise3d.frequency = height_noise_frequency
-	randomize()
+	noise3d.seed = randi_range(0, 100)
 	_generate_mesh()
 
 func _process(delta):
@@ -67,13 +70,22 @@ func _process(delta):
 		sun_2._on = true
 		space._on = false
 	if fit:
+		if !placed_signal:
+			current_piece.remove_from_group('pieces')
+			placed_signal = true
+			placed_counting = true
 		current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, 0.1)
 		if current_piece.global_position.is_equal_approx(current_piece.direction):
 			current_piece.global_position = current_piece.direction
-			current_piece.remove_from_group('pieces')
 			print('fitted')
-			emit_signal("piece_placed", current_piece.circle_idx)
 			fit = false
+			placed_signal = false
+	if placed_counting:
+		placed_timer += delta
+		if placed_timer > 0.2:
+			emit_signal("piece_placed", current_piece.circle_idx)
+			placed_counting = false
+			placed_timer = 0.0
 		
 
 func _generate_mesh():
@@ -81,6 +93,7 @@ func _generate_mesh():
 	var borderverts: PackedVector3Array
 	var colors: PackedColorArray
 	var vb_dict: Dictionary
+	var vi_to_borders: Dictionary
 	
 	if mesh_source == 1:
 		### MAKE PUZZLE PIECE LOCATIONS ###
@@ -89,90 +102,73 @@ func _generate_mesh():
 			verts = shift_points(verts,0,1)
 		for x in generations:
 			verts = shift_points(verts,0,1)
-			
-		### MAKE BORDERS ###
-			# border points should remember their 4 nearest main neighbors
-		var neighbor_dict: Dictionary
-		if calc_border:
-			while len(borderverts) < max_border:
-				borderverts = array_of_points(borderverts)
-				borderverts = shift_points(borderverts,0,1)
-			for x in generations:
-				borderverts = shift_points(borderverts,0,1)
-			for x in generations:
-				var bpush = border_push(borderverts, verts, x, generations)
-				borderverts = bpush[0]
-				neighbor_dict = bpush[1]
-				if x == generations-1:
-					pass
-				else:
-					borderverts = shift_points(borderverts, x, generations)
 		
-		### SORT BORDERS ###
-		for v in len(verts):
-			vb_dict[v] = []
-		for v in len(verts):
-			for b in len(borderverts):
-				if verts[v] in neighbor_dict[b]:
-					vb_dict[v].append(b)
-		# vb_dict assigns border vectors to each main vector
+		var delaunay_triangle_centers: Dictionary
+		delaunay_triangle_centers = delaunay(verts, true)
+
+		var my_delaunay_points = verts_to_dpoints(verts, delaunay_triangle_centers)
 		
+		vi_to_borders = make_border_array(verts, my_delaunay_points)
+
+		var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
+		var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
+		var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
+		
+		vi_to_borders = newnewnewdict
 		if save:
 			var save_path = 'res://planets/'
 			var save_number = len(DirAccess.get_files_at(save_path))+1
 			var new_save = save_template.new()
 			var save_name = 'planet' + str(save_number)
 			new_save.verts = verts
-			new_save.borderverts = borderverts
-			new_save.vb_dict = vb_dict
+			new_save.vi_to_borders = vi_to_borders
 			new_save.name = save_name
+			new_save.noise_type = noise3d.noise_type
+			new_save.noise_frequency = noise3d.frequency
+			new_save.noise_seed = noise3d.seed
 			saver.save(new_save, save_path+save_name+'.tres')
-	
 	elif mesh_source == 0:
-		#if ResourceLoader.exists('res://planets/planet1.tres'):
-		#print('loading')
-		var loaded = mesh_resource
-		verts = loaded.verts
-		borderverts = loaded.borderverts
-		vb_dict = loaded.vb_dict
-		#else:
-		#	load_failed = true
+		if ResourceLoader.exists('res://planets/planet1.tres'):
+			print('loading')
+			var loaded = mesh_resource
+			verts = loaded.verts
+			vi_to_borders = loaded.vi_to_borders
+		else:
+			load_failed = true
 	
 	if not load_failed:
 		var circle_idx = 0
 		var l = len(verts)
 		for v in l:
 			# sweep search axis is verts[v]
-			var amax = 2.0*PI
-			var border_array = PackedVector3Array()
-			var border_vecs = vb_dict[v]
-			var bvlen = len(border_vecs)
-			var order_arr = []
-			var order_dict = {}
-			if bvlen > 0:
-				var ref_b = borderverts[border_vecs[0]]-verts[v]
-				for bv in bvlen:
-					if bv == 0:
-						order_dict[0.0] = bv
-						order_arr.append(0.0)
-					else:
-						var ang = ref_b.signed_angle_to(borderverts[border_vecs[bv]]-verts[v], verts[v])
-						if ang < 0:
-							ang = (PI-abs(ang))+PI
-						order_arr.append(ang)
-						order_dict[ang] = bv
-			order_arr.sort()
-			#print(order_arr)
-			# now create an ordered array of border points
-			var proper_array = []
-			for ang in order_arr:
-				proper_array.append(order_dict[ang])
-			#print(proper_array)
-			# proper_array references the indices of each border point in border_vecs,
-			# which itself holds the indices of border points in borderverts
-			for i in proper_array:
-				border_array.append(borderverts[border_vecs[i]])
-			border_array.append(borderverts[border_vecs[0]])
+			#var amax = 2.0*PI
+			var border_array = vi_to_borders[v]
+			#var order_arr = []
+			#var order_dict = {}
+#			if bvlen > 0:
+#				var ref_b = border_vecs[0]-verts[v]
+#				for bv in bvlen:
+#					if bv == 0:
+#						order_dict[0.0] = bv
+#						order_arr.append(0.0)
+#					else:
+#						var ang = ref_b.signed_angle_to(borderverts[border_vecs[bv]]-verts[v], verts[v])
+#						if ang < 0:
+#							ang = (PI-abs(ang))+PI
+#						order_arr.append(ang)
+#						order_dict[ang] = bv
+#			order_arr.sort()
+#			#print(order_arr)
+#			# now create an ordered array of border points
+#			var proper_array = []
+#			for ang in order_arr:
+#				proper_array.append(order_dict[ang])
+#			#print(proper_array)
+#			# proper_array references the indices of each border point in border_vecs,
+#			# which itself holds the indices of border points in borderverts
+#			for i in proper_array:
+#				border_array.append(borderverts[border_vecs[i]])
+			border_array.append(border_array[0])
 			
 			### DRAW MESH ###
 			
@@ -514,6 +510,144 @@ func _generate_mesh():
 #	for c in pieces.get_children():
 #		c.visible = false
 	emit_signal("meshes_made")
+	
+func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
+	var result = {}
+	var l = len(og_verts)
+	for v in l:
+		result[v] = PackedVector3Array()
+		for dtc_k in dtc.keys():
+			if og_verts[v] in dtc_k:
+				result[v].append(dtc[dtc_k])
+	return result
+
+func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary):
+	var result = {}
+	var l = len(og_verts)
+	for v in l:
+		# sweep search axis is verts[v]
+		var amax = 2.0*PI
+		var border_array = PackedVector3Array()
+		var border_vecs = delaunay_points[v]
+		var bvlen = len(border_vecs)
+		var order_arr = []
+		var order_dict = {}
+		if bvlen > 0:
+			var ref_b = border_vecs[0]-og_verts[v]
+			for bv in bvlen:
+				if bv == 0:
+					order_dict[0.0] = bv
+					order_arr.append(0.0)
+				else:
+					var ang = ref_b.signed_angle_to(border_vecs[bv]-og_verts[v], og_verts[v])
+					if ang < 0:
+						ang = (PI-abs(ang))+PI
+					order_arr.append(ang)
+					order_dict[ang] = bv
+		order_arr.sort()
+		#print(order_arr)
+		# now create an ordered array of border points
+		var proper_array = []
+		for ang in order_arr:
+			proper_array.append(order_dict[ang])
+		#print(proper_array)
+		# proper_array references the indices of each border point in border_vecs,
+		# which itself holds the indices of border points in borderverts
+		for i in proper_array:
+			border_array.append(border_vecs[i]+(og_verts[v]*border_offset))
+		border_array.append(border_vecs[0]+(og_verts[v]*border_offset))
+		result[v] = border_array
+	return result
+	
+func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
+	for vi in vbdict.keys():
+		var border_array = vbdict[vi]
+		var new_border_array = PackedVector3Array()
+		for b in len(border_array):
+			var plus1 = b+1
+			if plus1 == len(border_array):
+				## last one
+				pass
+			else:
+				var current_border_point = border_array[b]
+				var next_border_point = border_array[plus1]
+				
+				var bb_dist = current_border_point.distance_to(next_border_point)
+				new_border_array.append(current_border_point)
+				if bb_dist > vertex_fill_threshold:
+					var halfway = current_border_point.move_toward(next_border_point, bb_dist/2.0).normalized()
+					new_border_array.append(halfway)
+				new_border_array.append(next_border_point)
+		vbdict[vi] = new_border_array
+	return vbdict
+
+func delaunay(points: PackedVector3Array, return_tris = false):
+	var tris = {}
+	var centers = PackedVector3Array()
+	var good_triangles = []
+	var num_of_points = len(points)
+	var all_possible_threes = []
+	for p in num_of_points:
+		for p2 in num_of_points:
+			for p3 in num_of_points:
+				all_possible_threes.append([p,p2,p3])
+	print(len(all_possible_threes))
+	for three in all_possible_threes:
+		var p = three[0]
+		var p2 = three[1]
+		var p3 = three[2]
+		if p2 == p or points[p].angle_to(points[p2]) > PI/2 or p3 == p or p3 == p2 or points[p].angle_to(points[p3]) > PI/2 or points[p2].angle_to(points[p3]) > PI/2:
+			pass
+		else:
+			## at this point we have three unique points
+			var new = true
+			for gt in good_triangles:
+				if p in gt and p2 in gt and p3 in gt:
+					new = false
+			
+			if !new:
+				pass
+			else:
+				var pl = Plane(points[p],points[p2],points[p3])
+				var pl2 = Plane(points[p],points[p3],points[p2])
+				var plc = pl.get_center()
+				var pl2c = pl2.get_center()
+
+				var is_good = true
+				var is_good2 = true
+
+				for pp in num_of_points:
+					if pl.is_point_over(points[pp]):
+						if abs(pl.distance_to(points[pp])) > 0.0005:
+							is_good = false
+					if pl2.is_point_over(points[pp]):
+						if abs(pl2.distance_to(points[pp])) > 0.0005:
+							is_good2 = false
+
+				var surface_array = []
+				surface_array.resize(Mesh.ARRAY_MAX)
+				if is_good:
+					good_triangles.append([p,p2,p3])
+					if !return_tris:
+						var off = plc.normalized()*0.0
+						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
+					else:
+						var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
+						tris[plarr] = plc.normalized()
+						centers.append(plc.normalized())
+				if is_good2:
+					good_triangles.append([p,p3,p2])
+					if !return_tris:
+						var off = plc.normalized()*0.0
+						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
+					else:
+						var plarr = PackedVector3Array([points[p], points[p3], points[p2]])
+						tris[plarr] = pl2c.normalized()
+						centers.append(pl2c.normalized())
+	print(len(good_triangles))
+	#print(float(good_triangles)/float(num_of_points))
+	if return_tris:
+		return tris
 
 func array_of_points(arr: PackedVector3Array):
 	randomize()

@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://e6r5oatitupi"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_deh7h"]
+shading_mode = 0
+billboard_mode = 1
+
+[sub_resource type="TextMesh" id="TextMesh_mimwl"]
+resource_local_to_scene = true
+material = SubResource("StandardMaterial3D_deh7h")
+text = "text
+"
+font_size = 8
+depth = 0.0
+
+[node name="txtmsh" type="MeshInstance3D"]
+cast_shadow = 0
+mesh = SubResource("TextMesh_mimwl")

@@ -1,3 +1,5 @@
 - menu/gui
 - fix puzzle piece gaps/seams
-- increase browser scroll speed as it shrinks
+
+maybe:
+	- slant screen divider for one-handed ease

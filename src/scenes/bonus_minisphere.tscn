@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://botcgddnaq70p"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mimkb"]
+transparency = 1
+albedo_color = Color(1, 0.623529, 1, 0.905882)
+disable_receive_shadows = true
+proximity_fade_distance = 20.26
+
+[sub_resource type="SphereMesh" id="SphereMesh_pyrol"]
+resource_local_to_scene = true
+material = SubResource("StandardMaterial3D_mimkb")
+radius = 0.486408
+height = 0.972815
+
+[node name="MeshInstance3D" type="MeshInstance3D"]
+cast_shadow = 0
+mesh = SubResource("SphereMesh_pyrol")

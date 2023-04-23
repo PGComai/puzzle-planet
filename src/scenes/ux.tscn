@@ -38,19 +38,19 @@ mouse_filter = 1
 
 [node name="VSplit" type="VBoxContainer" parent="MainBG"]
 layout_mode = 2
+theme_override_constants/separation = 0
 
 [node name="AspectRatioContainer" type="AspectRatioContainer" parent="MainBG/VSplit"]
 layout_mode = 2
 size_flags_vertical = 3
-stretch_mode = 1
-alignment_vertical = 2
+alignment_vertical = 0
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="MainBG/VSplit/AspectRatioContainer"]
 layout_mode = 2
 
 [node name="SubViewport" type="SubViewport" parent="MainBG/VSplit/AspectRatioContainer/SubViewportContainer"]
 handle_input_locally = false
-size = Vector2i(180, 180)
+size = Vector2i(180, 200)
 render_target_update_mode = 4
 
 [node name="Universe" parent="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("2_jvpmg")]
@@ -76,7 +76,7 @@ stretch = true
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
-size = Vector2i(180, 136)
+size = Vector2i(180, 120)
 render_target_update_mode = 4
 
 [node name="Browser" parent="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("3_j5u16")]

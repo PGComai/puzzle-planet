@@ -98,7 +98,7 @@ func _ready():
 func _process(delta):
 	if !placed:
 		if repositioning:
-			self.position = lerp(self.position, repos, 0.1)
+			self.position = lerp(self.position, repos, 0.07)
 			if self.position.is_equal_approx(repos):
 				self.position = repos
 				repositioning = false
@@ -133,7 +133,6 @@ func _process(delta):
 				back_from_space = false
 
 func arrange(re = false):
-	
 	if !get_parent().is_connected('found_you', _on_found_you):
 		get_parent().found_you.connect(_on_found_you)
 		get_parent().picked_you.connect(_on_picked_you)

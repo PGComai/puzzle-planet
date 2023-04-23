@@ -3,9 +3,8 @@ extends Node3D
 signal meshes_made2
 signal piece_placed2
 
-#@onready var v_split = $"../../../.."
-@onready var ux = $"../../../../../.."
 @onready var camera_3d = $h/v/Camera3D
+@onready var sub_viewport = $".."
 
 var rot_h = 0.0
 var rot_v = 0.0
@@ -26,7 +25,7 @@ var h: int
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
-	h = ux.size.x
+	h = sub_viewport.size.y
 	
 func _unhandled_input(event):
 #	if event is InputEventMouseMotion and click:
