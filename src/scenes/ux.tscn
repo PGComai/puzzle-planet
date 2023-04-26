@@ -1,18 +1,21 @@
-[gd_scene load_steps=6 format=3 uid="uid://bqdq58r21e7pt"]
+[gd_scene load_steps=11 format=3 uid="uid://bqdq58r21e7pt"]
 
-[ext_resource type="Texture2D" uid="uid://diqm2gn6d2x4u" path="res://tex/drag_handle_smol.png" id="1_p2ftu"]
-[ext_resource type="PackedScene" uid="uid://dd3kmdhqvcc0o" path="res://scenes/puzzle ball test.tscn" id="2_jvpmg"]
+[ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
+[ext_resource type="PackedScene" uid="uid://wien31bmex6c" path="res://scenes/puzzle ball test.tscn" id="2_jvpmg"]
 [ext_resource type="PackedScene" uid="uid://dgkcqaccoxiol" path="res://scenes/browser.tscn" id="3_j5u16"]
+[ext_resource type="Script" path="res://scenes/popup.gd" id="4_3lqjh"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wpjmi"]
-bg_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ma754"]
 
-[sub_resource type="Theme" id="Theme_u37b7"]
-PanelContainer/styles/panel = SubResource("StyleBoxFlat_wpjmi")
-VSplitContainer/constants/autohide = 0
-VSplitContainer/constants/minimum_grab_thickness = 70
-VSplitContainer/constants/separation = 0
-VSplitContainer/icons/grabber = ExtResource("1_p2ftu")
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3dc5u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ogvk4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nfqoi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oaw3r"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kjmdu"]
 
 [node name="UX" type="Control"]
 layout_mode = 3
@@ -24,7 +27,7 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 1
-theme = SubResource("Theme_u37b7")
+theme = ExtResource("1_kqae3")
 metadata/_edit_horizontal_guides_ = []
 
 [node name="MainBG" type="PanelContainer" parent="."]
@@ -56,6 +59,7 @@ render_target_update_mode = 4
 [node name="Universe" parent="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("2_jvpmg")]
 
 [node name="MarginContainer" type="MarginContainer" parent="MainBG/VSplit"]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -81,5 +85,48 @@ render_target_update_mode = 4
 
 [node name="Browser" parent="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("3_j5u16")]
 
+[node name="MenuButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -28.0
+offset_top = 140.0
+offset_right = 29.0
+offset_bottom = 156.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.32549, 0.372549, 0.462745, 1)
+theme_override_colors/font_pressed_color = Color(0.32549, 0.372549, 0.462745, 1)
+theme_override_colors/font_hover_color = Color(0.32549, 0.372549, 0.462745, 1)
+theme_override_colors/font_focus_color = Color(0.32549, 0.372549, 0.462745, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.32549, 0.372549, 0.462745, 1)
+theme_override_font_sizes/font_size = 8
+theme_override_styles/normal = SubResource("StyleBoxEmpty_ma754")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_3dc5u")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_ogvk4")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_nfqoi")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_oaw3r")
+text = "MENU"
+
+[node name="PopupMenu" type="PopupMenu" parent="MenuButton"]
+transparent_bg = true
+position = Vector2i(10, 230)
+size = Vector2i(160, 83)
+theme_override_constants/v_separation = 10
+theme_override_font_sizes/font_size = 14
+theme_override_styles/separator = SubResource("StyleBoxEmpty_kjmdu")
+item_count = 3
+item_0/text = "New Planet"
+item_0/id = 0
+item_1/text = "Settings"
+item_1/id = 1
+item_2/text = "How To Play"
+item_2/id = 2
+script = ExtResource("4_3lqjh")
+
 [connection signal="meshes_made2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_meshes_made_2"]
 [connection signal="piece_placed2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_piece_placed_2"]
+[connection signal="pressed" from="MenuButton" to="MenuButton/PopupMenu" method="_on_menu_button_pressed"]

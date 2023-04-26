@@ -70,7 +70,7 @@ func _unhandled_input(event):
 			else:
 				if abs(erx) < 0.004 and not drag:
 					slower = 4.0
-			drag = false
+			#drag = false
 			pick = false
 			release_ready = false
 			releasetimer = 0.0
@@ -87,9 +87,9 @@ func _process(delta):
 		if drag:
 			snap_ease = 0.0
 			erx_acc.append(erx)
-			if len(erx_acc) > 3:
+			if len(erx_acc) > 5:
 				erx_acc.remove_at(0)
-			erx = erx_acc.reduce(func(accum, number): return accum + number, 0)/3
+			erx = erx_acc.reduce(func(accum, number): return accum + number, 0)/5
 	#		if abs(momentum) < 0.0005:
 	#			hold_timer += delta
 	#			if hold_timer > 0.2:
@@ -138,6 +138,7 @@ func _process(delta):
 			if is_equal_approx(camera_3d.position.z, cam_dist):
 				camera_3d.position.z = cam_dist
 				recam = false
+		drag = false
 			
 func _on_universe_meshes_made_2():
 	var pieces = get_tree().get_nodes_in_group('pieces')

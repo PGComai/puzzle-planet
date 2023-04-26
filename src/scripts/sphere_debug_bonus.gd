@@ -1,22 +1,52 @@
-@tool
-extends MeshInstance3D
+extends Node3D
+
+signal meshes_made
+signal piece_placed(cidx)
 
 @export var max_points = 500
 @export var generations = 100
-@export var max_border = 600
-@export var border_factor = 30
-@export var calc_border = true
-@export var height_noise_frequency: float = 1.5
+@export var save: bool = false
+@export_enum('load', 'generate') var mesh_source: int = 1
 @export var mesh_resource: Resource
-@export var border_offset := 0.1
-@export var isphere_offset := 3.0
-@export var isphere_radius := 3.0
+@export var percent_complete: int = 50
+@export var piece_offset := 1.0
+@export_category('Terrain')
+@export var vertex_fill_threshold := 0.1
+@export var height_noise_frequency: float = 1.5
+@export var height_noise_type: FastNoiseLite.NoiseType
+@export var height_noise_domain_warp := false
+@export var domain_warp_amplitude := 30.0
+@export var domain_warp_fractal_gain := 0.5
+@export var domain_warp_fractal_lacunarity := 6.0
+@export var domain_warp_fractal_octaves := 5
+@export var domain_warp_fractal_type: FastNoiseLite.DomainWarpFractalType = 1
+@export var domain_warp_frequency := 0.05
+@export var domain_warp_type: FastNoiseLite.DomainWarpType = 0
+@export var fractal_gain := 0.5
+@export var fractal_lacunarity := 2.0
+@export var fractal_octaves := 5
+@export var fractal_ping_pong_strength := 2.0
+@export var fractal_type: FastNoiseLite.FractalType = 1
+@export var fractal_weighted_strength := 0.0
+@export_enum('custom', 'earth', 'mars', 'venus') var planet_style := 0
+@export var ocean := true     
+@export_range(0,1) var snow_random_low := 0.85
+@export_range(0,1) var snow_random_high := 0.95
+@export_range(1, 2) var max_terrain_height := 1.5
+@export_category('Colors')
+@export var crust_color := Color('3f3227')
+@export var land_snow_color := Color('dbdbdb')
+@export var land_color := Color('4a6c3f')
+@export var low_land_color := Color('74432e')
+@export var sand_color := Color('9f876b')
+@export var water_color := Color('0541ff')
+@export var shallow_water_color := Color('2091bf')
+@export var sand_threshold := 1.1
+@export var water_offset := 1.09
 
 @onready var piece = preload("res://scenes/planet_piece.tscn")
 @onready var pieces = $"../Pieces"
-@onready var camera_3d = $"../h/v/Camera3D"
-@onready var txtmsh = preload("res://scenes/txtmsh.tscn")
-var spheremesh = preload("res://scenes/bonus_minisphere.tscn")
+
 var noise3d = FastNoiseLite.new()
 var saver = ResourceSaver
 var loader = ResourceLoader
@@ -29,131 +59,617 @@ var puzzle_fits: Dictionary
 var placed_signal := false
 var placed_timer := 0.0
 var placed_counting := false
-var newmesh = ArrayMesh.new()
-var tricenters := PackedVector3Array()
+var snow_start: float
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	noise3d.noise_type = 4
-	noise3d.frequency = height_noise_frequency
 	randomize()
+	noise3d.noise_type = height_noise_type
+	noise3d.frequency = height_noise_frequency
+	noise3d.seed = randi_range(0, 100)
+	noise3d.domain_warp_enabled = height_noise_domain_warp
+	noise3d.domain_warp_amplitude = domain_warp_amplitude
+	noise3d.domain_warp_fractal_gain = domain_warp_fractal_gain
+	noise3d.domain_warp_fractal_lacunarity = domain_warp_fractal_lacunarity
+	noise3d.domain_warp_fractal_octaves = domain_warp_fractal_octaves
+	noise3d.domain_warp_fractal_type = domain_warp_fractal_type
+	noise3d.domain_warp_frequency = domain_warp_frequency
+	noise3d.domain_warp_type = domain_warp_type
+	noise3d.fractal_gain = fractal_gain
+	noise3d.fractal_lacunarity = fractal_lacunarity
+	noise3d.fractal_octaves = fractal_octaves
+	noise3d.fractal_ping_pong_strength = fractal_ping_pong_strength
+	noise3d.fractal_type = fractal_type
+	noise3d.fractal_weighted_strength = fractal_weighted_strength
 	_generate_mesh()
 
 func _process(delta):
-	pass
+	if fit_timer > 1.5:
+		current_piece.reparent(pieces, false)
+		current_piece.placed = true
+		current_piece.position = Vector3.ZERO
+		current_piece.rotation = Vector3.ZERO
+#		current_piece.global_position = piece_target.global_position
+		fit = true
+		looking = false
+		fit_timer = 0.0
+#		shadow_light._on = false
+#		sun._on = true
+#		sun_2._on = true
+#		space._on = false
+	if fit:
+		if !placed_signal:
+			current_piece.remove_from_group('pieces')
+			placed_signal = true
+			placed_counting = true
+		current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, 0.1)
+		if current_piece.global_position.is_equal_approx(current_piece.direction):
+			current_piece.global_position = current_piece.direction
+			print('fitted')
+			fit = false
+			placed_signal = false
+	if placed_counting:
+		placed_timer += delta
+		if placed_timer > 0.2:
+			emit_signal("piece_placed", current_piece.circle_idx)
+			placed_counting = false
+			placed_timer = 0.0
+		
 
 func _generate_mesh():
-	var verts: PackedVector3Array
-	var borderverts: PackedVector3Array
-	var colors: PackedColorArray
-	var vb_dict: Dictionary
+	var verts := PackedVector3Array()
+	var borderverts := PackedVector3Array()
+	var colors := PackedColorArray()
+	var vb_dict := Dictionary()
+	var vi_to_borders := Dictionary()
 	
-	### MAKE PUZZLE PIECE LOCATIONS ###
-#	while len(verts) < max_points:
-#		verts = array_of_points(verts)
-#		verts = shift_points(verts,0,1)
-#	for x in generations:
-#		verts = shift_points(verts,0,1)
-
-	while len(verts) < max_points:
-		verts = array_of_points(verts, false)
-#		verts = shift_points(verts,0,1)
-#	for x in generations:
-#		verts = shift_points(verts,0,1)
-	
-	## numbermeshes
-	for v in len(verts):
-		var txt = txtmsh.instantiate()
-		txt.mesh.text = str(v)
-		txt.position = verts[v]*0.9
-		add_child(txt)
-	
-	delaunay(verts)
+	if mesh_source == 1:
+		### MAKE PUZZLE PIECE LOCATIONS ###
+		while len(verts) < max_points:
+			verts = array_of_points(verts)
+			verts = shift_points(verts,0,1)
+		for x in generations:
+			verts = shift_points(verts,0,1)
 		
-	### MAKE BORDERS ###
-		# border points should remember their 4 nearest main neighbors
-#	var neighbor_dict: Dictionary
-#	if calc_border:
-#		while len(borderverts) < max_border:
-#			borderverts = array_of_points(borderverts)
-#			borderverts = shift_points(borderverts,0,1)
-#		for x in generations:
-#			borderverts = shift_points(borderverts,0,1)
-#		for x in generations:
-#			var bpush = border_push(borderverts, verts, x, generations)
-#			borderverts = bpush[0]
-#			neighbor_dict = bpush[1]
-#			if x == generations-1:
-#				pass
-#			else:
-#				borderverts = shift_points(borderverts, x, generations)
-#
-#	### SORT BORDERS ###
-#	for v in len(verts):
-#		vb_dict[v] = []
-#	for v in len(verts):
-#		for b in len(borderverts):
-#			if verts[v] in neighbor_dict[b]:
-#				vb_dict[v].append(b)
-	# vb_dict assigns border vectors to each main vector
+		for v in len(verts):
+			if verts[v].angle_to(Vector3.UP) < PI/32:
+				print(v)
+				print('angle to UP is:')
+				print(verts[v].angle_to(Vector3.UP))
+				var x = Vector3.UP.cross(verts[v]).normalized()
+				verts[v] = verts[v].rotated(x, PI/32)
+				print('new angle to UP is:')
+				print(verts[v].angle_to(Vector3.UP))
+			if verts[v].angle_to(Vector3.DOWN) < PI/32:
+				print(v)
+				print('angle to DOWN is:')
+				print(verts[v].angle_to(Vector3.DOWN))
+				var x = Vector3.DOWN.cross(verts[v]).normalized()
+				verts[v] = verts[v].rotated(x, PI/32)
+				print('new angle to DOWN is:')
+				print(verts[v].angle_to(Vector3.DOWN))
 		
-	draw_pointmesh(verts, newmesh)
+		var delaunay_triangle_centers: Dictionary
+		delaunay_triangle_centers = delaunay(verts, true)
 
-#	var circle_idx = 0
-#	var l = len(verts)
-#	for v in l:
-#		# sweep search axis is verts[v]
-#		var amax = 2.0*PI
-#		var border_array = PackedVector3Array()
-#		var border_vecs = vb_dict[v]
-#		var bvlen = len(border_vecs)
-#		var order_arr = []
-#		var order_dict = {}
-#		if bvlen > 0:
-#			var ref_b = borderverts[border_vecs[0]]-verts[v]
-#			for bv in bvlen:
-#				if bv == 0:
-#					order_dict[0.0] = bv
-#					order_arr.append(0.0)
-#				else:
-#					var ang = ref_b.signed_angle_to(borderverts[border_vecs[bv]]-verts[v], verts[v])
-#					if ang < 0:
-#						ang = (PI-abs(ang))+PI
-#					order_arr.append(ang)
-#					order_dict[ang] = bv
-#		order_arr.sort()
-#		#print(order_arr)
-#		# now create an ordered array of border points
-#		var proper_array = []
-#		for ang in order_arr:
-#			proper_array.append(order_dict[ang])
-#		#print(proper_array)
-#		# proper_array references the indices of each border point in border_vecs,
-#		# which itself holds the indices of border points in borderverts
-#		for i in proper_array:
-#			border_array.append(borderverts[border_vecs[i]]+(verts[v]*border_offset))
-#		border_array.append(borderverts[border_vecs[0]]+(verts[v]*border_offset))
-#
-#		### DRAW MESH ###
-##
-##			var surface_array = []
-##			surface_array.resize(Mesh.ARRAY_MAX)
-##
-##			surface_array[Mesh.ARRAY_VERTEX] = border_array
-##
-##			newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, surface_array)
-##			surface_array = []
-##			surface_array.resize(Mesh.ARRAY_MAX)
-#
-#		draw_linemesh(border_array, newmesh)
+		var my_delaunay_points = verts_to_dpoints(verts, delaunay_triangle_centers)
+		
+		vi_to_borders = make_border_array(verts, my_delaunay_points)
+
+		var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
+		var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
+		var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
+		
+		vi_to_borders = newnewnewdict
+		if save:
+			var save_path = 'res://planets/'
+			var save_number = len(DirAccess.get_files_at(save_path))+1
+#			var new_save = save_template.new()
+			var save_name = 'planet' + str(save_number)
+#			new_save.verts = verts
+#			new_save.vi_to_borders = vi_to_borders
+#			new_save.name = save_name
+#			new_save.noise_type = noise3d.noise_type
+#			new_save.noise_frequency = noise3d.frequency
+#			new_save.noise_seed = noise3d.seed
+#			saver.save(new_save, save_path+save_name+'.tres')
+	elif mesh_source == 0:
+		if ResourceLoader.exists('res://planets/planet1.tres'):
+			print('loading')
+			var loaded = mesh_resource
+			verts = loaded.verts
+			vi_to_borders = loaded.vi_to_borders
+		else:
+			load_failed = true
+	
+	if not load_failed:
+		var circle_idx = 0
+		var l = len(verts)
+		
+		if planet_style == 0:
+			pass
+		elif planet_style == 1:
+			## override colors to earth style
+			crust_color = Color('3f3227')
+			land_snow_color = Color('dbdbdb')
+			land_color = Color('4a6c3f')
+			sand_color = Color('9f876b')
+			water_color = Color('0541ff')
+			shallow_water_color = Color('2091bf')
+			sand_threshold = 1.1
+			water_offset = 1.09
+			ocean = true
+			snow_random_low = 0.85
+			snow_random_high = 0.95
+			max_terrain_height = 1.5
+			noise3d.noise_type = 4
+			noise3d.domain_warp_enabled = false
+			noise3d.domain_warp_amplitude = 30.0
+			noise3d.domain_warp_fractal_gain = 0.5
+			noise3d.domain_warp_fractal_lacunarity = 6.0
+			noise3d.domain_warp_fractal_octaves = 5
+			noise3d.domain_warp_fractal_type = 1
+			noise3d.domain_warp_frequency = 0.05
+			noise3d.domain_warp_type = 0
+			noise3d.fractal_gain = 0.5
+			noise3d.fractal_lacunarity = 2.0
+			noise3d.fractal_octaves = 5
+			noise3d.fractal_ping_pong_strength = 2.0
+			noise3d.fractal_type = 1
+			noise3d.fractal_weighted_strength = 0.0
+		
+		if snow_random_high > snow_random_low:
+			snow_start = randf_range(snow_random_low, snow_random_high)
+		elif snow_random_high == snow_random_low:
+			snow_start = snow_random_high
+		else:
+			snow_start = 0.9
 			
-	mesh = newmesh
+		for v in l:
+			var border_array = vi_to_borders[v]
+			var edges_for_particles = border_array.duplicate()
+			border_array.append(border_array[0])
+			
+			### DRAW MESH ###
+			
+			var offset = 1.1
+			var tess_result = tesselate(verts, v, border_array, offset)
+			
+			var dxu = verts[v].cross(Vector3.UP)
+			var up = dxu.rotated(verts[v].normalized(), -PI/2)
+			
+			var newpiece = piece.instantiate()
+			newpiece.vertex = tess_result[0]
+			newpiece.normal = tess_result[1]
+			newpiece.color = tess_result[2]
+			newpiece.ocean = ocean
+			if ocean:
+				newpiece.vertex_w = tess_result[3]
+				newpiece.normal_w = tess_result[4]
+				newpiece.color_w = tess_result[5]
+				newpiece.vertex_cw = tess_result[6]
+				newpiece.normal_cw = tess_result[7]
+				newpiece.color_cw = tess_result[8]
+			newpiece.direction = verts[v]
+			puzzle_fits[v] = verts[v]
+			newpiece.idx = v
+			newpiece.siblings = l
+			newpiece.upright_vec = up.normalized()
+			newpiece.particle_edges = edges_for_particles
+			newpiece.staying = true
+			newpiece.offset = piece_offset
+			# checking who stays
+			
+			pieces.add_child(newpiece)
 			
 #	for c in pieces.get_children():
 #		c.visible = false
+	emit_signal("meshes_made")
+	
+func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
+		thickness: float, water = true):
+	var border_triangles = PackedVector3Array()
+	var border_tri_normals = PackedVector3Array()
+	var border_tri_colors = PackedColorArray()
+	var water_triangles = PackedVector3Array()
+	var water_tri_normals = PackedVector3Array()
+	var water_tri_colors = PackedColorArray()
+	var cutwater_triangles = PackedVector3Array()
+	var cutwater_tri_normals = PackedVector3Array()
+	var cutwater_tri_colors = PackedColorArray()
+	
+	#     v0--1--v0p-5--v0p2---v0p3
+	#     |     /|     /|     /|\
+	#     |    / |    / |    / | \
+	#     |   2  |   6  |   /  |  vp
+	#     |  3   4  7   8  /   |  /
+	#     | /    | /    | /    | /
+	#     |/     |/     |/     |/
+	#     v1-----v1p----v1p2---v1p3
+	
+	for b in len(ring_array)-1:
+		var v0 = ring_array[b]
+		var v1 = ring_array[b+1]
+		var v0p = mm(ring_array[b]*thickness)
+		var v0pw = v0p.normalized()*water_offset
+		var v0pw_depth = v0p.length_squared() - v0pw.length_squared()
+		#edges_for_particles.append(v0p)
+		var v1p = mm(ring_array[b+1]*thickness)
+		var v1pw = v1p.normalized()*water_offset
+		var v1pw_depth = v1p.length_squared() - v1pw.length_squared()
+		#edges_for_particles.append(v1p)
+		
+		var vp = mm(og_verts[og_idx]*thickness)
+		var vpw = vp.normalized()*water_offset
+		var vpw_depth = vp.length_squared() - vpw.length_squared()
+		
+		var v0p_color = land_color
+		var v1p_color = land_color
+		var depth_start = 0.001
+		var depth_end = 0.05
+		var v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var v1pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		
+		if v0p.length() < sand_threshold and ocean:
+			v0p_color = sand_color
+		elif asin(abs(v0p.normalized().y)) > snow_start:
+			v0p_color = land_snow_color
+		if v1p.length() < sand_threshold and ocean:
+			v1p_color = sand_color
+		elif asin(abs(v1p.normalized().y)) > snow_start:
+			v1p_color = land_snow_color
+		
+		## PIECE WALLS BEGIN ## -----------------------------
+		
+		border_triangles.append(v0)
+		border_triangles.append(v0p)
+		border_triangles.append(v1)
+		
+		border_tri_colors.append(crust_color)
+		border_tri_colors.append(crust_color)
+		border_tri_colors.append(crust_color)
+		
+		var n = Plane(v0,v0p,v1).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)
+		
+		###
+		
+		border_triangles.append(v1)
+		border_triangles.append(v0p)
+		border_triangles.append(v1p)
+		
+		border_tri_colors.append(crust_color)
+		border_tri_colors.append(crust_color)
+		border_tri_colors.append(crust_color)
+		
+		n = Plane(v1,v0p,v1p).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)
+		
+		cutwater_triangles.append(v0p.limit_length(water_offset))
+		cutwater_triangles.append(v0pw.lerp(vp, 0.001))
+		cutwater_triangles.append(v1p.limit_length(water_offset))
+		
+		cutwater_tri_colors.append(v0pw_color.lerp(Color('black'), clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0)))
+		cutwater_tri_colors.append(v0pw_color)
+		cutwater_tri_colors.append(v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0)))
+		
+		n = Plane(v0p,v0pw,v1p).normal
+		cutwater_tri_normals.append(n)
+		cutwater_tri_normals.append(n)
+		cutwater_tri_normals.append(n)
+		
+		###
+		
+		cutwater_triangles.append(v1p.limit_length(water_offset))
+		cutwater_triangles.append(v0pw.lerp(vp, 0.001))
+		cutwater_triangles.append(v1pw.lerp(vp, 0.001))
+		
+		cutwater_tri_colors.append(v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0)))
+		cutwater_tri_colors.append(v0pw_color)
+		cutwater_tri_colors.append(v1pw_color)
+		
+		n = Plane(v1p,v0pw,v1pw).normal
+		cutwater_tri_normals.append(n)
+		cutwater_tri_normals.append(n)
+		cutwater_tri_normals.append(n)
+		
+		## PIECE WALLS END ## -----------------------------
+		
+		var v0p2 = mm(v0p.move_toward(vp, v0p.distance_to(vp)/3).normalized()*thickness)
+		var v0p2w = v0p2.normalized()*water_offset
+		var v0p2w_depth = v0p2.length_squared() - v0p2w.length_squared()
+		var v1p2 = mm(v1p.move_toward(vp, v1p.distance_to(vp)/3).normalized()*thickness)
+		var v1p2w = v1p2.normalized()*water_offset
+		var v1p2w_depth = v1p2.length_squared() - v1p2w.length_squared()
+		
+		var v0p2_color = land_color
+		var v0p3_color = land_color
+		var v1p2_color = land_color
+		var v1p3_color = land_color
+		
+		if v0p2.length() < sand_threshold and ocean:
+			v0p2_color = sand_color
+		elif asin(abs(v0p2.normalized().y)) > snow_start:
+			v0p2_color = land_snow_color
+		if v1p2.length() < sand_threshold and ocean:
+			v1p2_color = sand_color
+		elif asin(abs(v1p2.normalized().y)) > snow_start:
+			v1p2_color = land_snow_color
+		
+		var v0p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var v1p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		
+		## PIECE TOP BEGIN ## -----------------------------
+		
+		border_triangles.append(v0p)
+		border_triangles.append(v0p2)
+		border_triangles.append(v1p)
+		
+		border_tri_colors.append(v0p_color)
+		border_tri_colors.append(v0p2_color)
+		border_tri_colors.append(v1p_color)
+		
+		n = Plane(v0p,v0p2,v1p).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)###
+		border_tri_normals.append(n)
+		
+		water_triangles.append(v0pw)
+		water_triangles.append(v0p2w)
+		water_triangles.append(v1pw)
+		
+		water_tri_colors.append(v0pw_color)
+		water_tri_colors.append(v0p2w_color)
+		water_tri_colors.append(v1pw_color)
+		
+		n = Plane(v0pw,v0p2w,v1pw).normal
+		water_tri_normals.append(v0pw.normalized())
+		water_tri_normals.append(v0p2w.normalized())
+		water_tri_normals.append(v1pw.normalized())
+		
+		###
+		
+		border_triangles.append(v1p)
+		border_triangles.append(v0p2)
+		border_triangles.append(v1p2)
+		
+		border_tri_colors.append(v1p_color)
+		border_tri_colors.append(v0p2_color)
+		border_tri_colors.append(v1p2_color)
+		
+		n = Plane(v1p,v0p2,v1p2).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)###
+		border_tri_normals.append(n)
+		
+		water_triangles.append(v1pw)
+		water_triangles.append(v0p2w)
+		water_triangles.append(v1p2w)
+		
+		water_tri_colors.append(v1pw_color)
+		water_tri_colors.append(v0p2w_color)
+		water_tri_colors.append(v1p2w_color)
+		
+		n = Plane(v1pw,v0p2w,v1p2w).normal
+		water_tri_normals.append(v1pw.normalized())
+		water_tri_normals.append(v0p2w.normalized())
+		water_tri_normals.append(v1p2w.normalized())
+		
+		#3
+		
+		var v0p3 = mm(v0p2.move_toward(vp, v0p2.distance_to(vp)/3).normalized()*thickness)
+		var v0p3w = v0p3.normalized()*water_offset
+		var v0p3w_depth = v0p3.length_squared() - v0p3w.length_squared()
+		var v1p3 = mm(v1p2.move_toward(vp, v1p2.distance_to(vp)/3).normalized()*thickness)
+		var v1p3w = v1p3.normalized()*water_offset
+		var v1p3w_depth = v1p3.length_squared() - v1p3w.length_squared()
+		
+		if v0p3.length() < sand_threshold and ocean:
+			v0p3_color = sand_color
+		elif asin(abs(v0p3.normalized().y)) > snow_start:
+			v0p3_color = land_snow_color
+		if v1p3.length() < sand_threshold and ocean:
+			v1p3_color = sand_color
+		elif asin(abs(v1p3.normalized().y)) > snow_start:
+			v1p3_color = land_snow_color
+		
+		var v0p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var v1p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		
+		###
+		
+		border_triangles.append(v0p2)
+		border_triangles.append(v0p3)
+		border_triangles.append(v1p2)
 
-func delaunay(points: PackedVector3Array):
-	var pls = []
+		border_tri_colors.append(v0p2_color)
+		border_tri_colors.append(v0p3_color)
+		border_tri_colors.append(v1p2_color)
+
+		n = Plane(v0p2,v0p3,v1p2).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)###
+		border_tri_normals.append(n)
+		
+		water_triangles.append(v0p2w)
+		water_triangles.append(v0p3w)
+		water_triangles.append(v1p2w)
+
+		water_tri_colors.append(v0p2w_color)
+		water_tri_colors.append(v0p3w_color)
+		water_tri_colors.append(v1p2w_color)
+
+		n = Plane(v0p2w,v0p3w,v1p2w).normal
+		water_tri_normals.append(v0p2w.normalized())
+		water_tri_normals.append(v0p3w.normalized())
+		water_tri_normals.append(v1p2w.normalized())
+		
+		###
+		
+		border_triangles.append(v1p2)
+		border_triangles.append(v0p3)
+		border_triangles.append(v1p3)
+
+		border_tri_colors.append(v1p2_color)
+		border_tri_colors.append(v0p3_color)
+		border_tri_colors.append(v1p3_color)
+
+		n = Plane(v1p2,v0p3,v1p3).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)###
+		border_tri_normals.append(n)
+		
+		water_triangles.append(v1p2w)
+		water_triangles.append(v0p3w)
+		water_triangles.append(v1p3w)
+
+		water_tri_colors.append(v1p2w_color)
+		water_tri_colors.append(v0p3w_color)
+		water_tri_colors.append(v1p3w_color)
+
+		n = Plane(v1p2w,v0p3w,v1p3w).normal
+		water_tri_normals.append(v1p2w.normalized())
+		water_tri_normals.append(v0p3w.normalized())
+		water_tri_normals.append(v1p3w.normalized())
+		
+		#vp
+		
+		var vp_color = land_color
+		var vpw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-vpw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		
+		if vp.length() < sand_threshold and ocean:
+			vp_color = sand_color
+		elif asin(abs(vp.normalized().y)) > snow_start:
+			vp_color = land_snow_color
+		
+		###
+		
+		border_triangles.append(v0p3)
+		border_triangles.append(vp)
+		border_triangles.append(v1p3)
+
+		border_tri_colors.append(v0p3_color)
+		border_tri_colors.append(vp_color)
+		border_tri_colors.append(v1p3_color)
+
+		n = Plane(v0p3,vp,v1p3).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)###
+		border_tri_normals.append(n)
+		
+		water_triangles.append(v0p3w)
+		water_triangles.append(vpw)
+		water_triangles.append(v1p3w)
+
+		water_tri_colors.append(v0p3w_color)
+		water_tri_colors.append(vpw_color)
+		water_tri_colors.append(v1p3w_color)
+
+		n = Plane(v0p3w,vpw,v1p3w).normal
+		water_tri_normals.append(v0p3w.normalized())
+		water_tri_normals.append(vpw.normalized())
+		water_tri_normals.append(v1p3w.normalized())
+		
+		## PIECE TOP END ## -----------------------------
+		
+		## PIECE BOTTOM BEGIN ## -----------------------------
+		
+		border_triangles.append(v1)
+		border_triangles.append(og_verts[og_idx])
+		border_triangles.append(v0)
+		
+		border_tri_colors.append(crust_color)
+		border_tri_colors.append(crust_color)
+		border_tri_colors.append(crust_color)
+		
+		n = Plane(v0,og_verts[og_idx],v1).normal
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)
+		border_tri_normals.append(n)
+		
+		## PIECE BOTTOM END ## -----------------------------
+	
+	return [border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors,
+		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
+	
+func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
+	var result = {}
+	var l = len(og_verts)
+	for v in l:
+		result[v] = PackedVector3Array()
+		for dtc_k in dtc.keys():
+			if og_verts[v] in dtc_k:
+				result[v].append(dtc[dtc_k])
+	return result
+
+func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary):
+	var result = {}
+	var l = len(og_verts)
+	for v in l:
+		# sweep search axis is verts[v]
+		var amax = 2.0*PI
+		var border_array = PackedVector3Array()
+		var border_vecs = delaunay_points[v]
+		var bvlen = len(border_vecs)
+		var order_arr = []
+		var order_dict = {}
+		if bvlen > 0:
+			var ref_b = border_vecs[0]-og_verts[v]
+			for bv in bvlen:
+				if bv == 0:
+					order_dict[0.0] = bv
+					order_arr.append(0.0)
+				else:
+					var ang = ref_b.signed_angle_to(border_vecs[bv]-og_verts[v], og_verts[v])
+					if ang < 0:
+						ang = (PI-abs(ang))+PI
+					order_arr.append(ang)
+					order_dict[ang] = bv
+		order_arr.sort()
+		#print(order_arr)
+		# now create an ordered array of border points
+		var proper_array = []
+		for ang in order_arr:
+			proper_array.append(order_dict[ang])
+		#print(proper_array)
+		# proper_array references the indices of each border point in border_vecs,
+		# which itself holds the indices of border points in borderverts
+		for i in proper_array:
+			border_array.append(border_vecs[i])
+		border_array.append(border_vecs[0])
+		result[v] = border_array
+	return result
+	
+func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
+	for vi in vbdict.keys():
+		var border_array = vbdict[vi]
+		var new_border_array = PackedVector3Array()
+		for b in len(border_array):
+			var plus1 = b+1
+			if plus1 == len(border_array):
+				## last one
+				pass
+			else:
+				var current_border_point = border_array[b]
+				var next_border_point = border_array[plus1]
+				
+				var bb_dist = current_border_point.distance_to(next_border_point)
+				new_border_array.append(current_border_point)
+				if bb_dist > vertex_fill_threshold:
+					var halfway = current_border_point.move_toward(next_border_point, bb_dist/2.0).normalized()
+					new_border_array.append(halfway)
+				new_border_array.append(next_border_point)
+		vbdict[vi] = new_border_array
+	return vbdict
+
+func delaunay(points: PackedVector3Array, return_tris = false):
+	var tris = {}
+	var centers = PackedVector3Array()
 	var good_triangles = []
 	var num_of_points = len(points)
 	var all_possible_threes = []
@@ -161,8 +677,7 @@ func delaunay(points: PackedVector3Array):
 		for p2 in num_of_points:
 			for p3 in num_of_points:
 				all_possible_threes.append([p,p2,p3])
-	print(len(all_possible_threes))
-	var sphere_done = false
+	#print(len(all_possible_threes))
 	for three in all_possible_threes:
 		var p = three[0]
 		var p2 = three[1]
@@ -187,82 +702,48 @@ func delaunay(points: PackedVector3Array):
 				var is_good = true
 				var is_good2 = true
 
-#				for pp in num_of_points:
-#					if pl.is_point_over(points[pp]):
-#						if abs(pl.distance_to(points[pp])) > 0.0005:
-#							is_good = false
-#					if pl2.is_point_over(points[pp]):
-#						if abs(pl2.distance_to(points[pp])) > 0.0005:
-#							is_good2 = false
-				var center: Vector3
 				for pp in num_of_points:
-					center = plc + (pl.normal*isphere_offset)
-					if points[pp].distance_to(center) < isphere_radius:
+					if pl.is_point_over(points[pp]):
 						if abs(pl.distance_to(points[pp])) > 0.0005:
 							is_good = false
-					center = pl2c + (pl2.normal*isphere_offset)
-					if points[pp].distance_to(center) < isphere_radius:
+					if pl2.is_point_over(points[pp]):
 						if abs(pl2.distance_to(points[pp])) > 0.0005:
 							is_good2 = false
 
 				var surface_array = []
 				surface_array.resize(Mesh.ARRAY_MAX)
 				if is_good:
-					var off = plc.normalized()*0.0
-					surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
-					surface_array[Mesh.ARRAY_NORMAL] = PackedVector3Array([pl.normal,pl.normal,pl.normal])
-					newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 					good_triangles.append([p,p2,p3])
-					var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
-					pls.append(plarr)
+					if !return_tris:
+						var off = plc.normalized()*0.0
+						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
+					else:
+						var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
+						tris[plarr] = plc.normalized()
+						centers.append(plc.normalized())
 				if is_good2:
-					var off = plc.normalized()*0.0
-					
-					surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
-					surface_array[Mesh.ARRAY_NORMAL] = PackedVector3Array([pl2.normal,pl2.normal,pl2.normal])
-					newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 					good_triangles.append([p,p3,p2])
-					var plarr = PackedVector3Array([points[p], points[p3], points[p2]])
-					pls.append(plarr)
-	print(len(good_triangles))
+					if !return_tris:
+						var off = plc.normalized()*0.0
+						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
+					else:
+						var plarr = PackedVector3Array([points[p], points[p3], points[p2]])
+						tris[plarr] = pl2c.normalized()
+						centers.append(pl2c.normalized())
+	#print(len(good_triangles))
 	#print(float(good_triangles)/float(num_of_points))
-	
-#########BONUS BITCHHH!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if return_tris:
+		return tris
 
-func random_excluding(range: int, exc: Array):
-	var result = randi_range(0, range-1)
-	while result in exc:
-		result = randi_range(0, range-1)
-	return result
-
-func draw_pointmesh(arr: PackedVector3Array, msh: ArrayMesh):
-	var surface_array = []
-	surface_array.resize(Mesh.ARRAY_MAX)
-	
-	surface_array[Mesh.ARRAY_VERTEX] = arr
-	
-	msh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, surface_array)
-	
-func draw_linemesh(arr: PackedVector3Array, msh: ArrayMesh):
-	var surface_array = []
-	surface_array.resize(Mesh.ARRAY_MAX)
-	
-	surface_array[Mesh.ARRAY_VERTEX] = arr
-	
-	msh.add_surface_from_arrays(Mesh.PRIMITIVE_LINE_STRIP, surface_array)
-
-func array_of_points(arr: PackedVector3Array, ball = true):
+func array_of_points(arr: PackedVector3Array):
 	randomize()
 	var rx = randfn(0.0, 2.0)
 	var ry = randfn(0.0, 2.0)
 	var rz = randfn(0.0, 2.0)
-	if ball:
-		arr.append(Vector3(rx, ry, rz).normalized())
-	else:
-		arr.append(Vector3(rx, ry, rz))
+	arr.append(Vector3(rx, ry, rz).normalized())
 	return arr
 
-func shift_points(vecs, gen, max_gen):
+func shift_points(vecs: PackedVector3Array, gen, max_gen):
 	var progress = 1.0 - float(gen)/float(max_gen)
 	for x in len(vecs):
 		for y in len(vecs):
@@ -272,59 +753,11 @@ func shift_points(vecs, gen, max_gen):
 				var sep = abs(vecs[x].angle_to(vecs[y]))
 				vecs[y] = vecs[y].rotated((vecs[y].cross(vecs[x]).normalized()), deg_to_rad((-1/((sep + 1)*(sep + 1))))*progress)
 	return vecs
-	
-func border_push(bordervecs, vecs, gen, max_gen):
-	var nearest2 = []
-	var neighbors = {}
-	var record_neighbors = false
-	if gen == max_gen-1:
-		record_neighbors = true
-	var progress = 1.0# - float(gen)/float(max_gen)
-	for b in len(bordervecs):
-		# find closest main vector
-		var nearest = get_nearest_vec(bordervecs[b], vecs)
-		if record_neighbors:
-			neighbors[b] = nearest
-		if nearest[0].angle_to(nearest[1]) < PI/32:
-			pass
-		else:
-			var sep = abs(nearest[0].angle_to(bordervecs[b]))
-			bordervecs[b] = bordervecs[b].rotated((bordervecs[b].cross(nearest[0]).normalized()), deg_to_rad((-1/((sep + 1)*(sep + 1))))*progress)
-	return [bordervecs, neighbors]
 
-func get_nearest_vec(vec, vecs: PackedVector3Array):
-	var least = PI
-	var angles = []
-	var ref = {}
-	var nearest: Vector3
-	var nearest2: Vector3
-	var nearest3: Vector3
-	var nearest4: Vector3
-	for v in vecs:
-		if v == vec:
-			pass
-		else:
-			var sep = abs(v.angle_to(vec))
-			angles.append(sep)
-			ref[sep] = v
-			if sep < least:
-				least = sep
-				nearest = v
-	var min_angle = angles.min()
-	angles.erase(min_angle)
-	nearest = ref[min_angle]
-	var min_angle2 = angles.min()
-	nearest2 = ref[min_angle2]
-	angles.erase(min_angle)
-	var min_angle3 = angles.min()
-	nearest3 = ref[min_angle3]
-	angles.erase(min_angle)
-#	var min_angle4 = angles.min()
-#	nearest4 = ref[min_angle4]
-	return [nearest, nearest2, nearest3]
-	
 func mm(vec: Vector3):
 	var offset = (noise3d.get_noise_3dv(vec))
-	offset = clamp(remap(offset, -0.2, 0.2, 0.9, 1.1), 0.97, 1.5)
+	if ocean:
+		offset = clamp(remap(offset, -0.2, 0.2, 0.9, 1.1), 0.97, max_terrain_height)
+	else:
+		offset = clamp(remap(offset, -0.2, 0.2, 0.95, 1.1), 0.95, max_terrain_height)
 	return vec * offset
-	

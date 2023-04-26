@@ -52,6 +52,24 @@ func _generate_mesh():
 		verts = shift_points(verts,0,1)
 	for x in generations:
 		verts = shift_points(verts,0,1)
+		
+	for v in len(verts):
+		if verts[v].angle_to(Vector3.UP) < PI/32:
+			print(v)
+			print('angle to UP is:')
+			print(verts[v].angle_to(Vector3.UP))
+			var x = Vector3.UP.cross(verts[v]).normalized()
+			verts[v] = verts[v].rotated(x, PI/32)
+			print('new angle to UP is:')
+			print(verts[v].angle_to(Vector3.UP))
+		if verts[v].angle_to(Vector3.DOWN) < PI/32:
+			print(v)
+			print('angle to DOWN is:')
+			print(verts[v].angle_to(Vector3.DOWN))
+			var x = Vector3.DOWN.cross(verts[v]).normalized()
+			verts[v] = verts[v].rotated(x, PI/32)
+			print('new angle to DOWN is:')
+			print(verts[v].angle_to(Vector3.DOWN))
 	
 	## numbermeshes
 	for v in len(verts):
@@ -215,7 +233,7 @@ func delaunay(points: PackedVector3Array, return_tris = false):
 						tris[plarr] = pl2c.normalized()
 						centers.append(pl2c.normalized())
 	print(len(good_triangles))
-	#print(float(good_triangles)/float(num_of_points))
+	print(float(len(good_triangles))/float(num_of_points))
 	if return_tris:
 		return tris
 
@@ -249,7 +267,7 @@ func array_of_points(arr: PackedVector3Array):
 	arr.append(Vector3(rx, ry, rz).normalized())
 	return arr
 
-func shift_points(vecs, gen, max_gen):
+func shift_points(vecs: PackedVector3Array, gen, max_gen):
 	var progress = 1.0 - float(gen)/float(max_gen)
 	for x in len(vecs):
 		for y in len(vecs):

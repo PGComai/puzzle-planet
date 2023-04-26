@@ -6,9 +6,12 @@ signal take_me_home(idx)
 
 @onready var upward = $upward
 
+var offset := 1.0
+
 var vertex: PackedVector3Array
 var normal: PackedVector3Array
 var color: PackedColorArray
+var ocean := true
 
 var vertex_w: PackedVector3Array
 var normal_w: PackedVector3Array
@@ -41,7 +44,7 @@ var good_global_rot
 var rad = 10
 var staying = false
 var placed = false
-var particle_edges: Array
+var particle_edges: PackedVector3Array
 var rearrange_offset: int
 var repos: Vector3
 var rerot: Vector3
@@ -63,36 +66,41 @@ func _ready():
 	
 	newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 	
-	surface_array = []
-	surface_array.resize(Mesh.ARRAY_MAX)
+	if ocean:
+		surface_array = []
+		surface_array.resize(Mesh.ARRAY_MAX)
+		
+		temparr = Array(vertex_cw)
+		temparr = temparr.map(func(v): return v - direction)
+		vertex_cw = PackedVector3Array(temparr)
+		
+		surface_array[Mesh.ARRAY_VERTEX] = vertex_cw
+		surface_array[Mesh.ARRAY_NORMAL] = normal_cw
+		surface_array[Mesh.ARRAY_COLOR] = color_cw
+		
+		newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+		
+		surface_array = []
+		surface_array.resize(Mesh.ARRAY_MAX)
+		
+		temparr = Array(vertex_w)
+		temparr = temparr.map(func(v): return v - direction)
+		vertex_w = PackedVector3Array(temparr)
+		
+		surface_array[Mesh.ARRAY_VERTEX] = vertex_w
+		surface_array[Mesh.ARRAY_NORMAL] = normal_w
+		surface_array[Mesh.ARRAY_COLOR] = color_w
+		
+		newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 	
-	temparr = Array(vertex_cw)
-	temparr = temparr.map(func(v): return v - direction)
-	vertex_cw = PackedVector3Array(temparr)
-	
-	surface_array[Mesh.ARRAY_VERTEX] = vertex_cw
-	surface_array[Mesh.ARRAY_NORMAL] = normal_cw
-	surface_array[Mesh.ARRAY_COLOR] = color_cw
-	
-	newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
-	
-	surface_array = []
-	surface_array.resize(Mesh.ARRAY_MAX)
-	
-	temparr = Array(vertex_w)
-	temparr = temparr.map(func(v): return v - direction)
-	vertex_w = PackedVector3Array(temparr)
-	
-	surface_array[Mesh.ARRAY_VERTEX] = vertex_w
-	surface_array[Mesh.ARRAY_NORMAL] = normal_w
-	surface_array[Mesh.ARRAY_COLOR] = color_w
-	
-	newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+	#newmesh.regen_normal_maps()
+	newmesh.shadow_mesh = newmesh
 	
 	mesh = newmesh
-	mesh.surface_set_material(mesh.get_surface_count()-1, water_material)
+	if ocean:
+		mesh.surface_set_material(mesh.get_surface_count()-1, water_material)
 	if staying:
-		self.position = direction
+		self.position = direction * offset
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -123,7 +131,7 @@ func _process(delta):
 			if time_to_return:
 				picked = false
 				position.y = lerp(self.position.y, -10.0, 0.1)
-				if position.y < -3.0:
+				if position.y < -1.5:
 					emit_signal('take_me_home', idx)
 					time_to_return = false
 			if back_from_space:
@@ -175,6 +183,7 @@ func _on_found_you(_idx):
 func found_rotate(delta):
 	found_spin += delta * 10
 	self.rotation.y = good_rot + sin(found_spin/20.0)/2.0
+	#self.rotation.x = sin(found_spin/20.0)/2.0
 	
 func _on_picked_you(_idx):
 	if in_space:
@@ -190,7 +199,7 @@ func _picked_animation():
 	self.position.x = lerp(self.position.x, 0.0, 0.05)
 	self.position.z = lerp(self.position.z, 0.0, 0.05)
 	self.position.y = lerp(self.position.y, 15.0, 0.02)
-	if self.position.y > 9.0:
+	if self.position.y > 7.0:
 		emit_signal("ready_for_launch", idx)
 		in_transit = false
 
@@ -198,3 +207,6 @@ func _unpicked_animation():
 	self.position.x = lerp(self.position.x, good_pos.x, 0.02)
 	self.position.z = lerp(self.position.z, good_pos.z, 0.02)
 	self.position.y = lerp(self.position.y, 0.0, 0.05)
+	if self.position.is_equal_approx(Vector3(good_pos.x, 0.0, good_pos.z)):
+		self.position = Vector3(good_pos.x, 0.0, good_pos.z)
+		in_transit = false

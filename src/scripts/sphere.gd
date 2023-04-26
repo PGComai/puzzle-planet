@@ -89,11 +89,11 @@ func _process(delta):
 		
 
 func _generate_mesh():
-	var verts: PackedVector3Array
-	var borderverts: PackedVector3Array
-	var colors: PackedColorArray
-	var vb_dict: Dictionary
-	var vi_to_borders: Dictionary
+	var verts := PackedVector3Array()
+	var borderverts := PackedVector3Array()
+	var colors := PackedColorArray()
+	var vb_dict := Dictionary()
+	var vi_to_borders := Dictionary()
 	
 	if mesh_source == 1:
 		### MAKE PUZZLE PIECE LOCATIONS ###
@@ -102,6 +102,24 @@ func _generate_mesh():
 			verts = shift_points(verts,0,1)
 		for x in generations:
 			verts = shift_points(verts,0,1)
+		
+		for v in len(verts):
+			if verts[v].angle_to(Vector3.UP) < PI/32:
+				print(v)
+				print('angle to UP is:')
+				print(verts[v].angle_to(Vector3.UP))
+				var x = Vector3.UP.cross(verts[v]).normalized()
+				verts[v] = verts[v].rotated(x, PI/32)
+				print('new angle to UP is:')
+				print(verts[v].angle_to(Vector3.UP))
+			if verts[v].angle_to(Vector3.DOWN) < PI/32:
+				print(v)
+				print('angle to DOWN is:')
+				print(verts[v].angle_to(Vector3.DOWN))
+				var x = Vector3.DOWN.cross(verts[v]).normalized()
+				verts[v] = verts[v].rotated(x, PI/32)
+				print('new angle to DOWN is:')
+				print(verts[v].angle_to(Vector3.DOWN))
 		
 		var delaunay_triangle_centers: Dictionary
 		delaunay_triangle_centers = delaunay(verts, true)
@@ -140,34 +158,8 @@ func _generate_mesh():
 		var circle_idx = 0
 		var l = len(verts)
 		for v in l:
-			# sweep search axis is verts[v]
-			#var amax = 2.0*PI
 			var border_array = vi_to_borders[v]
-			#var order_arr = []
-			#var order_dict = {}
-#			if bvlen > 0:
-#				var ref_b = border_vecs[0]-verts[v]
-#				for bv in bvlen:
-#					if bv == 0:
-#						order_dict[0.0] = bv
-#						order_arr.append(0.0)
-#					else:
-#						var ang = ref_b.signed_angle_to(borderverts[border_vecs[bv]]-verts[v], verts[v])
-#						if ang < 0:
-#							ang = (PI-abs(ang))+PI
-#						order_arr.append(ang)
-#						order_dict[ang] = bv
-#			order_arr.sort()
-#			#print(order_arr)
-#			# now create an ordered array of border points
-#			var proper_array = []
-#			for ang in order_arr:
-#				proper_array.append(order_dict[ang])
-#			#print(proper_array)
-#			# proper_array references the indices of each border point in border_vecs,
-#			# which itself holds the indices of border points in borderverts
-#			for i in proper_array:
-#				border_array.append(borderverts[border_vecs[i]])
+			var edges_for_particles = border_array.duplicate()
 			border_array.append(border_array[0])
 			
 			### DRAW MESH ###
@@ -182,7 +174,7 @@ func _generate_mesh():
 			var cutwater_tri_normals = PackedVector3Array()
 			var cutwater_tri_colors = PackedColorArray()
 			var offset = 1.1
-			#var edges_for_particles = []
+			
 			for b in len(border_array)-1:
 				var v0 = border_array[b]
 				var v1 = border_array[b+1]
@@ -328,9 +320,9 @@ func _generate_mesh():
 				border_tri_colors.append(v1p_color)
 				
 				n = Plane(v0p,v0p2,v1p).normal
-				border_tri_normals.append(v0p.normalized())
-				border_tri_normals.append(v0p2.normalized())
-				border_tri_normals.append(v1p.normalized())
+				border_tri_normals.append(n)
+				border_tri_normals.append(n)###
+				border_tri_normals.append(n)
 				
 				water_triangles.append(v0pw)
 				water_triangles.append(v0p2w)
@@ -356,9 +348,9 @@ func _generate_mesh():
 				border_tri_colors.append(v1p2_color)
 				
 				n = Plane(v1p,v0p2,v1p2).normal
-				border_tri_normals.append(v1p.normalized())
-				border_tri_normals.append(v0p2.normalized())
-				border_tri_normals.append(v1p2.normalized())
+				border_tri_normals.append(n)
+				border_tri_normals.append(n)###
+				border_tri_normals.append(n)
 				
 				water_triangles.append(v1pw)
 				water_triangles.append(v0p2w)
@@ -384,9 +376,9 @@ func _generate_mesh():
 				border_tri_colors.append(v1p2_color)
 
 				n = Plane(v0p2,v0p3,v1p2).normal
-				border_tri_normals.append(v0p2.normalized())
-				border_tri_normals.append(v0p3.normalized())
-				border_tri_normals.append(v1p2.normalized())
+				border_tri_normals.append(n)
+				border_tri_normals.append(n)###
+				border_tri_normals.append(n)
 				
 				water_triangles.append(v0p2w)
 				water_triangles.append(v0p3w)
@@ -412,9 +404,9 @@ func _generate_mesh():
 				border_tri_colors.append(v1p3_color)
 
 				n = Plane(v1p2,v0p3,v1p3).normal
-				border_tri_normals.append(v1p2.normalized())
-				border_tri_normals.append(v0p3.normalized())
-				border_tri_normals.append(v1p3.normalized())
+				border_tri_normals.append(n)
+				border_tri_normals.append(n)###
+				border_tri_normals.append(n)
 				
 				water_triangles.append(v1p2w)
 				water_triangles.append(v0p3w)
@@ -440,9 +432,9 @@ func _generate_mesh():
 				border_tri_colors.append(v1p3_color)
 
 				n = Plane(v0p3,vp,v1p3).normal
-				border_tri_normals.append(v0p3.normalized())
-				border_tri_normals.append(vp.normalized())
-				border_tri_normals.append(v1p3.normalized())
+				border_tri_normals.append(n)
+				border_tri_normals.append(n)###
+				border_tri_normals.append(n)
 				
 				water_triangles.append(v0p3w)
 				water_triangles.append(vpw)
@@ -469,7 +461,7 @@ func _generate_mesh():
 				border_tri_colors.append(Color('3f3227'))
 				border_tri_colors.append(Color('3f3227'))
 				
-				n = -Plane(v0,verts[v],v1).normal
+				n = Plane(v0,verts[v],v1).normal
 				border_tri_normals.append(n)
 				border_tri_normals.append(n)
 				border_tri_normals.append(n)
@@ -495,7 +487,8 @@ func _generate_mesh():
 			newpiece.siblings = l
 			newpiece.ready_for_launch.connect(_on_ready_for_launch)
 			newpiece.upright_vec = up.normalized()
-			#newpiece.particle_edges = edges_for_particles
+			newpiece.particle_edges = edges_for_particles
+			newpiece.ocean = true
 			# checking who stays
 			var dieroll = randi_range(0, 99)
 			if dieroll < percent_complete:
@@ -591,7 +584,7 @@ func delaunay(points: PackedVector3Array, return_tris = false):
 		for p2 in num_of_points:
 			for p3 in num_of_points:
 				all_possible_threes.append([p,p2,p3])
-	print(len(all_possible_threes))
+	#print(len(all_possible_threes))
 	for three in all_possible_threes:
 		var p = three[0]
 		var p2 = three[1]
@@ -644,7 +637,7 @@ func delaunay(points: PackedVector3Array, return_tris = false):
 						var plarr = PackedVector3Array([points[p], points[p3], points[p2]])
 						tris[plarr] = pl2c.normalized()
 						centers.append(pl2c.normalized())
-	print(len(good_triangles))
+	#print(len(good_triangles))
 	#print(float(good_triangles)/float(num_of_points))
 	if return_tris:
 		return tris
@@ -657,7 +650,7 @@ func array_of_points(arr: PackedVector3Array):
 	arr.append(Vector3(rx, ry, rz).normalized())
 	return arr
 
-func shift_points(vecs, gen, max_gen):
+func shift_points(vecs: PackedVector3Array, gen, max_gen):
 	var progress = 1.0 - float(gen)/float(max_gen)
 	for x in len(vecs):
 		for y in len(vecs):
@@ -667,56 +660,7 @@ func shift_points(vecs, gen, max_gen):
 				var sep = abs(vecs[x].angle_to(vecs[y]))
 				vecs[y] = vecs[y].rotated((vecs[y].cross(vecs[x]).normalized()), deg_to_rad((-1/((sep + 1)*(sep + 1))))*progress)
 	return vecs
-	
-func border_push(bordervecs, vecs, gen, max_gen):
-	var nearest2 = []
-	var neighbors = {}
-	var record_neighbors = false
-	if gen == max_gen-1:
-		record_neighbors = true
-	var progress = 1.0# - float(gen)/float(max_gen)
-	for b in len(bordervecs):
-		# find closest main vector
-		var nearest = get_nearest_vec(bordervecs[b], vecs)
-		if record_neighbors:
-			neighbors[b] = nearest
-		if nearest[0].angle_to(nearest[1]) < PI/32:
-			pass
-		else:
-			var sep = abs(nearest[0].angle_to(bordervecs[b]))
-			bordervecs[b] = bordervecs[b].rotated((bordervecs[b].cross(nearest[0]).normalized()), deg_to_rad((-1/((sep + 1)*(sep + 1))))*progress)
-	return [bordervecs, neighbors]
 
-func get_nearest_vec(vec, vecs: PackedVector3Array):
-	var least = PI
-	var angles = []
-	var ref = {}
-	var nearest: Vector3
-	var nearest2: Vector3
-	var nearest3: Vector3
-	var nearest4: Vector3
-	for v in vecs:
-		if v == vec:
-			pass
-		else:
-			var sep = abs(v.angle_to(vec))
-			angles.append(sep)
-			ref[sep] = v
-			if sep < least:
-				least = sep
-				nearest = v
-	var min_angle = angles.min()
-	angles.erase(min_angle)
-	var min_angle2 = angles.min()
-	nearest2 = ref[min_angle2]
-	angles.erase(min_angle)
-	var min_angle3 = angles.min()
-	nearest3 = ref[min_angle3]
-	angles.erase(min_angle)
-	var min_angle4 = angles.min()
-	nearest4 = ref[min_angle4]
-	return [nearest, nearest2, nearest3, nearest4]
-	
 func mm(vec: Vector3):
 	var offset = (noise3d.get_noise_3dv(vec))
 	offset = clamp(remap(offset, -0.2, 0.2, 0.9, 1.1), 0.97, 1.5)

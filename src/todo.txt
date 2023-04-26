@@ -1,5 +1,6 @@
 - menu/gui
-- fix puzzle piece gaps/seams
+- stars can block sunlight
+- better scrolling/dragging
 
 maybe:
 	- slant screen divider for one-handed ease

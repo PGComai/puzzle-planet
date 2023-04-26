@@ -30,3 +30,8 @@ fov = 90.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="camrot/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)
+
+[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="camrot/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, -10.8)
+visible = false
+light_energy = 0.54

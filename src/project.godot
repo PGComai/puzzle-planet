@@ -24,6 +24,11 @@ window/size/window_height_override=1920
 window/handheld/orientation=1
 window/stretch/mode="viewport"
 
+[gui]
+
+theme/default_font_antialiasing=0
+theme/default_font_multichannel_signed_distance_field=true
+
 [input]
 
 click={
