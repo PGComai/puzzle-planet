@@ -25,19 +25,20 @@ shadow_enabled = true
 cast_shadow = 0
 mesh = SubResource("ArrayMesh_nuq3l")
 script = ExtResource("2_cqxdd")
-max_points = 30
-generations = 20
-height_noise_frequency = 1.193
+max_points = 15
+generations = 200
+piece_offset = 1.198
+height_noise_frequency = 4.283
 height_noise_type = 4
-height_noise_domain_warp = true
-domain_warp_amplitude = 8.101
-domain_warp_fractal_gain = 0.285
-domain_warp_fractal_lacunarity = 9.038
-ocean = false
-snow_random_low = 0.945
-snow_random_high = 0.961
-max_terrain_height = 1.015
-land_color = Color(0.509804, 0.333333, 0.227451, 1)
+snow = false
+max_terrain_height = 1.034
+crust_color = Color(0.223529, 0.223529, 0.223529, 1)
+land_color = Color(0.360784, 0.360784, 0.360784, 1)
+land_color_2 = Color(0.286275, 0.286275, 0.286275, 1)
+land_color_3 = Color(0.32549, 0.32549, 0.32549, 1)
+low_land_color = Color(0.223529, 0.223529, 0.223529, 1)
+color_noise_type = 4
+color_domain_warp_amplitude = 12.21
 
 [node name="h" type="Node3D" parent="."]
 
