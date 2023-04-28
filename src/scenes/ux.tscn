@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://ds16salbf23bf"]
+[gd_scene load_steps=14 format=3 uid="uid://ds16salbf23bf"]
 
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
 [ext_resource type="PackedScene" uid="uid://wien31bmex6c" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scenes/popup.gd" id="4_3lqjh"]
 [ext_resource type="Theme" uid="uid://h80aogkghxi5" path="res://tex/optionbox.tres" id="5_kb0sw"]
 [ext_resource type="Script" path="res://scenes/newplanet.gd" id="6_fwx6s"]
+[ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ma754"]
 
@@ -134,7 +135,7 @@ script = ExtResource("4_3lqjh")
 
 [node name="PopupPanel" type="PopupPanel" parent="."]
 position = Vector2i(10, 10)
-size = Vector2i(160, 180)
+size = Vector2i(160, 190)
 theme = ExtResource("5_kb0sw")
 script = ExtResource("6_fwx6s")
 
@@ -142,12 +143,12 @@ script = ExtResource("6_fwx6s")
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 156.0
-offset_bottom = 176.0
+offset_bottom = 186.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer"]
+[node name="PlanetTypeLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 2
 text = "Planet type: "
@@ -163,7 +164,36 @@ popup/item_0/id = 0
 popup/item_1/text = "Mars"
 popup/item_1/id = 1
 
-[node name="Button" type="Button" parent="PopupPanel/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="PctFillLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Puzzle fill:"
+autowrap_mode = 2
+
+[node name="Pct" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 10
+theme_override_fonts/font = ExtResource("7_wkm7n")
+theme_override_font_sizes/font_size = 27
+text = "50%"
+horizontal_alignment = 2
+autowrap_mode = 2
+
+[node name="PctFillSlider" type="HSlider" parent="PopupPanel/VBoxContainer"]
+layout_mode = 2
+max_value = 75.0
+step = 5.0
+rounded = true
+tick_count = 16
+ticks_on_borders = true
+
+[node name="Generate" type="Button" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 10
 text = "Generate"
@@ -178,4 +208,7 @@ text = "Cancel"
 [connection signal="pressed" from="MenuButton" to="MenuButton/PopupMenu" method="_on_menu_button_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="MenuButton/PopupMenu" method="_on_id_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="PopupPanel" method="_on_popup_menu_id_pressed"]
+[connection signal="item_selected" from="PopupPanel/VBoxContainer/HBoxContainer/OptionButton" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_option_button_item_selected"]
+[connection signal="value_changed" from="PopupPanel/VBoxContainer/PctFillSlider" to="PopupPanel" method="_on_pct_fill_slider_value_changed"]
+[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_generate_button_up"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Cancel" to="PopupPanel" method="_on_cancel_button_up"]

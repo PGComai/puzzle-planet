@@ -31,7 +31,7 @@ var fling := false
 var generate_type := 1
 
 func _ready():
-	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	h = sub_viewport.size.y
 	
 func _unhandled_input(event):
@@ -132,3 +132,14 @@ func _on_mesh_maker_meshes_made():
 
 func _on_mesh_maker_piece_placed(cidx):
 	emit_signal("piece_placed2", cidx)
+
+func _on_generate_button_up():
+	var error = get_tree().reload_current_scene()
+	print(error)
+
+func _on_option_button_item_selected(index):
+	var global = get_node('/root/Global')
+	if index == 0:
+		global.generate_type = 1
+	elif index == 1:
+		global.generate_type = 2

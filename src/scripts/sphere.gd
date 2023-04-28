@@ -96,6 +96,9 @@ var snow_start: float
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	var global = get_node('/root/Global')
+	planet_style = global.generate_type
+	percent_complete = global.pct_complete
 	randomize()
 	colornoise.noise_type = 4
 	colornoise.frequency = 2.0
