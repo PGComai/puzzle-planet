@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://ci83tntr5d4dh"]
+[gd_scene load_steps=10 format=3 uid="uid://ci83tntr5d4dh"]
 
 [ext_resource type="Script" path="res://scripts/eyes.gd" id="1_aglgy"]
 [ext_resource type="Script" path="res://scripts/sphere_debug_bonus.gd" id="2_cqxdd"]
 [ext_resource type="Script" path="res://scripts/cam.gd" id="3_oobts"]
+[ext_resource type="Material" uid="uid://4lhve60qgmx6" path="res://tex/mantle_fancy.tres" id="4_liuw7"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_nuq3l"]
 
@@ -13,6 +14,16 @@ albedo_color = Color(0.231373, 0.231373, 0.231373, 1)
 material = SubResource("StandardMaterial3D_enx6a")
 radius = 0.95
 height = 1.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dbodk"]
+texture_filter = 0
+
+[sub_resource type="SphereMesh" id="SphereMesh_r287j"]
+material = ExtResource("4_liuw7")
+radius = 1.0
+height = 2.0
+radial_segments = 128
+rings = 64
 
 [node name="Universe" type="Node3D"]
 script = ExtResource("1_aglgy")
@@ -27,9 +38,11 @@ mesh = SubResource("ArrayMesh_nuq3l")
 script = ExtResource("2_cqxdd")
 max_points = 15
 generations = 200
-piece_offset = 1.198
+piece_offset = 1.048
 height_noise_frequency = 4.283
 height_noise_type = 4
+planet_style = 2
+ocean = false
 snow = false
 max_terrain_height = 1.034
 crust_color = Color(0.223529, 0.223529, 0.223529, 1)
@@ -55,3 +68,16 @@ script = ExtResource("3_oobts")
 visible = false
 cast_shadow = 0
 mesh = SubResource("SphereMesh_aqned")
+
+[node name="Mantle" type="MeshInstance3D" parent="."]
+material_overlay = SubResource("StandardMaterial3D_dbodk")
+mesh = SubResource("SphereMesh_r287j")
+
+[node name="Lava Lamp" type="OmniLight3D" parent="."]
+light_color = Color(0.945098, 0.341176, 0.184314, 1)
+light_energy = 5.907
+light_size = 1.0
+light_specular = 3.761
+light_cull_mask = 4293918752
+omni_range = 1.147
+omni_attenuation = 0.574349

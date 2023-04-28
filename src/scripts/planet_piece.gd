@@ -5,6 +5,7 @@ signal ready_for_launch(idx)
 signal take_me_home(idx)
 
 @onready var upward = $upward
+@onready var walls = $walls
 
 var offset := 1.0
 
@@ -12,6 +13,10 @@ var vertex: PackedVector3Array
 var normal: PackedVector3Array
 var color: PackedColorArray
 var ocean := true
+
+var wall_vertex: PackedVector3Array
+var wall_normal: PackedVector3Array
+var wall_color: PackedColorArray
 
 var vertex_w: PackedVector3Array
 var normal_w: PackedVector3Array
@@ -54,6 +59,7 @@ var repositioning := false
 func _ready():
 	upward.position = upright_vec * 0.4
 	var newmesh = ArrayMesh.new()
+	
 	var surface_array = []
 	surface_array.resize(Mesh.ARRAY_MAX)
 	
@@ -97,6 +103,23 @@ func _ready():
 	newmesh.shadow_mesh = newmesh
 	
 	mesh = newmesh
+	
+	var wallmesh = ArrayMesh.new()
+	
+	surface_array = []
+	surface_array.resize(Mesh.ARRAY_MAX)
+
+	temparr = Array(wall_vertex)
+	temparr = temparr.map(func(v): return v - direction)
+	wall_vertex = PackedVector3Array(temparr)
+	surface_array[Mesh.ARRAY_VERTEX] = wall_vertex
+	surface_array[Mesh.ARRAY_NORMAL] = wall_normal
+	surface_array[Mesh.ARRAY_COLOR] = wall_color
+	
+	wallmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+
+	walls.mesh = wallmesh
+	
 	if ocean:
 		mesh.surface_set_material(mesh.get_surface_count()-1, water_material)
 	if staying:

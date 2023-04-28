@@ -1,7 +1,9 @@
 [gd_resource type="VisualShader" load_steps=21 format=3 uid="uid://cy8vgmr77vu3n"]
 
-[sub_resource type="VisualShaderNodeColorConstant" id="VisualShaderNodeColorConstant_h372b"]
-constant = Color(0.485545, 0.635881, 0.87524, 1)
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_um2mv"]
+parameter_name = "Scattered_Color"
+default_value_enabled = true
+default_value = Color(0.486275, 0.635294, 0.87451, 1)
 
 [sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_tr2u8"]
 input_name = "view"
@@ -48,7 +50,7 @@ parameter_name = "atmo_fresnel_max"
 qualifier = 1
 
 [sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_ihffc"]
-parameter_name = "atmo__sunset_color"
+parameter_name = "sunset_color"
 default_value_enabled = true
 default_value = Color(0.899758, 0.0822244, 0.166245, 1)
 
@@ -69,19 +71,20 @@ default_input_values = [2, false, 3, 1.809]
 code = "shader_type spatial;
 render_mode ambient_light_disabled;
 
-uniform vec4 atmo__sunset_color : source_color = vec4(0.899758, 0.082224, 0.166245, 1.000000);
+uniform vec4 Scattered_Color : source_color = vec4(0.486275, 0.635294, 0.874510, 1.000000);
+uniform vec4 sunset_color : source_color = vec4(0.899758, 0.082224, 0.166245, 1.000000);
 global uniform float atmo_fresnel_power;
 global uniform float atmo_fresnel_max;
 
 
 
 void fragment() {
-// ColorConstant:2
-	vec4 n_out2p0 = vec4(0.485545, 0.635881, 0.875240, 1.000000);
+// ColorParameter:3
+	vec4 n_out3p0 = Scattered_Color;
 
 
 // Output:0
-	ALBEDO = vec3(n_out2p0.xyz);
+	ALBEDO = vec3(n_out3p0.xyz);
 
 
 }
@@ -92,7 +95,7 @@ void light() {
 
 
 // ColorParameter:44
-	vec4 n_out44p0 = atmo__sunset_color;
+	vec4 n_out44p0 = sunset_color;
 
 
 // Input:27
@@ -183,13 +186,13 @@ void light() {
 
 }
 "
-graph_offset = Vector2(-929.901, -119.627)
+graph_offset = Vector2(-760.47, -440.778)
 flags/ambient_light_disabled = true
 nodes/vertex/0/position = Vector2(700, 140)
 nodes/fragment/0/position = Vector2(1620, 100)
-nodes/fragment/2/node = SubResource("VisualShaderNodeColorConstant_h372b")
-nodes/fragment/2/position = Vector2(960, 140)
-nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0)
+nodes/fragment/3/node = SubResource("VisualShaderNodeColorParameter_um2mv")
+nodes/fragment/3/position = Vector2(880, 140)
+nodes/fragment/connections = PackedInt32Array(3, 0, 0, 0)
 nodes/light/0/position = Vector2(880, 300)
 nodes/light/23/node = SubResource("VisualShaderNodeInput_tr2u8")
 nodes/light/23/position = Vector2(-2420, 580)

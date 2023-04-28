@@ -1,6 +1,7 @@
 - menu/gui
 - stars can block sunlight
 - better scrolling/dragging
+- rock strata in crust
 
 maybe:
 	- slant screen divider for one-handed ease

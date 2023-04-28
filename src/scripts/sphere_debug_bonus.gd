@@ -353,17 +353,20 @@ func _generate_mesh():
 			var up = dxu.rotated(verts[v].normalized(), -PI/2)
 			
 			var newpiece = piece.instantiate()
-			newpiece.vertex = tess_result[0]
-			newpiece.normal = tess_result[1]
-			newpiece.color = tess_result[2]
+			newpiece.wall_vertex = tess_result[0]
+			newpiece.wall_normal = tess_result[1]
+			newpiece.wall_color = tess_result[2]
+			newpiece.vertex = tess_result[3]
+			newpiece.normal = tess_result[4]
+			newpiece.color = tess_result[5]
 			newpiece.ocean = ocean
 			if ocean:
-				newpiece.vertex_w = tess_result[3]
-				newpiece.normal_w = tess_result[4]
-				newpiece.color_w = tess_result[5]
-				newpiece.vertex_cw = tess_result[6]
-				newpiece.normal_cw = tess_result[7]
-				newpiece.color_cw = tess_result[8]
+				newpiece.vertex_w = tess_result[6]
+				newpiece.normal_w = tess_result[7]
+				newpiece.color_w = tess_result[8]
+				newpiece.vertex_cw = tess_result[9]
+				newpiece.normal_cw = tess_result[10]
+				newpiece.color_cw = tess_result[11]
 			newpiece.direction = verts[v]
 			puzzle_fits[v] = verts[v]
 			newpiece.idx = v
@@ -380,8 +383,31 @@ func _generate_mesh():
 #		c.visible = false
 	emit_signal("meshes_made")
 	
+func tesselate2(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
+		thickness: float, water = true):
+	var border_triangles = PackedVector3Array()
+	var border_tri_normals = PackedVector3Array()
+	var border_tri_colors = PackedColorArray()
+	var water_triangles = PackedVector3Array()
+	var water_tri_normals = PackedVector3Array()
+	var water_tri_colors = PackedColorArray()
+	var cutwater_triangles = PackedVector3Array()
+	var cutwater_tri_normals = PackedVector3Array()
+	var cutwater_tri_colors = PackedColorArray()
+	
+	var land_colors = [land_color, land_color_2, land_color_3]
+	
+	var rlen = len(ring_array)
+	
+	return [border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors,
+		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
+	
 func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
 		thickness: float, water = true):
+	var wall_triangles = PackedVector3Array()
+	var wall_tri_colors = PackedColorArray()
+	var wall_tri_normals = PackedVector3Array()
 	var border_triangles = PackedVector3Array()
 	var border_tri_normals = PackedVector3Array()
 	var border_tri_colors = PackedColorArray()
@@ -403,9 +429,29 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 	#     |/     |/     |/     |/
 	#     v1-----v1p----v1p2---v1p3
 	
+	#     v0--1--v0p-5--v0p2
+	#     |     /|     /|\     
+	#     |    / |    / | \   
+	#     |   2  |   6  |  \ v0p3
+	#     |  3   4  7   8  /  | 
+	#     | /    | /    | /   | 
+	#     |/     |/     |/    | 
+	#     v1-----v1p----v1p2  |
+	#                       \ |
+	#                        \|
+	#                        ...
+	
+	#     v0--1--v0p-5--v0p2---v0p3
+	#     |     /|     /|     / \
+	#     |    / |    / |    /   \
+	#     |   2  |   6  |   /     vp
+	#     |  3   4  7   8  /    /
+	#     | /    | /    | /    /
+	#     |/     |/     |/    /
+	#     v1-----v1p----v1p2
+	
 	for b in len(ring_array)-1:
 		var v0 = ring_array[b]
-		color_vary(v0)
 		var v1 = ring_array[b+1]
 		var v0p = mm(ring_array[b]*thickness)
 		var v0pw = v0p.normalized()*water_offset
@@ -438,76 +484,40 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		
 		## PIECE WALLS BEGIN ## -----------------------------
 		
-		_triangle(v0, v0p, v1, border_triangles)
-#		border_triangles.append(v0)
-#		border_triangles.append(v0p)
-#		border_triangles.append(v1)
+		_triangle(v0, v0p, v1, wall_triangles)
 		
-		_tricolor(crust_color, crust_color, crust_color, border_tri_colors)
-#		border_tri_colors.append(crust_color)
-#		border_tri_colors.append(crust_color)
-#		border_tri_colors.append(crust_color)
+		_tricolor(crust_color, crust_color, crust_color, wall_tri_colors)
 		
 		var n = Plane(v0, v0p, v1).normal
-		_triangle(n, n, n, border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)
+		_triangle(n, n, n, wall_tri_normals)
 		
 		###
 		
-		_triangle(v1, v0p, v1p, border_triangles)
-#		border_triangles.append(v1)
-#		border_triangles.append(v0p)
-#		border_triangles.append(v1p)
+		_triangle(v1, v0p, v1p, wall_triangles)
 		
-		_tricolor(crust_color, crust_color, crust_color, border_tri_colors)
-#		border_tri_colors.append(crust_color)
-#		border_tri_colors.append(crust_color)
-#		border_tri_colors.append(crust_color)
+		_tricolor(crust_color, crust_color, crust_color, wall_tri_colors)
 		
 		n = Plane(v1, v0p, v1p).normal
-		_triangle(n, n, n, border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)
+		_triangle(n, n, n, wall_tri_normals)
 		
 		_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1p.limit_length(water_offset), cutwater_triangles)
-#		cutwater_triangles.append(v0p.limit_length(water_offset))
-#		cutwater_triangles.append(v0pw.lerp(vp, 0.001))
-#		cutwater_triangles.append(v1p.limit_length(water_offset))
 		
 		var c1 = v0pw_color.lerp(Color('black'), clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		var c3 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		_tricolor(c1, v0pw_color, c3, cutwater_tri_colors)
-#		cutwater_tri_colors.append(v0pw_color.lerp(Color('black'), clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0)))
-#		cutwater_tri_colors.append(v0pw_color)
-#		cutwater_tri_colors.append(v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0)))
 		
 		n = Plane(v0p,v0pw,v1p).normal
 		_triangle(n, n, n, cutwater_tri_normals)
-#		cutwater_tri_normals.append(n)
-#		cutwater_tri_normals.append(n)
-#		cutwater_tri_normals.append(n)
 		
 		###
 		
 		_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
-#		cutwater_triangles.append(v1p.limit_length(water_offset))
-#		cutwater_triangles.append(v0pw.lerp(vp, 0.001))
-#		cutwater_triangles.append(v1pw.lerp(vp, 0.001))
 		
 		c1 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		_tricolor(c1, v0pw_color, v1pw_color, cutwater_tri_colors)
-#		cutwater_tri_colors.append(v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0)))
-#		cutwater_tri_colors.append(v0pw_color)
-#		cutwater_tri_colors.append(v1pw_color)
 		
 		n = Plane(v1p,v0pw,v1pw).normal
 		_triangle(n, n, n, cutwater_tri_normals)
-#		cutwater_tri_normals.append(n)
-#		cutwater_tri_normals.append(n)
-#		cutwater_tri_normals.append(n)
 		
 		## PIECE WALLS END ## -----------------------------
 		
@@ -536,70 +546,34 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		## PIECE TOP BEGIN ## -----------------------------
 		
 		_triangle(v0p,v0p2,v1p,border_triangles)
-#		border_triangles.append(v0p)
-#		border_triangles.append(v0p2)
-#		border_triangles.append(v1p)
 		
 		_tricolor(v0p_color,v0p2_color,v1p_color,border_tri_colors)
-#		border_tri_colors.append(v0p_color)
-#		border_tri_colors.append(v0p2_color)
-#		border_tri_colors.append(v1p_color)
 		
 		n = Plane(v0p,v0p2,v1p).normal
 		_triangle(n,n,n,border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)###
-#		border_tri_normals.append(n)
 		
 		_triangle(v0pw, v0p2w, v1pw, water_triangles)
-#		water_triangles.append(v0pw)
-#		water_triangles.append(v0p2w)
-#		water_triangles.append(v1pw)
 		
 		_tricolor(v0pw_color, v0p2w_color, v1pw_color, water_tri_colors)
-#		water_tri_colors.append(v0pw_color)
-#		water_tri_colors.append(v0p2w_color)
-#		water_tri_colors.append(v1pw_color)
 		
 		n = Plane(v0pw,v0p2w,v1pw).normal
 		_triangle(v0pw.normalized(), v0p2w.normalized(), v1pw.normalized(), water_tri_normals)
-#		water_tri_normals.append(v0pw.normalized())
-#		water_tri_normals.append(v0p2w.normalized())
-#		water_tri_normals.append(v1pw.normalized())
 		
 		###
 		
 		_triangle(v1p,v0p2,v1p2,border_triangles)
-#		border_triangles.append(v1p)
-#		border_triangles.append(v0p2)
-#		border_triangles.append(v1p2)
 		
 		_tricolor(v1p_color,v0p2_color,v1p2_color,border_tri_colors)
-#		border_tri_colors.append(v1p_color)
-#		border_tri_colors.append(v0p2_color)
-#		border_tri_colors.append(v1p2_color)
 		
 		n = Plane(v1p,v0p2,v1p2).normal
 		_triangle(n,n,n,border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)###
-#		border_tri_normals.append(n)
 		
 		_triangle(v1pw, v0p2w, v1p2w, water_triangles)
-#		water_triangles.append(v1pw)
-#		water_triangles.append(v0p2w)
-#		water_triangles.append(v1p2w)
 		
 		_tricolor(v1pw_color, v0p2w_color, v1p2w_color, water_tri_colors)
-#		water_tri_colors.append(v1pw_color)
-#		water_tri_colors.append(v0p2w_color)
-#		water_tri_colors.append(v1p2w_color)
 		
 		n = Plane(v1pw,v0p2w,v1p2w).normal
 		_triangle(v1pw.normalized(), v0p2w.normalized(), v1p2w.normalized(), water_tri_normals)
-#		water_tri_normals.append(v1pw.normalized())
-#		water_tri_normals.append(v0p2w.normalized())
-#		water_tri_normals.append(v1p2w.normalized())
 		
 		#3
 		
@@ -628,70 +602,34 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		###
 		
 		_triangle(v0p2,v0p3,v1p2,border_triangles)
-#		border_triangles.append(v0p2)
-#		border_triangles.append(v0p3)
-#		border_triangles.append(v1p2)
 		
 		_tricolor(v0p2_color,v0p3_color,v1p2_color,border_tri_colors)
-#		border_tri_colors.append(v0p2_color)
-#		border_tri_colors.append(v0p3_color)
-#		border_tri_colors.append(v1p2_color)
 		
 		n = Plane(v0p2,v0p3,v1p2).normal
 		_triangle(n,n,n,border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)###
-#		border_tri_normals.append(n)
 		
 		_triangle(v0p2w, v0p3w, v1p2w, water_triangles)
-#		water_triangles.append(v0p2w)
-#		water_triangles.append(v0p3w)
-#		water_triangles.append(v1p2w)
 		
 		_tricolor(v0p2w_color, v0p3w_color, v1p2w_color, water_tri_colors)
-#		water_tri_colors.append(v0p2w_color)
-#		water_tri_colors.append(v0p3w_color)
-#		water_tri_colors.append(v1p2w_color)
 
 		n = Plane(v0p2w,v0p3w,v1p2w).normal
 		_triangle(v0p2w.normalized(), v0p3w.normalized(), v1p2w.normalized(), water_tri_normals)
-#		water_tri_normals.append(v0p2w.normalized())
-#		water_tri_normals.append(v0p3w.normalized())
-#		water_tri_normals.append(v1p2w.normalized())
 		
 		###
 		
 		_triangle(v1p2,v0p3,v1p3,border_triangles)
-#		border_triangles.append(v1p2)
-#		border_triangles.append(v0p3)
-#		border_triangles.append(v1p3)
 
 		_tricolor(v1p2_color,v0p3_color,v1p3_color,border_tri_colors)
-#		border_tri_colors.append(v1p2_color)
-#		border_tri_colors.append(v0p3_color)
-#		border_tri_colors.append(v1p3_color)
 
 		n = Plane(v1p2,v0p3,v1p3).normal
 		_triangle(n,n,n,border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)###
-#		border_tri_normals.append(n)
 		
 		_triangle(v1p2w, v0p3w, v1p3w, water_triangles)
-#		water_triangles.append(v1p2w)
-#		water_triangles.append(v0p3w)
-#		water_triangles.append(v1p3w)
 		
 		_tricolor(v1p2w_color, v0p3w_color, v1p3w_color, water_tri_colors)
-#		water_tri_colors.append(v1p2w_color)
-#		water_tri_colors.append(v0p3w_color)
-#		water_tri_colors.append(v1p3w_color)
 
 		n = Plane(v1p2w,v0p3w,v1p3w).normal
 		_triangle(v1p2w.normalized(), v0p3w.normalized(), v1p3w.normalized(), water_tri_normals)
-#		water_tri_normals.append(v1p2w.normalized())
-#		water_tri_normals.append(v0p3w.normalized())
-#		water_tri_normals.append(v1p3w.normalized())
 		
 		#vp
 		
@@ -706,60 +644,34 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		###
 		
 		_triangle(v0p3,vp,v1p3,border_triangles)
-#		border_triangles.append(v0p3)
-#		border_triangles.append(vp)
-#		border_triangles.append(v1p3)
 		
 		_tricolor(v0p3_color,vp_color,v1p3_color,border_tri_colors)
-#		border_tri_colors.append(v0p3_color)
-#		border_tri_colors.append(vp_color)
-#		border_tri_colors.append(v1p3_color)
 		
 		n = Plane(v0p3,vp,v1p3).normal
 		_triangle(n,n,n,border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)###
-#		border_tri_normals.append(n)
 		
 		_triangle(v0p3w, vpw, v1p3w, water_triangles)
-#		water_triangles.append(v0p3w)
-#		water_triangles.append(vpw)
-#		water_triangles.append(v1p3w)
 		
 		_tricolor(v0p3w_color, vpw_color, v1p3w_color, water_tri_colors)
-#		water_tri_colors.append(v0p3w_color)
-#		water_tri_colors.append(vpw_color)
-#		water_tri_colors.append(v1p3w_color)
 
 		n = Plane(v0p3w,vpw,v1p3w).normal
 		_triangle(v0p3w.normalized(), vpw.normalized(), v1p3w.normalized(), water_tri_normals)
-#		water_tri_normals.append(v0p3w.normalized())
-#		water_tri_normals.append(vpw.normalized())
-#		water_tri_normals.append(v1p3w.normalized())
 		
 		## PIECE TOP END ## -----------------------------
 		
 		## PIECE BOTTOM BEGIN ## -----------------------------
 		
 		_triangle(v1,og_verts[og_idx],v0,border_triangles)
-#		border_triangles.append(v1)
-#		border_triangles.append(og_verts[og_idx])
-#		border_triangles.append(v0)
 		
 		_tricolor(crust_color,crust_color,crust_color,border_tri_colors)
-#		border_tri_colors.append(crust_color)
-#		border_tri_colors.append(crust_color)
-#		border_tri_colors.append(crust_color)
 		
 		n = Plane(v0,og_verts[og_idx],v1).normal
 		_triangle(n,n,n,border_tri_normals)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)
-#		border_tri_normals.append(n)
 		
 		## PIECE BOTTOM END ## -----------------------------
 	
-	return [border_triangles, border_tri_normals, border_tri_colors,
+	return [wall_triangles, wall_tri_normals, wall_tri_colors,
+		border_triangles, border_tri_normals, border_tri_colors,
 		water_triangles, water_tri_normals, water_tri_colors,
 		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
 		

@@ -28,6 +28,8 @@ var lower_limit_reached := false
 var limit_pull := 0.0
 var fling := false
 
+var generate_type := 1
+
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	h = sub_viewport.size.y

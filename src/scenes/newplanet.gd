@@ -1,4 +1,4 @@
-extends PopupMenu
+extends PopupPanel
 
 
 # Called when the node enters the scene tree for the first time.
@@ -11,10 +11,10 @@ func _process(delta):
 	pass
 
 
-func _on_menu_button_pressed():
-	self.visible = true
+func _on_cancel_button_up():
+	self.visible = false
 
 
-func _on_id_pressed(id):
-	if id == 3:
-		self.visible = false
+func _on_popup_menu_id_pressed(id):
+	if id == 0:
+		self.visible = true
