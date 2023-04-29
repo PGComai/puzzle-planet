@@ -187,10 +187,12 @@ autowrap_mode = 2
 
 [node name="PctFillSlider" type="HSlider" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
+min_value = 15.0
 max_value = 75.0
 step = 5.0
+value = 15.0
 rounded = true
-tick_count = 16
+tick_count = 13
 ticks_on_borders = true
 
 [node name="Generate" type="Button" parent="PopupPanel/VBoxContainer"]

@@ -36,6 +36,8 @@ signal piece_placed(cidx)
 @export_range(1,2) var max_terrain_height_unclamped := 1.1
 @export_range(1,2) var max_terrain_height := 1.5
 @export_category('Colors')
+@export var color_test := Color('Black')
+@export var low_crust_color := Color('3f3227')
 @export var crust_color := Color('3f3227')
 @export var land_snow_color := Color('dbdbdb')
 @export var land_color := Color('4a6c3f')
@@ -78,6 +80,12 @@ signal piece_placed(cidx)
 @onready var atmo = $"../Atmo"
 @onready var atmo_2 = $"../Atmo2"
 @onready var mantle = $"../Mantle"
+@onready var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
+@onready var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
+@onready var lava_lamp = $"../Lava Lamp"
+
+var lava_lamp_color_earth = Color('f1572f')
+var lava_lamp_color_mars = Color('c08333')
 
 var noise3d = FastNoiseLite.new()
 var colornoise = FastNoiseLite.new()
@@ -97,8 +105,9 @@ var snow_start: float
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var global = get_node('/root/Global')
-	planet_style = global.generate_type
-	percent_complete = global.pct_complete
+	if !(planet_style == 0):
+		planet_style = global.generate_type
+		percent_complete = global.pct_complete
 	randomize()
 	colornoise.noise_type = 4
 	colornoise.frequency = 2.0
@@ -277,6 +286,7 @@ func _generate_mesh():
 			noise3d.fractal_ping_pong_strength = 2.0
 			noise3d.fractal_type = 1
 			noise3d.fractal_weighted_strength = 0.0
+			low_crust_color = Color('6e2e0c')
 			crust_color = Color('3f3227')
 			land_snow_color = Color('dbdbdb')
 			land_color = Color('4a6c3f')
@@ -295,11 +305,13 @@ func _generate_mesh():
 			max_terrain_height_unclamped = 1.1
 			max_terrain_height = 1.5
 			snow = true
-			mantle.mesh.material.set_shader_parameter('Lava_Color', Color('b2773c'))
-			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('7ca2df'))
-			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('7ca2df'))
+			mantle.mesh.material = mantle_earth_material
+			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
+			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
 			atmo.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
 			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
+			lava_lamp.light_color = lava_lamp_color_earth
+			lava_lamp.visible = true
 		elif planet_style == 2:
 			## mars
 			colornoise.noise_type = 4
@@ -319,9 +331,9 @@ func _generate_mesh():
 			colornoise.fractal_type = 1
 			colornoise.fractal_weighted_strength = 0
 			noise3d.noise_type = 4
-			noise3d.frequency = 3.261
+			noise3d.frequency = 2.613
 			noise3d.domain_warp_enabled = true
-			noise3d.domain_warp_amplitude = 1.5
+			noise3d.domain_warp_amplitude = 0.052
 			noise3d.domain_warp_fractal_gain = 0.285
 			noise3d.domain_warp_fractal_lacunarity = 4.253
 			noise3d.domain_warp_fractal_octaves = 5
@@ -337,24 +349,27 @@ func _generate_mesh():
 			ocean = false
 			snow_random_low = 0.976
 			snow_random_high = 0.984
-			max_terrain_height_unclamped = 1.285
-			max_terrain_height = 1.057
-			crust_color = Color('3f3227')
+			max_terrain_height_unclamped = 1.107
+			max_terrain_height = 1.032
+			low_crust_color = Color('291f17')
+			crust_color = Color('542b18')
 			land_snow_color = Color('dbdbdb')
-			land_color = Color('82553a')
-			land_color_2 = Color('794d32')
-			land_color_3 = Color('8a6951')
+			land_color = Color('8c5323')
+			land_color_2 = Color('6f4024')
+			land_color_3 = Color('423122')
 			low_land_color = Color('74432e')
-			low_land_bottom_threshold = 1.107
+			low_land_bottom_threshold = 0.822
 			sand_color = Color('9f876b')
 			water_color = Color('0541ff')
 			shallow_water_color = Color('2091bf')
 			snow = true
-			mantle.mesh.material.set_shader_parameter('Lava_Color', Color('a18129'))
-			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('cd9152'))
-			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('6ba9ce'))
-			atmo.mesh.material.set_shader_parameter('sunset_color',Color('6ba9ce'))
-			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('cd9152'))
+			mantle.mesh.material = mantle_mars_material
+			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
+			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
+			atmo.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
+			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
+			#lava_lamp.light_color = lava_lamp_color_mars
+			lava_lamp.visible = false
 		elif planet_style == 3:
 			snow = false
 		
@@ -499,7 +514,7 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		
 		_triangle(v0, v0p, v1, wall_triangles)
 		
-		_tricolor(crust_color, crust_color, crust_color, wall_tri_colors)
+		_tricolor(low_crust_color, crust_color, low_crust_color, wall_tri_colors)
 		
 		var n = Plane(v0, v0p, v1).normal
 		_triangle(n, n, n, wall_tri_normals)
@@ -508,7 +523,7 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		
 		_triangle(v1, v0p, v1p, wall_triangles)
 		
-		_tricolor(crust_color, crust_color, crust_color, wall_tri_colors)
+		_tricolor(low_crust_color, crust_color, crust_color, wall_tri_colors)
 		
 		n = Plane(v1, v0p, v1p).normal
 		_triangle(n, n, n, wall_tri_normals)
@@ -676,7 +691,7 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		
 		_triangle(v1,og_verts[og_idx],v0,border_triangles)
 		
-		_tricolor(crust_color,crust_color,crust_color,border_tri_colors)
+		_tricolor(low_crust_color,low_crust_color,low_crust_color,border_tri_colors)
 		
 		n = Plane(v0,og_verts[og_idx],v1).normal
 		_triangle(n,n,n,border_tri_normals)

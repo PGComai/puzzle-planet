@@ -1,6 +1,6 @@
 extends DirectionalLight3D
 
-var _on: bool = false
+var _on := false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
@@ -9,6 +9,6 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if _on:
-		self.light_energy = lerp(self.light_energy, 1.0, 0.1)
+		self.light_energy = lerp(self.light_energy, 0.5, 0.1)
 	else:
 		self.light_energy = lerp(self.light_energy, 0.0, 0.1)

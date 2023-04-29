@@ -12,4 +12,5 @@ func _process(delta):
 	if _on:
 		self.light_energy = lerp(self.light_energy, 1.0, 0.1)
 	else:
-		self.light_energy = lerp(self.light_energy, 0.0, 0.1)
+		self.light_energy = lerp(self.light_energy, 0.3, 0.1)
+		

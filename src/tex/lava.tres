@@ -34,7 +34,7 @@ operator = 6
 [sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_itujw"]
 parameter_name = "Lava_Color"
 default_value_enabled = true
-default_value = Color(0.68725, 0.29177, 0.225688, 1)
+default_value = Color(0.713726, 0.478431, 0.270588, 1)
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_vvd2l"]
 seed = 1
@@ -111,7 +111,7 @@ operator = 2
 [resource]
 code = "shader_type spatial;
 uniform sampler2D tex_vtx_6;
-uniform vec4 Lava_Color : source_color = vec4(0.687250, 0.291770, 0.225688, 1.000000);
+uniform vec4 Lava_Color : source_color = vec4(0.713726, 0.478431, 0.270588, 1.000000);
 uniform sampler2D tex_frg_2;
 uniform sampler2D tex_frg_5;
 uniform sampler2D tex_frg_7;
@@ -249,7 +249,6 @@ void fragment() {
 
 }
 "
-graph_offset = Vector2(-329.168, -153.457)
 nodes/vertex/0/position = Vector2(1260, 360)
 nodes/vertex/2/node = SubResource("VisualShaderNodeInput_4m30n")
 nodes/vertex/2/position = Vector2(-1400, 320)

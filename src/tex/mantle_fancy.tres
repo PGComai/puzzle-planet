@@ -1,8 +1,0 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://4lhve60qgmx6"]
-
-[ext_resource type="Shader" uid="uid://dee3nrj2b35ke" path="res://tex/lava.tres" id="1_msnmk"]
-
-[resource]
-render_priority = 0
-shader = ExtResource("1_msnmk")
-shader_parameter/Lava_Color = Color(0.698039, 0.466667, 0.235294, 1)

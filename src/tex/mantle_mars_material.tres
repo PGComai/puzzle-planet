@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://b4l207otd7lba"]
+
+[ext_resource type="Shader" uid="uid://c2uq0vim3d35g" path="res://tex/mantle_mars.tres" id="1_tlnnb"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_tlnnb")
