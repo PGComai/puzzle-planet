@@ -104,13 +104,14 @@ func _generate_mesh():
 #		txt.mesh.text = str(ndi)
 #		txt.position = verts[ndi]*1.1
 #		add_child(txt)
-		#for pti in len(vi_to_borders[ndi])-1:
-			#txt = txtmsh.instantiate()
-			#txt.mesh.text = str(pti)
-			#txt.mesh.font_size = 5
-			#txt.position = (vi_to_borders[ndi][pti].move_toward(verts[ndi], 0.05)).normalized()*1.05
-			#add_child(txt)
-#		print(str(ndi) + ': ' + str(len(vi_to_borders[ndi])-1))
+#		if ndi == 0:
+#			for pti in len(recursed_borders[ndi]):
+#				var txt = txtmsh.instantiate()
+#				txt.mesh.text = str(pti)
+#				txt.mesh.font_size = 2
+#				txt.position = (recursed_borders[ndi][pti].move_toward(verts[ndi], 0.05)).normalized()*1.05
+#				add_child(txt)
+#			print(str(ndi) + ': ' + str(len(recursed_borders[ndi])))
 		draw_linemesh(recursed_borders[ndi], newmesh)
 		#delaunay(vi_to_borders[ndi])
 
@@ -365,37 +366,36 @@ func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
 	for vi in vbdict.keys():
 		var border_array = vbdict[vi]
 		var new_border_array = PackedVector3Array()
-		for b in len(border_array)-1:
+		for b in len(border_array):
 			var plus1 = b+1
 			if plus1 == len(border_array):
 				## last one
-				pass
+				plus1 = 0
+				var current_border_point = border_array[b]
+				var next_border_point = border_array[plus1]
+				if current_border_point != next_border_point:
+					var ang = current_border_point.angle_to(next_border_point)
+					var ax = current_border_point.cross(next_border_point).normalized()
+					#if !(new_border_array.has(current_border_point)):
+					new_border_array.append(current_border_point)
+					var halfway = current_border_point.rotated(ax, ang/2.0)
+					#if !(new_border_array.has(halfway)):
+					new_border_array.append(halfway)
+					#if !(new_border_array.has(next_border_point)):
+					new_border_array.append(next_border_point)
 			else:
 				var current_border_point = border_array[b]
 				var next_border_point = border_array[plus1]
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
-					new_border_array.append(current_border_point)
-					#if ang > vertex_fill_threshold:
+					if !(new_border_array.has(current_border_point)):
+						new_border_array.append(current_border_point)
 					var halfway = current_border_point.rotated(ax, ang/2.0)
-					new_border_array.append(halfway)
-					new_border_array.append(next_border_point)
-#		var replace_dict = {}
-#		for b in len(new_border_array)-1:
-#			var plus1 = b+1
-#			if plus1 == len(new_border_array):
-#				## last one
-#				pass
-#			else:
-#				var current_border_point = new_border_array[b]
-#				var next_border_point = new_border_array[plus1]
-#				var ang = current_border_point.angle_to(next_border_point)
-#				var ax = current_border_point.cross(next_border_point).normalized()
-#				if ang < vertex_merge_threshold:
-#					var halfway = current_border_point.rotated(ax, ang/2.0)
-#					replace_dict[halfway] = [b, plus1]
-#		print(replace_dict)
+					if !(new_border_array.has(halfway)):
+						new_border_array.append(halfway)
+					if !(new_border_array.has(next_border_point)):
+						new_border_array.append(next_border_point)
 		vbdict[vi] = new_border_array
 	return vbdict
 

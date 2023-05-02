@@ -11,9 +11,10 @@ signal piece_placed(cidx)
 @export var percent_complete: int = 50
 @export var piece_offset := 1.0
 @export_category('Terrain')
+@export var offset := 1.1
 @export var vertex_fill_threshold := 0.1
 @export var vertex_merge_threshold := 0.05
-@export_range(1.0, 5.0, 1.0) var sub_triangle_recursion := 2
+@export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
 @export_enum('custom', 'earth', 'mars', 'moon') var planet_style := 0
 @export var height_noise_frequency: float = 1.5
 @export var height_noise_type: FastNoiseLite.NoiseType
@@ -221,12 +222,21 @@ func _generate_mesh():
 		var my_delaunay_points = verts_to_dpoints(verts, delaunay_triangle_centers)
 		
 		vi_to_borders = make_border_array(verts, my_delaunay_points)
-
-		var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
-		var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
-		var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
 		
-		vi_to_borders = newnewnewdict
+		## NEW STUFF
+		
+		var recursed_borders = vi_to_borders.duplicate()
+
+		for r in sub_triangle_recursion+1:
+			recursed_borders = fill_border_halfways(recursed_borders.duplicate(), verts)
+
+		## NEW STUFF
+
+#		var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
+#		var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
+#		var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
+		
+		vi_to_borders = recursed_borders
 		if save:
 			var save_path = 'res://planets/'
 			var save_number = len(DirAccess.get_files_at(save_path))+1
@@ -389,7 +399,6 @@ func _generate_mesh():
 			
 			### DRAW MESH ###
 			
-			var offset = 1.1
 			var tess_result = tesselate(verts, v, border_array, offset)
 			
 			var dxu = verts[v].cross(Vector3.UP)
@@ -448,11 +457,14 @@ func _progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, 
 	var cutwater_tri_normals = PackedVector3Array()
 	var cutwater_tri_colors = PackedColorArray()
 	
-	var land_colors = [land_color, land_color_2, land_color_3]
+	var arrays = [wall_triangles, wall_tri_normals, wall_tri_colors,
+		border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors,
+		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
 	
 	####
-	var triangles = PackedVector3Array()
-	var triangle_normals = PackedVector3Array()
+#	var triangles = PackedVector3Array()
+#	var triangle_normals = PackedVector3Array()
 	for bak in vbdict.keys():
 		var border_array = vbdict[bak]
 		var on = true
@@ -461,7 +473,7 @@ func _progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, 
 			var v0 = border_array[b]
 			var v1 = border_array[b+1]
 			var vp = og_verts[bak]
-			_sub_triangle(v0,vp,v1, triangles, triangle_normals)
+			_sub_triangle(v0,vp,v1, arrays)
 	#draw_trimesh(triangles, triangle_normals, msh)
 	####
 	
@@ -470,42 +482,86 @@ func _progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, 
 		water_triangles, water_tri_normals, water_tri_colors,
 		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
 
-func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array, normal_arr: PackedVector3Array, recursion := 0):
-	var ang = p1.angle_to(p2)
-	var ang2 = p2.angle_to(p3)
-	var ang3 = p1.angle_to(p3)
+func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursion := 0):
+#	[wall_triangles, wall_tri_normals, wall_tri_colors,                  0, 1, 2
+#		border_triangles, border_tri_normals, border_tri_colors,         3, 4, 5
+#		water_triangles, water_tri_normals, water_tri_colors,            6, 7, 8
+#		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]   9, 10, 11
 	if recursion > sub_triangle_recursion:
 		# i think this is where we need to apply color, height, etc to vertices
-		_triangle(p1, p2, p3, arr)
+		
+		# land height
+		p1 = mm(p1*offset)
+		p2 = mm(p2*offset)
+		p3 = mm(p3*offset)
+		
+		# land color
+		var land_colors = [land_color, land_color_2, land_color_3]
+		var p1_color = land_colors[color_vary(p1)].lerp(low_land_color, clamp(remap(p1.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var p2_color = land_colors[color_vary(p2)].lerp(low_land_color, clamp(remap(p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var p3_color = land_colors[color_vary(p3)].lerp(low_land_color, clamp(remap(p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		if p1.length() < sand_threshold and ocean:
+			p1_color = sand_color
+		elif asin(abs(p1.normalized().y)) > snow_start and snow:
+			p1_color = land_snow_color
+		if p2.length() < sand_threshold and ocean:
+			p2_color = sand_color
+		elif asin(abs(p2.normalized().y)) > snow_start and snow:
+			p2_color = land_snow_color
+		if p3.length() < sand_threshold and ocean:
+			p3_color = sand_color
+		elif asin(abs(p3.normalized().y)) > snow_start and snow:
+			p3_color = land_snow_color
+		
+		# water height
+		var p1w = p1.normalized() * water_offset
+		var p2w = p2.normalized() * water_offset
+		var p3w = p3.normalized() * water_offset
+		
+		# water depth
+		var p1w_depth = p1.length_squared() - p1w.length_squared()
+		var p2w_depth = p2.length_squared() - p2w.length_squared()
+		var p3w_depth = p3.length_squared() - p3w.length_squared()
+		
+		# water color
+		var depth_start = 0.001
+		var depth_end = 0.05
+		var p1w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p1w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		
+		_triangle(p1, p2, p3, arrays[3])
 		var n = Plane(p1, p2, p3).normal
-		_triangle(n,n,n, normal_arr)
+		_triangle(n,n,n, arrays[4])
 	else:
 		recursion += 1
+		
+		var ang = p1.angle_to(p2)
+		var ang2 = p2.angle_to(p3)
+		var ang3 = p1.angle_to(p3)
 		var ax: Vector3
 		var newpoint: Vector3
 		var n: Vector3
-		var angs = [ang, ang2, ang3]
 		
-		if true:
-			ax = p1.cross(p2).normalized()
-			newpoint = p1.rotated(ax, ang*0.5)
-			var p12 = newpoint
-			
-			ax = p2.cross(p3).normalized()
-			newpoint = p2.rotated(ax, ang2*0.5)
-			var p23 = newpoint
-			
-			ax = p1.cross(p3).normalized()
-			newpoint = p1.rotated(ax, ang3*0.5)
-			var p31 = newpoint
-			
-			_sub_triangle(p1, p12, p31, arr, normal_arr, recursion)
-			
-			_sub_triangle(p12, p2, p23, arr, normal_arr, recursion)
-			
-			_sub_triangle(p31, p23, p3, arr, normal_arr, recursion)
-			
-			_sub_triangle(p12, p23, p31, arr, normal_arr, recursion)
+		ax = p1.cross(p2).normalized()
+		newpoint = p1.rotated(ax, ang*0.5)
+		var p12 = newpoint
+		
+		ax = p2.cross(p3).normalized()
+		newpoint = p2.rotated(ax, ang2*0.5)
+		var p23 = newpoint
+		
+		ax = p1.cross(p3).normalized()
+		newpoint = p1.rotated(ax, ang3*0.5)
+		var p31 = newpoint
+		
+		_sub_triangle(p1, p12, p31, arrays, recursion)
+		
+		_sub_triangle(p12, p2, p23, arrays, recursion)
+		
+		_sub_triangle(p31, p23, p3, arrays, recursion)
+		
+		_sub_triangle(p12, p23, p31, arrays, recursion)
 
 func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: ArrayMesh):
 	var surface_array = []
@@ -845,7 +901,44 @@ func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary
 		border_array.append(border_vecs[0])
 		result[v] = border_array
 	return result
-	
+
+func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
+	for vi in vbdict.keys():
+		var border_array = vbdict[vi]
+		var new_border_array = PackedVector3Array()
+		for b in len(border_array):
+			var plus1 = b+1
+			if plus1 == len(border_array):
+				## last one
+				plus1 = 0
+				var current_border_point = border_array[b]
+				var next_border_point = border_array[plus1]
+				if current_border_point != next_border_point:
+					var ang = current_border_point.angle_to(next_border_point)
+					var ax = current_border_point.cross(next_border_point).normalized()
+					#if !(new_border_array.has(current_border_point)):
+					new_border_array.append(current_border_point)
+					var halfway = current_border_point.rotated(ax, ang/2.0)
+					#if !(new_border_array.has(halfway)):
+					new_border_array.append(halfway)
+					#if !(new_border_array.has(next_border_point)):
+					new_border_array.append(next_border_point)
+			else:
+				var current_border_point = border_array[b]
+				var next_border_point = border_array[plus1]
+				if current_border_point != next_border_point:
+					var ang = current_border_point.angle_to(next_border_point)
+					var ax = current_border_point.cross(next_border_point).normalized()
+					if !(new_border_array.has(current_border_point)):
+						new_border_array.append(current_border_point)
+					var halfway = current_border_point.rotated(ax, ang/2.0)
+					if !(new_border_array.has(halfway)):
+						new_border_array.append(halfway)
+					if !(new_border_array.has(next_border_point)):
+						new_border_array.append(next_border_point)
+		vbdict[vi] = new_border_array
+	return vbdict
+
 func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
 	for vi in vbdict.keys():
 		var border_array = vbdict[vi]
