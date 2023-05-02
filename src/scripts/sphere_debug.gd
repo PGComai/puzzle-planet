@@ -8,8 +8,10 @@ extends MeshInstance3D
 @export var calc_border = true
 @export var height_noise_frequency: float = 1.5
 @export var mesh_resource: Resource
-@export var border_offset := 0.1
+@export var border_offset := 0.0
 @export var vertex_fill_threshold := 0.1
+@export var vertex_merge_threshold := 0.05
+@export var sub_triangle_recursion := 2
 
 @onready var pieces = $"../Pieces"
 @onready var camera_3d = $"../h/v/Camera3D"
@@ -79,6 +81,7 @@ func _generate_mesh():
 		add_child(txt)
 
 	var delaunay_triangle_centers: Dictionary
+	#delaunay(verts)
 	delaunay_triangle_centers = delaunay(verts, true)
 
 	var my_delaunay_points = verts_to_dpoints(verts, delaunay_triangle_centers)
@@ -90,12 +93,182 @@ func _generate_mesh():
 	var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
 	var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
 	var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
+#	_progressive_meshify_inwards(vi_to_borders, verts, newmesh, newnewnewdict)
+	#_progressive_triangulate(vi_to_borders, verts, newmesh)
 	
-	for ndi in newnewnewdict.keys():
-		draw_linemesh(newnewnewdict[ndi], newmesh)
+	for ndi in vi_to_borders.keys():
+		draw_linemesh(vi_to_borders[ndi], newmesh)
+		#delaunay(vi_to_borders[ndi])
 
 	mesh = newmesh
+
+func _progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, msh: ArrayMesh):
+	# needs to treat thin triangles differently while making same edge vertices
+	var triangles = PackedVector3Array()
+	var triangle_normals = PackedVector3Array()
+	for bak in vbdict.keys():
+		var border_array = vbdict[bak]
+		var on = true
+		var next_array = PackedVector3Array()
+		for b in len(border_array)-1:
+			var v0 = border_array[b]
+			var v1 = border_array[b+1]
+			var vp = og_verts[bak]
+			#if v0.angle_to(vp) > vertex_fill_threshold and vp.angle_to(v1) > vertex_fill_threshold and v0.angle_to(v1) > vertex_fill_threshold:
+			_sub_triangle(v0,vp,v1, triangles, triangle_normals)
+#			_triangle(v0,vp,v1, triangles)
+#			var n = Plane(v0,vp,v1).normal
+#			_triangle(n,n,n, triangle_normals)
+#			var newpoint: Vector3
+#			var ang = v0.angle_to(vp)
+#			var ax = v0.cross(vp).normalized()
+#			newpoint = v0.rotated(ax, ang*0.2)
+#			next_array.append(newpoint)
+	draw_trimesh(triangles, triangle_normals, msh)
+
+func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array, normal_arr: PackedVector3Array, recursion := 0):
+	var ang = p1.angle_to(p2)
+	var ang2 = p2.angle_to(p3)
+	var ang3 = p1.angle_to(p3)
+	if recursion > sub_triangle_recursion:#(ang <= vertex_fill_threshold and ang2 <= vertex_fill_threshold and ang3 <= vertex_fill_threshold):
+		_triangle(p1, p2, p3, arr)
+		var n = Plane(p1, p2, p3).normal
+		_triangle(n,n,n, normal_arr)
+	else:
+		recursion += 1
+		var ax: Vector3
+		var newpoint: Vector3
+		var n: Vector3
+		var angs = [ang, ang2, ang3]
+		
+		if true:#ang > vertex_fill_threshold and ang2 > vertex_fill_threshold and ang3 > vertex_fill_threshold:
+			ax = p1.cross(p2).normalized()
+			newpoint = p1.rotated(ax, ang*0.5)
+			var p12 = newpoint
 			
+			ax = p2.cross(p3).normalized()
+			newpoint = p2.rotated(ax, ang2*0.5)
+			var p23 = newpoint
+			
+			ax = p1.cross(p3).normalized()
+			newpoint = p1.rotated(ax, ang3*0.5)
+			var p31 = newpoint
+			
+			_sub_triangle(p1, p12, p31, arr, normal_arr, recursion)
+			
+			_sub_triangle(p12, p2, p23, arr, normal_arr, recursion)
+			
+			_sub_triangle(p31, p23, p3, arr, normal_arr, recursion)
+			
+			_sub_triangle(p12, p23, p31, arr, normal_arr, recursion)
+#		else:
+#			var angtests = angs.map(func(number): return number > vertex_fill_threshold)
+#			var num_short_edges = angtests.count(false)
+#			print(num_short_edges)
+#
+#			if num_short_edges == 3 or num_short_edges == 2:
+#				_triangle(p1, p2, p3, arr)
+#				n = Plane(p1, p2, p3).normal
+#				_triangle(n,n,n, normal_arr)
+#			else:
+#				var idx = angtests.find(false)
+#				# call _sub_triangle on new triangle opposite short side
+#				if idx == 0: # then the short side is p12
+#					ax = p2.cross(p3).normalized()
+#					newpoint = p2.rotated(ax, ang2*0.5)
+#					var p23 = newpoint
+#
+#					ax = p1.cross(p3).normalized()
+#					newpoint = p1.rotated(ax, ang3*0.5)
+#					var p31 = newpoint
+#
+#					_sub_triangle(p31, p23, p3, arr, normal_arr, recursion)
+#
+#					_sub_triangle(p1, p23, p31, arr, normal_arr, recursion)
+#
+#					_sub_triangle(p23, p1, p2, arr, normal_arr, recursion)
+#				elif idx == 1: # short side is p23
+#					ax = p1.cross(p2).normalized()
+#					newpoint = p1.rotated(ax, ang*0.5)
+#					var p12 = newpoint
+#
+#					ax = p1.cross(p3).normalized()
+#					newpoint = p1.rotated(ax, ang3*0.5)
+#					var p31 = newpoint
+#
+#					_sub_triangle(p1, p12, p31, arr, normal_arr, recursion)
+#
+#					_sub_triangle(p12, p2, p31, arr, normal_arr, recursion)
+#
+#					_sub_triangle(p31, p2, p3, arr, normal_arr, recursion)
+#				else: # short side is p31
+#					ax = p1.cross(p2).normalized()
+#					newpoint = p1.rotated(ax, ang*0.5)
+#					var p12 = newpoint
+#
+#					ax = p2.cross(p3).normalized()
+#					newpoint = p2.rotated(ax, ang2*0.5)
+#					var p23 = newpoint
+#
+#					_sub_triangle(p12, p2, p23, arr, normal_arr, recursion)
+#
+#					_sub_triangle(p1, p12, p3, arr, normal_arr, recursion)
+#
+#					_sub_triangle(p3, p12, p23, arr, normal_arr, recursion)
+				
+
+func _triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array):
+	arr.append(p1)
+	arr.append(p2)
+	arr.append(p3)
+
+func _progressive_meshify_inwards(corner_dict: Dictionary, og_verts: PackedVector3Array, msh: ArrayMesh, ref_dict: Dictionary):
+	var triangles = PackedVector3Array()
+	var triangle_normals = PackedVector3Array()
+	for cd in corner_dict.keys():
+		var final_arr = PackedVector3Array()
+		var border_array = corner_dict[cd]
+		var new_border_array = PackedVector3Array()
+		var new_border_array2 = PackedVector3Array()
+		var new_border_array3 = PackedVector3Array()
+		for b in border_array:
+			var ang = b.angle_to(og_verts[cd])
+			var ax = b.cross(og_verts[cd]).normalized()
+			var newpoint = b.rotated(ax, ang*0.5)
+			new_border_array.append(newpoint)
+		new_border_array = fill_border_halfways_array(new_border_array)
+		new_border_array = fill_border_halfways_array(new_border_array)
+		new_border_array = fill_border_halfways_array(new_border_array)
+		final_arr.append_array(new_border_array)
+		draw_linemesh(new_border_array, msh)
+		for b in border_array:
+			var ang = b.angle_to(og_verts[cd])
+			var ax = b.cross(og_verts[cd]).normalized()
+			var newpoint = b.rotated(ax, ang*0.25)
+			new_border_array2.append(newpoint)
+		new_border_array2 = fill_border_halfways_array(new_border_array2)
+		new_border_array2 = fill_border_halfways_array(new_border_array2)
+		new_border_array2 = fill_border_halfways_array(new_border_array2)
+		final_arr.append_array(new_border_array2)
+		draw_linemesh(new_border_array2, msh)
+		for b in border_array:
+			var ang = b.angle_to(og_verts[cd])
+			var ax = b.cross(og_verts[cd]).normalized()
+			var newpoint = b.rotated(ax, ang*0.75)
+			new_border_array3.append(newpoint)
+		new_border_array3 = fill_border_halfways_array(new_border_array3)
+		new_border_array3 = fill_border_halfways_array(new_border_array3)
+		new_border_array3 = fill_border_halfways_array(new_border_array3)
+		final_arr.append_array(new_border_array3)
+		draw_linemesh(new_border_array3, msh)
+#		for b in len(final_arr)-1:
+#			var v0 = final_arr[b]
+#			var v1 = final_arr[b+1]
+#			var vp = og_verts[cd]
+#			_triangle(v0,vp,v1, triangles)
+#			var n = Plane(v0,vp,v1).normal
+#			_triangle(n,n,n, triangle_normals)
+	#draw_trimesh(triangles, triangle_normals, msh)
 
 func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
 	var result = {}
@@ -110,6 +283,7 @@ func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
 func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary):
 	var result = {}
 	var l = len(og_verts)
+	var newpoints = []
 	for v in l:
 		# sweep search axis is verts[v]
 		var amax = 2.0*PI
@@ -145,11 +319,38 @@ func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary
 		result[v] = border_array
 	return result
 	
+func fill_border_halfways_array(arr: Array):
+	var new_border_array = PackedVector3Array()
+	var skipnext := false
+	for b in len(arr)-1:
+		var plus1 = b+1
+		if plus1 == len(arr) or skipnext:
+			skipnext = false
+		else:
+			var current_border_point = arr[b]
+			var next_border_point = arr[plus1]
+			var ang = current_border_point.angle_to(next_border_point)
+			var ax = current_border_point.cross(next_border_point).normalized()
+#			if ang < vertex_merge_threshold:
+#				print('merge')
+#				var halfway = current_border_point.rotated(ax, ang/2.0)
+#				new_border_array.remove_at(len(new_border_array)-1)
+#				new_border_array.append(halfway)
+#				skipnext = true
+#			else:
+			new_border_array.append(current_border_point)
+			if ang > vertex_fill_threshold:
+				var halfway = current_border_point.rotated(ax, ang/2.0)
+				new_border_array.append(halfway)
+			new_border_array.append(next_border_point)
+		
+	return new_border_array
+	
 func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
 	for vi in vbdict.keys():
 		var border_array = vbdict[vi]
 		var new_border_array = PackedVector3Array()
-		for b in len(border_array):
+		for b in len(border_array)-1:
 			var plus1 = b+1
 			if plus1 == len(border_array):
 				## last one
@@ -157,17 +358,34 @@ func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
 			else:
 				var current_border_point = border_array[b]
 				var next_border_point = border_array[plus1]
-				
-				var bb_dist = current_border_point.distance_to(next_border_point)
+				var ang = current_border_point.angle_to(next_border_point)
+				var ax = current_border_point.cross(next_border_point).normalized()
 				new_border_array.append(current_border_point)
-				if bb_dist > vertex_fill_threshold:
-					var halfway = current_border_point.move_toward(next_border_point, bb_dist/2.0).normalized()
+				if ang > vertex_fill_threshold:
+					var halfway = current_border_point.rotated(ax, ang/2.0)
 					new_border_array.append(halfway)
 				new_border_array.append(next_border_point)
+#		var replace_dict = {}
+#		for b in len(new_border_array)-1:
+#			var plus1 = b+1
+#			if plus1 == len(new_border_array):
+#				## last one
+#				pass
+#			else:
+#				var current_border_point = new_border_array[b]
+#				var next_border_point = new_border_array[plus1]
+#				var ang = current_border_point.angle_to(next_border_point)
+#				var ax = current_border_point.cross(next_border_point).normalized()
+#				if ang < vertex_merge_threshold:
+#					var halfway = current_border_point.rotated(ax, ang/2.0)
+#					replace_dict[halfway] = [b, plus1]
+#		print(replace_dict)
 		vbdict[vi] = new_border_array
 	return vbdict
 
-func delaunay(points: PackedVector3Array, return_tris = false):
+func delaunay(points: PackedVector3Array, return_tris := false):
+	var triangles = PackedVector3Array()
+	var triangle_normals = PackedVector3Array()
 	var tris = {}
 	var centers = PackedVector3Array()
 	var good_triangles = []
@@ -177,7 +395,7 @@ func delaunay(points: PackedVector3Array, return_tris = false):
 		for p2 in num_of_points:
 			for p3 in num_of_points:
 				all_possible_threes.append([p,p2,p3])
-	print(len(all_possible_threes))
+	#print(len(all_possible_threes))
 	for three in all_possible_threes:
 		var p = three[0]
 		var p2 = three[1]
@@ -196,9 +414,8 @@ func delaunay(points: PackedVector3Array, return_tris = false):
 			else:
 				var pl = Plane(points[p],points[p2],points[p3])
 				var pl2 = Plane(points[p],points[p3],points[p2])
-				var plc = pl.get_center()
-				var pl2c = pl2.get_center()
-
+				var plc = pl.get_center().normalized()
+				
 				var is_good = true
 				var is_good2 = true
 
@@ -209,32 +426,74 @@ func delaunay(points: PackedVector3Array, return_tris = false):
 					if pl2.is_point_over(points[pp]):
 						if abs(pl2.distance_to(points[pp])) > 0.0005:
 							is_good2 = false
-
 				var surface_array = []
 				surface_array.resize(Mesh.ARRAY_MAX)
+				
+				# trying to merge points yet again
+				
+				for c in len(centers):
+					if centers[c].angle_to(plc) < vertex_merge_threshold:
+						plc = centers[c]
+				
 				if is_good:
 					good_triangles.append([p,p2,p3])
 					if !return_tris:
-						var off = plc.normalized()*0.0
-						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
-						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+						#_sub_triangle(points[p], points[p2], points[p3], triangles, triangle_normals)
+						_triangle(points[p], points[p2], points[p3], triangles)
+						var n = Plane(points[p], points[p2], points[p3]).normal
+						_triangle(n, n, n, triangle_normals)
+#						var off = plc*0.0
+#						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
+#						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 					else:
 						var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
-						tris[plarr] = plc.normalized()
-						centers.append(plc.normalized())
+						tris[plarr] = plc
+						if !centers.has(plc):
+							centers.append(plc)
 				if is_good2:
 					good_triangles.append([p,p3,p2])
 					if !return_tris:
-						var off = plc.normalized()*0.0
-						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
-						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+						#_sub_triangle(points[p], points[p3], points[p2], triangles, triangle_normals)
+						_triangle(points[p], points[p3], points[p2], triangles)
+						var n = Plane(points[p], points[p3], points[p2]).normal
+						_triangle(n, n, n, triangle_normals)
+#						var off = plc*0.0
+#						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
+#						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 					else:
 						var plarr = PackedVector3Array([points[p], points[p3], points[p2]])
-						tris[plarr] = pl2c.normalized()
-						centers.append(pl2c.normalized())
-	print(len(good_triangles))
-	print(float(len(good_triangles))/float(num_of_points))
-	if return_tris:
+						tris[plarr] = plc
+						if !centers.has(plc):
+							centers.append(plc)
+	print(len(centers))
+	print(len(tris))
+	
+	# another attempt to merge close points
+#	var vertices_to_merge = Dictionary()
+#	for c in centers:
+#		for c1 in centers:
+#			if c == c1:
+#				pass
+#			else:
+#				var ang = c.angle_to(c1)
+#				if ang >= vertex_merge_threshold:
+#					pass
+#				else:
+#					var ax = c.cross(c1).normalized()
+#					var newpoint = c.rotated(ax, ang/2.0)
+#					vertices_to_merge[c] = newpoint
+#					vertices_to_merge[c1] = newpoint
+	#var newtris = tris.duplicate()
+#	for plarr in tris.keys():
+#		var no_double_vertices = []
+#		if vertices_to_merge.has(tris[plarr]):
+#			tris[plarr] = vertices_to_merge[tris[plarr]]
+	
+	
+#	print(float(len(good_triangles))/float(num_of_points))
+	if !return_tris:
+		draw_trimesh(triangles, triangle_normals, newmesh)
+	else:
 		return tris
 
 func random_excluding(range: int, exc: Array):
@@ -242,6 +501,15 @@ func random_excluding(range: int, exc: Array):
 	while result in exc:
 		result = randi_range(0, range-1)
 	return result
+	
+func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: ArrayMesh):
+	var surface_array = []
+	surface_array.resize(Mesh.ARRAY_MAX)
+	
+	surface_array[Mesh.ARRAY_VERTEX] = arr
+	surface_array[Mesh.ARRAY_NORMAL] = normal_arr
+	
+	msh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 
 func draw_pointmesh(arr: PackedVector3Array, msh: ArrayMesh):
 	var surface_array = []

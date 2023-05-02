@@ -11,6 +11,7 @@ signal piece_placed(cidx)
 @export var percent_complete: int = 50
 @export var piece_offset := 1.0
 @export_category('Terrain')
+@export_enum('custom', 'earth', 'mars', 'moon') var planet_style := 0
 @export var vertex_fill_threshold := 0.1
 @export var height_noise_frequency: float = 1.5
 @export var height_noise_type: FastNoiseLite.NoiseType
@@ -28,7 +29,6 @@ signal piece_placed(cidx)
 @export var fractal_ping_pong_strength := 2.0
 @export var fractal_type: FastNoiseLite.FractalType = 1
 @export var fractal_weighted_strength := 0.0
-@export_enum('custom', 'earth', 'mars', 'moon') var planet_style := 0
 @export var ocean := true    
 @export var snow := true 
 @export_range(0,1) var snow_random_low := 0.85
@@ -351,7 +351,7 @@ func _generate_mesh():
 			snow_random_high = 0.984
 			max_terrain_height_unclamped = 1.107
 			max_terrain_height = 1.032
-			low_crust_color = Color('291f17')
+			low_crust_color = Color('5e1c18')
 			crust_color = Color('542b18')
 			land_snow_color = Color('dbdbdb')
 			land_color = Color('8c5323')

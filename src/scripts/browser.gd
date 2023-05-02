@@ -5,14 +5,14 @@ signal picked_you(idx)
 
 @onready var orbit = $Orbit
 @onready var camrot = $camrot
-#@onready var v_split = $"../../../../.."
 @onready var ux = $"../../../../../../.."
 @onready var camera_3d = $camrot/Camera3D
 
 var rot_h = 0.0
-var h_sensitivity = 0.014
+var h_sensitivity = 0.018
 var og_sens: float
 var h_acc
+var dx_final := 0.0
 
 var erx = 0.0
 var drag = false
@@ -90,11 +90,11 @@ func _process(delta):
 			if len(erx_acc) > 5:
 				erx_acc.remove_at(0)
 			erx = erx_acc.reduce(func(accum, number): return accum + number, 0)/5
-	#		if abs(momentum) < 0.0005:
-	#			hold_timer += delta
-	#			if hold_timer > 0.2:
-	#				holding = true
-	#				hold_timer = 0.0
+			if abs(momentum) < 0.0005:
+				hold_timer += delta
+				if hold_timer > 0.2:
+					holding = true
+					hold_timer = 0.0
 			rot_h -= erx
 			if rot_h < 0.0:
 				rot_h = 2*PI-abs(rot_h)
@@ -102,7 +102,6 @@ func _process(delta):
 			camrot.rotation.y = rot_h
 		if !drag or holding:
 			#print('snapping')
-			#momentum = 0.0
 			snap_ease = lerp(snap_ease, 12.0, 0.01)
 			erx = lerp(erx, 0.0, 0.05)
 			erx_acc = []
