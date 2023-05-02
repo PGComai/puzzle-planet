@@ -11,8 +11,10 @@ signal piece_placed(cidx)
 @export var percent_complete: int = 50
 @export var piece_offset := 1.0
 @export_category('Terrain')
-@export_enum('custom', 'earth', 'mars', 'moon') var planet_style := 0
 @export var vertex_fill_threshold := 0.1
+@export var vertex_merge_threshold := 0.05
+@export_range(1.0, 5.0, 1.0) var sub_triangle_recursion := 2
+@export_enum('custom', 'earth', 'mars', 'moon') var planet_style := 0
 @export var height_noise_frequency: float = 1.5
 @export var height_noise_type: FastNoiseLite.NoiseType
 @export var height_noise_domain_warp := false
@@ -430,6 +432,89 @@ func _generate_mesh():
 #	for c in pieces.get_children():
 #		c.visible = false
 	emit_signal("meshes_made")
+
+func _progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, msh: ArrayMesh):
+	# treats thin triangles differently while making same edge vertices
+	var wall_triangles = PackedVector3Array()
+	var wall_tri_colors = PackedColorArray()
+	var wall_tri_normals = PackedVector3Array()
+	var border_triangles = PackedVector3Array()
+	var border_tri_normals = PackedVector3Array()
+	var border_tri_colors = PackedColorArray()
+	var water_triangles = PackedVector3Array()
+	var water_tri_normals = PackedVector3Array()
+	var water_tri_colors = PackedColorArray()
+	var cutwater_triangles = PackedVector3Array()
+	var cutwater_tri_normals = PackedVector3Array()
+	var cutwater_tri_colors = PackedColorArray()
+	
+	var land_colors = [land_color, land_color_2, land_color_3]
+	
+	####
+	var triangles = PackedVector3Array()
+	var triangle_normals = PackedVector3Array()
+	for bak in vbdict.keys():
+		var border_array = vbdict[bak]
+		var on = true
+		var next_array = PackedVector3Array()
+		for b in len(border_array)-1:
+			var v0 = border_array[b]
+			var v1 = border_array[b+1]
+			var vp = og_verts[bak]
+			_sub_triangle(v0,vp,v1, triangles, triangle_normals)
+	#draw_trimesh(triangles, triangle_normals, msh)
+	####
+	
+	return [wall_triangles, wall_tri_normals, wall_tri_colors,
+		border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors,
+		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
+
+func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array, normal_arr: PackedVector3Array, recursion := 0):
+	var ang = p1.angle_to(p2)
+	var ang2 = p2.angle_to(p3)
+	var ang3 = p1.angle_to(p3)
+	if recursion > sub_triangle_recursion:
+		# i think this is where we need to apply color, height, etc to vertices
+		_triangle(p1, p2, p3, arr)
+		var n = Plane(p1, p2, p3).normal
+		_triangle(n,n,n, normal_arr)
+	else:
+		recursion += 1
+		var ax: Vector3
+		var newpoint: Vector3
+		var n: Vector3
+		var angs = [ang, ang2, ang3]
+		
+		if true:
+			ax = p1.cross(p2).normalized()
+			newpoint = p1.rotated(ax, ang*0.5)
+			var p12 = newpoint
+			
+			ax = p2.cross(p3).normalized()
+			newpoint = p2.rotated(ax, ang2*0.5)
+			var p23 = newpoint
+			
+			ax = p1.cross(p3).normalized()
+			newpoint = p1.rotated(ax, ang3*0.5)
+			var p31 = newpoint
+			
+			_sub_triangle(p1, p12, p31, arr, normal_arr, recursion)
+			
+			_sub_triangle(p12, p2, p23, arr, normal_arr, recursion)
+			
+			_sub_triangle(p31, p23, p3, arr, normal_arr, recursion)
+			
+			_sub_triangle(p12, p23, p31, arr, normal_arr, recursion)
+
+func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: ArrayMesh):
+	var surface_array = []
+	surface_array.resize(Mesh.ARRAY_MAX)
+	
+	surface_array[Mesh.ARRAY_VERTEX] = arr
+	surface_array[Mesh.ARRAY_NORMAL] = normal_arr
+	
+	msh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 
 func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
 		thickness: float, water = true):

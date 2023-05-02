@@ -11,7 +11,7 @@ extends MeshInstance3D
 @export var border_offset := 0.0
 @export var vertex_fill_threshold := 0.1
 @export var vertex_merge_threshold := 0.05
-@export var sub_triangle_recursion := 2
+@export_range(1.0, 5.0, 1.0) var sub_triangle_recursion := 2
 
 @onready var pieces = $"../Pieces"
 @onready var camera_3d = $"../h/v/Camera3D"
@@ -89,15 +89,29 @@ func _generate_mesh():
 	draw_pointmesh(verts, newmesh)
 	
 	var vi_to_borders = make_border_array(verts, my_delaunay_points)
-
-	var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
-	var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
-	var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
-#	_progressive_meshify_inwards(vi_to_borders, verts, newmesh, newnewnewdict)
-	#_progressive_triangulate(vi_to_borders, verts, newmesh)
+	var recursed_borders = vi_to_borders.duplicate()
 	
-	for ndi in vi_to_borders.keys():
-		draw_linemesh(vi_to_borders[ndi], newmesh)
+	for r in sub_triangle_recursion+1:
+		recursed_borders = fill_border_halfways(recursed_borders.duplicate(), verts)
+#	var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
+#	var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
+#	var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
+#	_progressive_meshify_inwards(vi_to_borders, verts, newmesh, newnewnewdict)
+	_progressive_triangulate(vi_to_borders, verts, newmesh)
+	
+	for ndi in recursed_borders.keys():
+#		var txt = txtmsh.instantiate()
+#		txt.mesh.text = str(ndi)
+#		txt.position = verts[ndi]*1.1
+#		add_child(txt)
+		#for pti in len(vi_to_borders[ndi])-1:
+			#txt = txtmsh.instantiate()
+			#txt.mesh.text = str(pti)
+			#txt.mesh.font_size = 5
+			#txt.position = (vi_to_borders[ndi][pti].move_toward(verts[ndi], 0.05)).normalized()*1.05
+			#add_child(txt)
+#		print(str(ndi) + ': ' + str(len(vi_to_borders[ndi])-1))
+		draw_linemesh(recursed_borders[ndi], newmesh)
 		#delaunay(vi_to_borders[ndi])
 
 	mesh = newmesh
@@ -277,7 +291,8 @@ func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
 		result[v] = PackedVector3Array()
 		for dtc_k in dtc.keys():
 			if og_verts[v] in dtc_k:
-				result[v].append(dtc[dtc_k])
+				if !result[v].has(dtc[dtc_k]):
+					result[v].append(dtc[dtc_k])
 	return result
 
 func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary):
@@ -339,9 +354,9 @@ func fill_border_halfways_array(arr: Array):
 #				skipnext = true
 #			else:
 			new_border_array.append(current_border_point)
-			if ang > vertex_fill_threshold:
-				var halfway = current_border_point.rotated(ax, ang/2.0)
-				new_border_array.append(halfway)
+			#if ang > vertex_fill_threshold:
+			var halfway = current_border_point.rotated(ax, ang/2.0)
+			new_border_array.append(halfway)
 			new_border_array.append(next_border_point)
 		
 	return new_border_array
@@ -358,13 +373,14 @@ func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
 			else:
 				var current_border_point = border_array[b]
 				var next_border_point = border_array[plus1]
-				var ang = current_border_point.angle_to(next_border_point)
-				var ax = current_border_point.cross(next_border_point).normalized()
-				new_border_array.append(current_border_point)
-				if ang > vertex_fill_threshold:
+				if current_border_point != next_border_point:
+					var ang = current_border_point.angle_to(next_border_point)
+					var ax = current_border_point.cross(next_border_point).normalized()
+					new_border_array.append(current_border_point)
+					#if ang > vertex_fill_threshold:
 					var halfway = current_border_point.rotated(ax, ang/2.0)
 					new_border_array.append(halfway)
-				new_border_array.append(next_border_point)
+					new_border_array.append(next_border_point)
 #		var replace_dict = {}
 #		for b in len(new_border_array)-1:
 #			var plus1 = b+1
@@ -431,12 +447,15 @@ func delaunay(points: PackedVector3Array, return_tris := false):
 				
 				# trying to merge points yet again
 				
-				for c in len(centers):
-					if centers[c].angle_to(plc) < vertex_merge_threshold:
-						plc = centers[c]
+				
+				
+				var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
+				var plarr2 = PackedVector3Array([points[p], points[p3], points[p2]])
 				
 				if is_good:
-					good_triangles.append([p,p2,p3])
+					for c in len(centers):
+						if centers[c].angle_to(plc) < vertex_merge_threshold:
+							plc = centers[c]
 					if !return_tris:
 						#_sub_triangle(points[p], points[p2], points[p3], triangles, triangle_normals)
 						_triangle(points[p], points[p2], points[p3], triangles)
@@ -446,12 +465,15 @@ func delaunay(points: PackedVector3Array, return_tris := false):
 #						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
 #						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 					else:
-						var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
-						tris[plarr] = plc
 						if !centers.has(plc):
 							centers.append(plc)
+						good_triangles.append([p,p2,p3])
+						if !tris.has(plarr) and !tris.has(plarr2):
+							tris[plarr] = plc
 				if is_good2:
-					good_triangles.append([p,p3,p2])
+					for c in len(centers):
+						if centers[c].angle_to(plc) < vertex_merge_threshold:
+							plc = centers[c]
 					if !return_tris:
 						#_sub_triangle(points[p], points[p3], points[p2], triangles, triangle_normals)
 						_triangle(points[p], points[p3], points[p2], triangles)
@@ -461,10 +483,12 @@ func delaunay(points: PackedVector3Array, return_tris := false):
 #						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
 #						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 					else:
-						var plarr = PackedVector3Array([points[p], points[p3], points[p2]])
-						tris[plarr] = plc
 						if !centers.has(plc):
 							centers.append(plc)
+						good_triangles.append([p,p3,p2])
+						if !tris.has(plarr2) and !tris.has(plarr):
+							tris[plarr2] = plc
+						
 	print(len(centers))
 	print(len(tris))
 	
