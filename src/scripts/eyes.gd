@@ -75,7 +75,7 @@ func _unhandled_input(event):
 				#print('fling')
 				fling = true
 				
-func _physics_process(delta):
+func _process(delta):
 	#print(dy)
 	#print($h.basis.z.angle_to(current_grab))
 	#print(initial_grab.angle_to(current_grab))

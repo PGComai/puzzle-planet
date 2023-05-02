@@ -86,18 +86,19 @@ func _ready():
 		
 		newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 		
-		surface_array = []
-		surface_array.resize(Mesh.ARRAY_MAX)
-		
-		temparr = Array(vertex_w)
-		temparr = temparr.map(func(v): return v - direction)
-		vertex_w = PackedVector3Array(temparr)
-		
-		surface_array[Mesh.ARRAY_VERTEX] = vertex_w
-		surface_array[Mesh.ARRAY_NORMAL] = normal_w
-		surface_array[Mesh.ARRAY_COLOR] = color_w
-		
-		newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+		if !(len(vertex_w) == 0):
+			surface_array = []
+			surface_array.resize(Mesh.ARRAY_MAX)
+			
+			temparr = Array(vertex_w)
+			temparr = temparr.map(func(v): return v - direction)
+			vertex_w = PackedVector3Array(temparr)
+			
+			surface_array[Mesh.ARRAY_VERTEX] = vertex_w
+			surface_array[Mesh.ARRAY_NORMAL] = normal_w
+			surface_array[Mesh.ARRAY_COLOR] = color_w
+			
+			newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 	
 	#newmesh.regen_normal_maps()
 	newmesh.shadow_mesh = newmesh

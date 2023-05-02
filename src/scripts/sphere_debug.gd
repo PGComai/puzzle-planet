@@ -299,7 +299,6 @@ func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
 func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary):
 	var result = {}
 	var l = len(og_verts)
-	var newpoints = []
 	for v in l:
 		# sweep search axis is verts[v]
 		var amax = 2.0*PI

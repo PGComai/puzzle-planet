@@ -9,6 +9,7 @@ vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 roughness = 0.79
 texture_filter = 0
+grow_amount = -0.001
 point_size = 2.6
 distance_fade_mode = 2
 distance_fade_max_distance = 0.3

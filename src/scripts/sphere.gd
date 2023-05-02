@@ -11,7 +11,7 @@ signal piece_placed(cidx)
 @export var percent_complete: int = 50
 @export var piece_offset := 1.0
 @export_category('Terrain')
-@export var offset := 1.1
+@export var crust_thickness := 1.1
 @export var vertex_fill_threshold := 0.1
 @export var vertex_merge_threshold := 0.05
 @export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
@@ -189,6 +189,7 @@ func _generate_mesh():
 	var colors := PackedColorArray()
 	var vb_dict := Dictionary()
 	var vi_to_borders := Dictionary()
+	var recursed_borders := Dictionary()
 	
 	if mesh_source == 1:
 		### MAKE PUZZLE PIECE LOCATIONS ###
@@ -217,18 +218,18 @@ func _generate_mesh():
 				print(verts[v].angle_to(Vector3.DOWN))
 		
 		var delaunay_triangle_centers: Dictionary
-		delaunay_triangle_centers = delaunay(verts, true)
+		delaunay_triangle_centers = NEW_delaunay(verts, true)
 
-		var my_delaunay_points = verts_to_dpoints(verts, delaunay_triangle_centers)
+		var my_delaunay_points = NEW_verts_to_dpoints(verts, delaunay_triangle_centers)
 		
 		vi_to_borders = make_border_array(verts, my_delaunay_points)
 		
 		## NEW STUFF
 		
-		var recursed_borders = vi_to_borders.duplicate()
+		recursed_borders = vi_to_borders.duplicate()
 
 		for r in sub_triangle_recursion+1:
-			recursed_borders = fill_border_halfways(recursed_borders.duplicate(), verts)
+			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts)
 
 		## NEW STUFF
 
@@ -236,7 +237,6 @@ func _generate_mesh():
 #		var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
 #		var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
 		
-		vi_to_borders = recursed_borders
 		if save:
 			var save_path = 'res://planets/'
 			var save_number = len(DirAccess.get_files_at(save_path))+1
@@ -393,32 +393,35 @@ func _generate_mesh():
 			snow_start = 0.9
 			
 		for v in l:
-			var border_array = vi_to_borders[v]
+			var border_array = recursed_borders[v]
 			var edges_for_particles = border_array.duplicate()
-			border_array.append(border_array[0])
+			#border_array.append(border_array[0])
 			
 			### DRAW MESH ###
 			
-			var tess_result = tesselate(verts, v, border_array, offset)
+			# now tess_result should just be the wall and cutwater triangles
+			#var tess_result = tesselate(verts, v, border_array, offset)
+			var NEW_tess_result = NEW_tesselate(verts, v, border_array, crust_thickness)
+			var prog_tri_result = progressive_triangulate(vi_to_borders[v], v, verts)
 			
 			var dxu = verts[v].cross(Vector3.UP)
 			var up = dxu.rotated(verts[v].normalized(), -PI/2)
 			
 			var newpiece = piece.instantiate()
-			newpiece.wall_vertex = tess_result[0]
-			newpiece.wall_normal = tess_result[1]
-			newpiece.wall_color = tess_result[2]
-			newpiece.vertex = tess_result[3]
-			newpiece.normal = tess_result[4]
-			newpiece.color = tess_result[5]
+			newpiece.wall_vertex = NEW_tess_result[0]
+			newpiece.wall_normal = NEW_tess_result[1]
+			newpiece.wall_color = NEW_tess_result[2]
+			newpiece.vertex = prog_tri_result[0]
+			newpiece.normal = prog_tri_result[1]
+			newpiece.color = prog_tri_result[2]
 			newpiece.ocean = ocean
 			if ocean:
-				newpiece.vertex_w = tess_result[6]
-				newpiece.normal_w = tess_result[7]
-				newpiece.color_w = tess_result[8]
-				newpiece.vertex_cw = tess_result[9]
-				newpiece.normal_cw = tess_result[10]
-				newpiece.color_cw = tess_result[11]
+				newpiece.vertex_w = prog_tri_result[3]
+				newpiece.normal_w = prog_tri_result[4]
+				newpiece.color_w = prog_tri_result[5]
+				newpiece.vertex_cw = NEW_tess_result[3]
+				newpiece.normal_cw = NEW_tess_result[4]
+				newpiece.color_cw = NEW_tess_result[5]
 			newpiece.direction = verts[v]
 			puzzle_fits[v] = verts[v]
 			newpiece.idx = v
@@ -442,58 +445,42 @@ func _generate_mesh():
 #		c.visible = false
 	emit_signal("meshes_made")
 
-func _progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, msh: ArrayMesh):
+func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_verts: PackedVector3Array):
 	# treats thin triangles differently while making same edge vertices
-	var wall_triangles = PackedVector3Array()
-	var wall_tri_colors = PackedColorArray()
-	var wall_tri_normals = PackedVector3Array()
 	var border_triangles = PackedVector3Array()
 	var border_tri_normals = PackedVector3Array()
 	var border_tri_colors = PackedColorArray()
 	var water_triangles = PackedVector3Array()
 	var water_tri_normals = PackedVector3Array()
 	var water_tri_colors = PackedColorArray()
-	var cutwater_triangles = PackedVector3Array()
-	var cutwater_tri_normals = PackedVector3Array()
-	var cutwater_tri_colors = PackedColorArray()
 	
-	var arrays = [wall_triangles, wall_tri_normals, wall_tri_colors,
-		border_triangles, border_tri_normals, border_tri_colors,
-		water_triangles, water_tri_normals, water_tri_colors,
-		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
+	var arrays = [border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors]
 	
 	####
 #	var triangles = PackedVector3Array()
 #	var triangle_normals = PackedVector3Array()
-	for bak in vbdict.keys():
-		var border_array = vbdict[bak]
-		var on = true
-		var next_array = PackedVector3Array()
-		for b in len(border_array)-1:
-			var v0 = border_array[b]
-			var v1 = border_array[b+1]
-			var vp = og_verts[bak]
-			_sub_triangle(v0,vp,v1, arrays)
+	for b in len(border_array)-1:
+		var v0 = border_array[b]
+		var v1 = border_array[b+1]
+		var vp = og_verts[og_idx]
+		_sub_triangle(v0,vp,v1, arrays)
 	#draw_trimesh(triangles, triangle_normals, msh)
 	####
 	
-	return [wall_triangles, wall_tri_normals, wall_tri_colors,
-		border_triangles, border_tri_normals, border_tri_colors,
-		water_triangles, water_tri_normals, water_tri_colors,
-		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
+	return [border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors]
 
 func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursion := 0):
-#	[wall_triangles, wall_tri_normals, wall_tri_colors,                  0, 1, 2
-#		border_triangles, border_tri_normals, border_tri_colors,         3, 4, 5
-#		water_triangles, water_tri_normals, water_tri_colors,            6, 7, 8
-#		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]   9, 10, 11
+#	[border_triangles, border_tri_normals, border_tri_colors,            0, 1, 2
+#		water_triangles, water_tri_normals, water_tri_colors]            3, 4, 5
 	if recursion > sub_triangle_recursion:
 		# i think this is where we need to apply color, height, etc to vertices
 		
 		# land height
-		p1 = mm(p1*offset)
-		p2 = mm(p2*offset)
-		p3 = mm(p3*offset)
+		p1 = mm(p1*crust_thickness)
+		p2 = mm(p2*crust_thickness)
+		p3 = mm(p3*crust_thickness)
 		
 		# land color
 		var land_colors = [land_color, land_color_2, land_color_3]
@@ -530,9 +517,17 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursi
 		var p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		var p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		
-		_triangle(p1, p2, p3, arrays[3])
+		# land triangles
+		_triangle(p1, p2, p3, arrays[0])
 		var n = Plane(p1, p2, p3).normal
-		_triangle(n,n,n, arrays[4])
+		_triangle(n,n,n, arrays[1])
+		_tricolor(p1_color, p2_color, p3_color, arrays[2])
+		
+		# water triangles
+		if (p1w_depth < 0.04 and p2w_depth < 0.04 and p3w_depth < 0.04):
+			_triangle(p1w, p2w, p3w, arrays[3])
+			_triangle(p1w.normalized(), p2w.normalized(), p3w.normalized(), arrays[4])
+			_tricolor(p1w_color, p2w_color, p3w_color, arrays[5])
 	else:
 		recursion += 1
 		
@@ -542,6 +537,9 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursi
 		var ax: Vector3
 		var newpoint: Vector3
 		var n: Vector3
+		
+		if ang == 0.0 or ang2 == 0.0 or ang3 == 0.0:
+			print('zero vector :(')
 		
 		ax = p1.cross(p2).normalized()
 		newpoint = p1.rotated(ax, ang*0.5)
@@ -571,6 +569,89 @@ func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: 
 	surface_array[Mesh.ARRAY_NORMAL] = normal_arr
 	
 	msh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+
+func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
+		thickness: float, water = true):
+	var wall_triangles = PackedVector3Array()
+	var wall_tri_colors = PackedColorArray()
+	var wall_tri_normals = PackedVector3Array()
+	var cutwater_triangles = PackedVector3Array()
+	var cutwater_tri_normals = PackedVector3Array()
+	var cutwater_tri_colors = PackedColorArray()
+
+	for b in len(ring_array)-1:
+		var v0 = ring_array[b]
+		var v1 = ring_array[b+1]
+		var v0p = mm(ring_array[b]*thickness)
+		var v0pw = v0p.normalized()*water_offset
+		var v0pw_depth = v0p.length_squared() - v0pw.length_squared()
+		#edges_for_particles.append(v0p)
+		var v1p = mm(ring_array[b+1]*thickness)
+		var v1pw = v1p.normalized()*water_offset
+		var v1pw_depth = v1p.length_squared() - v1pw.length_squared()
+		#edges_for_particles.append(v1p)
+		
+		var vp = mm(og_verts[og_idx]*thickness)
+		var vpw = vp.normalized()*water_offset
+		var vpw_depth = vp.length_squared() - vpw.length_squared()
+		
+		var depth_start = 0.001
+		var depth_end = 0.05
+		var v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var v1pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		
+		## PIECE WALLS BEGIN ## -----------------------------
+		
+		_triangle(v0, v0p, v1, wall_triangles)
+		
+		_tricolor(low_crust_color, crust_color, low_crust_color, wall_tri_colors)
+		
+		var n = Plane(v0, v0p, v1).normal
+		_triangle(n, n, n, wall_tri_normals)
+		
+		###
+		
+		_triangle(v1, v0p, v1p, wall_triangles)
+		
+		_tricolor(low_crust_color, crust_color, crust_color, wall_tri_colors)
+		
+		n = Plane(v1, v0p, v1p).normal
+		_triangle(n, n, n, wall_tri_normals)
+		
+		_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1p.limit_length(water_offset), cutwater_triangles)
+		
+		var c1 = v0pw_color.lerp(Color('black'), clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var c3 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		_tricolor(c1, v0pw_color, c3, cutwater_tri_colors)
+		
+		n = Plane(v0p,v0pw,v1p).normal
+		_triangle(n, n, n, cutwater_tri_normals)
+		
+		###
+		
+		_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
+		
+		c1 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		_tricolor(c1, v0pw_color, v1pw_color, cutwater_tri_colors)
+		
+		n = Plane(v1p,v0pw,v1pw).normal
+		_triangle(n, n, n, cutwater_tri_normals)
+		
+		## PIECE WALLS END ## -----------------------------
+		
+		## PIECE BOTTOM BEGIN ## -----------------------------
+		
+		_triangle(v1,og_verts[og_idx],v0,wall_triangles)
+
+		_tricolor(low_crust_color,low_crust_color,low_crust_color,wall_tri_colors)
+
+		n = Plane(v0,og_verts[og_idx],v1).normal
+		_triangle(n,n,n,wall_tri_normals)
+		
+		## PIECE BOTTOM END ## -----------------------------
+	
+	return [wall_triangles, wall_tri_normals, wall_tri_colors,
+		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
 
 func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
 		thickness: float, water = true):
@@ -854,6 +935,17 @@ func _tricolor(p1: Color, p2: Color, p3: Color, arr: PackedColorArray):
 	arr.append(p2)
 	arr.append(p3)
 
+func NEW_verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
+	var result = {}
+	var l = len(og_verts)
+	for v in l:
+		result[v] = PackedVector3Array()
+		for dtc_k in dtc.keys():
+			if og_verts[v] in dtc_k:
+				if !result[v].has(dtc[dtc_k]):
+					result[v].append(dtc[dtc_k])
+	return result
+
 func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
 	var result = {}
 	var l = len(og_verts)
@@ -961,6 +1053,124 @@ func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
 		vbdict[vi] = new_border_array
 	return vbdict
 
+func NEW_delaunay(points: PackedVector3Array, return_tris := false):
+	var triangles = PackedVector3Array()
+	var triangle_normals = PackedVector3Array()
+	var tris = {}
+	var centers = PackedVector3Array()
+	var good_triangles = []
+	var num_of_points = len(points)
+	var all_possible_threes = []
+	for p in num_of_points:
+		for p2 in num_of_points:
+			for p3 in num_of_points:
+				all_possible_threes.append([p,p2,p3])
+	#print(len(all_possible_threes))
+	for three in all_possible_threes:
+		var p = three[0]
+		var p2 = three[1]
+		var p3 = three[2]
+		if p2 == p or points[p].angle_to(points[p2]) > PI/2 or p3 == p or p3 == p2 or points[p].angle_to(points[p3]) > PI/2 or points[p2].angle_to(points[p3]) > PI/2:
+			pass
+		else:
+			## at this point we have three unique points
+			var new = true
+			for gt in good_triangles:
+				if p in gt and p2 in gt and p3 in gt:
+					new = false
+			
+			if !new:
+				pass
+			else:
+				var pl = Plane(points[p],points[p2],points[p3])
+				var pl2 = Plane(points[p],points[p3],points[p2])
+				var plc = pl.get_center().normalized()
+				
+				var is_good = true
+				var is_good2 = true
+
+				for pp in num_of_points:
+					if pl.is_point_over(points[pp]):
+						if abs(pl.distance_to(points[pp])) > 0.0005:
+							is_good = false
+					if pl2.is_point_over(points[pp]):
+						if abs(pl2.distance_to(points[pp])) > 0.0005:
+							is_good2 = false
+				var surface_array = []
+				surface_array.resize(Mesh.ARRAY_MAX)
+				
+				# trying to merge points yet again
+				
+				
+				
+				var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
+				var plarr2 = PackedVector3Array([points[p], points[p3], points[p2]])
+				
+				if is_good:
+					for c in len(centers):
+						if centers[c].angle_to(plc) < vertex_merge_threshold:
+							plc = centers[c]
+					if !return_tris:
+						#_sub_triangle(points[p], points[p2], points[p3], triangles, triangle_normals)
+						_triangle(points[p], points[p2], points[p3], triangles)
+						var n = Plane(points[p], points[p2], points[p3]).normal
+						_triangle(n, n, n, triangle_normals)
+#						var off = plc*0.0
+#						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
+#						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+					else:
+						if !centers.has(plc):
+							centers.append(plc)
+						good_triangles.append([p,p2,p3])
+						if !tris.has(plarr) and !tris.has(plarr2):
+							tris[plarr] = plc
+				if is_good2:
+					for c in len(centers):
+						if centers[c].angle_to(plc) < vertex_merge_threshold:
+							plc = centers[c]
+					if !return_tris:
+						#_sub_triangle(points[p], points[p3], points[p2], triangles, triangle_normals)
+						_triangle(points[p], points[p3], points[p2], triangles)
+						var n = Plane(points[p], points[p3], points[p2]).normal
+						_triangle(n, n, n, triangle_normals)
+#						var off = plc*0.0
+#						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
+#						newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+					else:
+						if !centers.has(plc):
+							centers.append(plc)
+						good_triangles.append([p,p3,p2])
+						if !tris.has(plarr2) and !tris.has(plarr):
+							tris[plarr2] = plc
+						
+	print(len(centers))
+	print(len(tris))
+	
+	# another attempt to merge close points
+#	var vertices_to_merge = Dictionary()
+#	for c in centers:
+#		for c1 in centers:
+#			if c == c1:
+#				pass
+#			else:
+#				var ang = c.angle_to(c1)
+#				if ang >= vertex_merge_threshold:
+#					pass
+#				else:
+#					var ax = c.cross(c1).normalized()
+#					var newpoint = c.rotated(ax, ang/2.0)
+#					vertices_to_merge[c] = newpoint
+#					vertices_to_merge[c1] = newpoint
+	#var newtris = tris.duplicate()
+#	for plarr in tris.keys():
+#		var no_double_vertices = []
+#		if vertices_to_merge.has(tris[plarr]):
+#			tris[plarr] = vertices_to_merge[tris[plarr]]
+	
+	
+#	print(float(len(good_triangles))/float(num_of_points))
+	return tris
+
 func delaunay(points: PackedVector3Array, return_tris = false):
 	var tris = {}
 	var centers = PackedVector3Array()
@@ -1054,7 +1264,7 @@ func mm(vec: Vector3):
 		offset = clamp(remap(offset, -0.2, 0.2, 0.9, max_terrain_height_unclamped), 0.97, max_terrain_height)
 	else:
 		offset = clamp(remap(offset, -0.2, 0.2, 0.95, max_terrain_height_unclamped), 0.95, max_terrain_height)
-	return vec * offset
+	return (vec * offset)#.snapped(Vector3(0.001,0.001,0.001))
 
 func color_vary(vec: Vector3):
 	var nval = remap(colornoise.get_noise_3dv(vec), -0.05, 0.05, 0.0, 9.0)
