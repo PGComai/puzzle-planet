@@ -391,19 +391,30 @@ func _generate_mesh():
 			snow_start = snow_random_high
 		else:
 			snow_start = 0.9
-			
+		var used_border_vecs = PackedVector3Array()
+		var max_distance_between_vecs := 0.000016
+		## new approach
+		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts)
+		##
 		for v in l:
 			var border_array = recursed_borders[v]
+			for ba in border_array:
+				ba = ba.snapped(Vector3(0.001, 0.001, 0.001))
+#				for pt in used_border_vecs:
+#					if ba.distance_squared_to(pt) < max_distance_between_vecs:
+#						ba = pt
+				if !used_border_vecs.has(ba):
+					used_border_vecs.append(ba)
 			var edges_for_particles = border_array.duplicate()
 			#border_array.append(border_array[0])
 			
 			### DRAW MESH ###
 			
+			var prog_tri_result = progressive_triangulate(vi_to_borders[v], v, verts, used_border_vecs)
 			# now tess_result should just be the wall and cutwater triangles
 			#var tess_result = tesselate(verts, v, border_array, offset)
-			var NEW_tess_result = NEW_tesselate(verts, v, border_array, crust_thickness)
-			var prog_tri_result = progressive_triangulate(vi_to_borders[v], v, verts)
 			
+			var NEW_tess_result = NEW_tesselate(verts, v, border_array, crust_thickness, used_border_vecs)
 			var dxu = verts[v].cross(Vector3.UP)
 			var up = dxu.rotated(verts[v].normalized(), -PI/2)
 			
@@ -445,7 +456,7 @@ func _generate_mesh():
 #		c.visible = false
 	emit_signal("meshes_made")
 
-func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_verts: PackedVector3Array):
+func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
 	# treats thin triangles differently while making same edge vertices
 	var border_triangles = PackedVector3Array()
 	var border_tri_normals = PackedVector3Array()
@@ -460,22 +471,113 @@ func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_v
 	####
 #	var triangles = PackedVector3Array()
 #	var triangle_normals = PackedVector3Array()
+	var used_vecs = PackedVector3Array()
+	var max_distance_between_vecs := 0.000016
 	for b in len(border_array)-1:
-		var v0 = border_array[b]
-		var v1 = border_array[b+1]
-		var vp = og_verts[og_idx]
-		_sub_triangle(v0,vp,v1, arrays)
+		var v0 = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
+		var v1 = border_array[b+1].snapped(Vector3(0.001, 0.001, 0.001))
+		var vp = og_verts[og_idx].snapped(Vector3(0.001, 0.001, 0.001))
+		for pt in used_border_vecs:
+			if v0.distance_squared_to(pt) < max_distance_between_vecs:
+				v0 = pt
+			if v1.distance_squared_to(pt) < max_distance_between_vecs:
+				v1 = pt
+			if vp.distance_squared_to(pt) < max_distance_between_vecs:
+				vp = pt
+		if !used_border_vecs.has(v0):
+			used_border_vecs.append(v0)
+		if !used_border_vecs.has(v1):
+			used_border_vecs.append(v1)
+		if !used_border_vecs.has(vp):
+			used_border_vecs.append(vp)
+		if !used_vecs.has(v0):
+			used_vecs.append(v0)
+		if !used_vecs.has(v1):
+			used_vecs.append(v1)
+		if !used_vecs.has(vp):
+			used_vecs.append(vp)
+		_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs)
 	#draw_trimesh(triangles, triangle_normals, msh)
 	####
 	
 	return [border_triangles, border_tri_normals, border_tri_colors,
 		water_triangles, water_tri_normals, water_tri_colors]
 
-func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursion := 0):
+func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array):
+	# treats thin triangles differently while making same edge vertices
+	var border_triangles = PackedVector3Array()
+	var border_tri_normals = PackedVector3Array()
+	var border_tri_colors = PackedColorArray()
+	var water_triangles = PackedVector3Array()
+	var water_tri_normals = PackedVector3Array()
+	var water_tri_colors = PackedColorArray()
+	
+	var arrays = [border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors]
+	
+	####
+	var used_border_vecs = PackedVector3Array()
+	for bak in vbdict.keys():
+		var border_array = vbdict[bak]
+		var on = true
+		var next_array = PackedVector3Array()
+		var used_vecs = PackedVector3Array()
+		for b in len(border_array)-1:
+			var max_distance_between_vecs := 0.000016
+			var v0 = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
+			var v1 = border_array[b+1].snapped(Vector3(0.001, 0.001, 0.001))
+			var vp = og_verts[bak].snapped(Vector3(0.001, 0.001, 0.001))
+			for pt in used_border_vecs:
+				if v0.distance_squared_to(pt) < max_distance_between_vecs:
+					v0 = pt
+				if v1.distance_squared_to(pt) < max_distance_between_vecs:
+					v1 = pt
+				if vp.distance_squared_to(pt) < max_distance_between_vecs:
+					vp = pt
+			if !used_border_vecs.has(v0):
+				used_border_vecs.append(v0)
+			if !used_border_vecs.has(v1):
+				used_border_vecs.append(v1)
+			if !used_border_vecs.has(vp):
+				used_border_vecs.append(vp)
+			if !used_vecs.has(v0):
+				used_vecs.append(v0)
+			if !used_vecs.has(v1):
+				used_vecs.append(v1)
+			if !used_vecs.has(vp):
+				used_vecs.append(vp)
+			_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs)
+	####
+	
+	return [border_triangles, border_tri_normals, border_tri_colors,
+		water_triangles, water_tri_normals, water_tri_colors]
+
+func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
+			used_vecs: PackedVector3Array,
+			used_border_vecs: PackedVector3Array,
+			recursion := 0,
+			shade_min := 0,
+			shade_max := 1,
+			max_distance_between_vecs := 0.000016,
+			vsnap := 0.001):
 #	[border_triangles, border_tri_normals, border_tri_colors,            0, 1, 2
 #		water_triangles, water_tri_normals, water_tri_colors]            3, 4, 5
 	if recursion > sub_triangle_recursion:
 		# i think this is where we need to apply color, height, etc to vertices
+		
+		for pt in used_vecs:
+			if p1.distance_squared_to(pt) < max_distance_between_vecs:
+				p1 = pt
+			if p2.distance_squared_to(pt) < max_distance_between_vecs:
+				p2 = pt
+			if p3.distance_squared_to(pt) < max_distance_between_vecs:
+				p3 = pt
+		if !used_vecs.has(p1):
+			used_vecs.append(p1)
+		if !used_vecs.has(p2):
+			used_vecs.append(p2)
+		if !used_vecs.has(p3):
+			used_vecs.append(p3)
 		
 		# land height
 		p1 = mm(p1*crust_thickness)
@@ -518,8 +620,10 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursi
 		var p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		
 		# land triangles
+		var pl = Plane(p1, p2, p3)
+		var n = pl.normal
+		
 		_triangle(p1, p2, p3, arrays[0])
-		var n = Plane(p1, p2, p3).normal
 		_triangle(n,n,n, arrays[1])
 		_tricolor(p1_color, p2_color, p3_color, arrays[2])
 		
@@ -530,7 +634,6 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursi
 			_tricolor(p1w_color, p2w_color, p3w_color, arrays[5])
 	else:
 		recursion += 1
-		
 		var ang = p1.angle_to(p2)
 		var ang2 = p2.angle_to(p3)
 		var ang3 = p1.angle_to(p3)
@@ -540,26 +643,46 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array, recursi
 		
 		if ang == 0.0 or ang2 == 0.0 or ang3 == 0.0:
 			print('zero vector :(')
-		
-		ax = p1.cross(p2).normalized()
-		newpoint = p1.rotated(ax, ang*0.5)
-		var p12 = newpoint
-		
-		ax = p2.cross(p3).normalized()
-		newpoint = p2.rotated(ax, ang2*0.5)
-		var p23 = newpoint
-		
-		ax = p1.cross(p3).normalized()
-		newpoint = p1.rotated(ax, ang3*0.5)
-		var p31 = newpoint
-		
-		_sub_triangle(p1, p12, p31, arrays, recursion)
-		
-		_sub_triangle(p12, p2, p23, arrays, recursion)
-		
-		_sub_triangle(p31, p23, p3, arrays, recursion)
-		
-		_sub_triangle(p12, p23, p31, arrays, recursion)
+		else:
+			ax = p1.cross(p2).normalized()
+			newpoint = p1.rotated(ax, ang*0.5)
+			var p12 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
+			
+			ax = p2.cross(p3).normalized()
+			newpoint = p2.rotated(ax, ang2*0.5)
+			var p23 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
+			
+			ax = p1.cross(p3).normalized()
+			newpoint = p1.rotated(ax, ang3*0.5)
+			var p31 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
+			
+			for pt in used_vecs:
+				if p12.distance_squared_to(pt) < max_distance_between_vecs:
+					p12 = pt
+				if p23.distance_squared_to(pt) < max_distance_between_vecs:
+					p23 = pt
+				if p31.distance_squared_to(pt) < max_distance_between_vecs:
+					p31 = pt
+			for pt in used_border_vecs:
+				if p31.distance_squared_to(pt) < max_distance_between_vecs:
+					p31 = pt
+			if !used_border_vecs.has(p31):
+				used_border_vecs.append(p31)
+			
+			if !used_vecs.has(p12):
+				used_vecs.append(p12)
+			if !used_vecs.has(p23):
+				used_vecs.append(p23)
+			if !used_vecs.has(p31):
+				used_vecs.append(p31)
+			
+			_sub_triangle(p1, p12, p31, arrays, used_vecs, used_border_vecs, recursion)
+			
+			_sub_triangle(p12, p2, p23, arrays, used_vecs, used_border_vecs, recursion)
+			
+			_sub_triangle(p31, p23, p3, arrays, used_vecs, used_border_vecs, recursion)
+			
+			_sub_triangle(p12, p23, p31, arrays, used_vecs, used_border_vecs, recursion)
 
 func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: ArrayMesh):
 	var surface_array = []
@@ -570,23 +693,33 @@ func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: 
 	
 	msh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 
-func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
-		thickness: float, water = true):
+func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array, thickness: float, used_border_vecs: PackedVector3Array,
+		water = true):
 	var wall_triangles = PackedVector3Array()
 	var wall_tri_colors = PackedColorArray()
 	var wall_tri_normals = PackedVector3Array()
 	var cutwater_triangles = PackedVector3Array()
 	var cutwater_tri_normals = PackedVector3Array()
 	var cutwater_tri_colors = PackedColorArray()
+	var max_distance_between_vecs := 0.000016
 
 	for b in len(ring_array)-1:
 		var v0 = ring_array[b]
 		var v1 = ring_array[b+1]
-		var v0p = mm(ring_array[b]*thickness)
+		for pt in used_border_vecs:
+			if v0.distance_squared_to(pt) < max_distance_between_vecs:
+				v0 = pt
+			if v0.distance_squared_to(pt) < max_distance_between_vecs:
+				v0 = pt
+		if !used_border_vecs.has(v0):
+			used_border_vecs.append(v0)
+		if !used_border_vecs.has(v1):
+			used_border_vecs.append(v1)
+		var v0p = mm(v0*thickness)
 		var v0pw = v0p.normalized()*water_offset
 		var v0pw_depth = v0p.length_squared() - v0pw.length_squared()
 		#edges_for_particles.append(v0p)
-		var v1p = mm(ring_array[b+1]*thickness)
+		var v1p = mm(v1*thickness)
 		var v1pw = v1p.normalized()*water_offset
 		var v1pw_depth = v1p.length_squared() - v1pw.length_squared()
 		#edges_for_particles.append(v1p)
@@ -645,7 +778,7 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 
 		_tricolor(low_crust_color,low_crust_color,low_crust_color,wall_tri_colors)
 
-		n = Plane(v0,og_verts[og_idx],v1).normal
+		n = Plane(v1,og_verts[og_idx],v0).normal
 		_triangle(n,n,n,wall_tri_normals)
 		
 		## PIECE BOTTOM END ## -----------------------------

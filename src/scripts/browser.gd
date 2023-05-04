@@ -47,6 +47,7 @@ var roto_ratio := 1.0
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	camera_3d.position.z = cam_dist
+	h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	og_sens = h_sensitivity
 
 func _unhandled_input(event):

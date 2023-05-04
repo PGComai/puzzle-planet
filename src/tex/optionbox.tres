@@ -1,7 +1,16 @@
-[gd_resource type="Theme" load_steps=9 format=3 uid="uid://h80aogkghxi5"]
+[gd_resource type="Theme" load_steps=10 format=3 uid="uid://h80aogkghxi5"]
 
 [ext_resource type="Texture2D" uid="uid://diqm2gn6d2x4u" path="res://tex/drag_handle_smol.png" id="1_xq656"]
 [ext_resource type="FontFile" uid="uid://inqm77e5i8my" path="res://fonts/PixelOperator8.ttf" id="2_15yvp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yq2g3"]
+bg_color = Color(0.133333, 0.133333, 0.133333, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+expand_margin_top = 10.0
+expand_margin_bottom = 10.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c0tdm"]
 content_margin_left = 4.0
@@ -77,8 +86,11 @@ bg_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
 
 [resource]
 default_font = ExtResource("2_15yvp")
-Button/font_sizes/font_size = 12
-Label/font_sizes/font_size = 12
+default_font_size = 44
+Button/font_sizes/font_size = 56
+HSeparator/constants/separation = 30
+HSlider/styles/slider = SubResource("StyleBoxFlat_yq2g3")
+Label/font_sizes/font_size = 56
 MenuButton/colors/font_color = Color(0.875, 0.875, 0.875, 1)
 MenuButton/colors/font_disabled_color = Color(1, 1, 1, 0.3)
 MenuButton/colors/font_focus_color = Color(0.95, 0.95, 0.95, 1)
@@ -93,7 +105,7 @@ MenuButton/styles/focus = SubResource("StyleBoxFlat_5tqo1")
 MenuButton/styles/hover = SubResource("StyleBoxFlat_jid6u")
 MenuButton/styles/normal = SubResource("StyleBoxFlat_giwdd")
 MenuButton/styles/pressed = SubResource("StyleBoxFlat_0ev02")
-OptionButton/font_sizes/font_size = 10
+OptionButton/font_sizes/font_size = 56
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_wpjmi")
 VSplitContainer/constants/autohide = 0
 VSplitContainer/constants/minimum_grab_thickness = 70

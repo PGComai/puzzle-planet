@@ -37,6 +37,8 @@ var dy_final := 0.0
 func _ready():
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	h = sub_viewport.size.y
+	h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
+	v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	
 func _unhandled_input(event):
 	if event is InputEventScreenDrag:

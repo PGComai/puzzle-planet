@@ -96,10 +96,10 @@ func _generate_mesh():
 #	var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
 #	var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
 #	var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
-#	_progressive_meshify_inwards(vi_to_borders, verts, newmesh, newnewnewdict)
+	#_progressive_meshify_inwards(vi_to_borders, verts, newmesh)
 	_progressive_triangulate(vi_to_borders, verts, newmesh)
 	
-	for ndi in recursed_borders.keys():
+	#for ndi in recursed_borders.keys():
 #		var txt = txtmsh.instantiate()
 #		txt.mesh.text = str(ndi)
 #		txt.position = verts[ndi]*1.1
@@ -112,7 +112,7 @@ func _generate_mesh():
 #				txt.position = (recursed_borders[ndi][pti].move_toward(verts[ndi], 0.05)).normalized()*1.05
 #				add_child(txt)
 #			print(str(ndi) + ': ' + str(len(recursed_borders[ndi])))
-		draw_linemesh(recursed_borders[ndi], newmesh)
+		#draw_linemesh(recursed_borders[ndi], newmesh)
 		#delaunay(vi_to_borders[ndi])
 
 	mesh = newmesh
@@ -121,31 +121,71 @@ func _progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, 
 	# needs to treat thin triangles differently while making same edge vertices
 	var triangles = PackedVector3Array()
 	var triangle_normals = PackedVector3Array()
+	var triangle_colors = PackedColorArray()
+	var used_border_vecs = PackedVector3Array()
 	for bak in vbdict.keys():
 		var border_array = vbdict[bak]
 		var on = true
 		var next_array = PackedVector3Array()
+		var used_vecs = PackedVector3Array()
 		for b in len(border_array)-1:
-			var v0 = border_array[b]
-			var v1 = border_array[b+1]
-			var vp = og_verts[bak]
-			#if v0.angle_to(vp) > vertex_fill_threshold and vp.angle_to(v1) > vertex_fill_threshold and v0.angle_to(v1) > vertex_fill_threshold:
-			_sub_triangle(v0,vp,v1, triangles, triangle_normals)
-#			_triangle(v0,vp,v1, triangles)
-#			var n = Plane(v0,vp,v1).normal
-#			_triangle(n,n,n, triangle_normals)
-#			var newpoint: Vector3
-#			var ang = v0.angle_to(vp)
-#			var ax = v0.cross(vp).normalized()
-#			newpoint = v0.rotated(ax, ang*0.2)
-#			next_array.append(newpoint)
+			var max_distance_between_vecs := 0.000016
+			var v0 = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
+			var v1 = border_array[b+1].snapped(Vector3(0.001, 0.001, 0.001))
+			var vp = og_verts[bak].snapped(Vector3(0.001, 0.001, 0.001))
+			for pt in used_border_vecs:
+				if v0.distance_squared_to(pt) < max_distance_between_vecs:
+					v0 = pt
+				if v1.distance_squared_to(pt) < max_distance_between_vecs:
+					v1 = pt
+				if vp.distance_squared_to(pt) < max_distance_between_vecs:
+					vp = pt
+			if !used_border_vecs.has(v0):
+				used_border_vecs.append(v0)
+			if !used_border_vecs.has(v1):
+				used_border_vecs.append(v1)
+			if !used_border_vecs.has(vp):
+				used_border_vecs.append(vp)
+			if !used_vecs.has(v0):
+				used_vecs.append(v0)
+			if !used_vecs.has(v1):
+				used_vecs.append(v1)
+			if !used_vecs.has(vp):
+				used_vecs.append(vp)
+			_sub_triangle(v0,vp,v1, triangles, triangle_normals, triangle_colors, used_vecs, used_border_vecs)
 	draw_trimesh(triangles, triangle_normals, msh)
 
-func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array, normal_arr: PackedVector3Array, recursion := 0):
+func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3,
+			arr: PackedVector3Array,
+			normal_arr: PackedVector3Array,
+			color_array: PackedColorArray,
+			used_vecs: PackedVector3Array,
+			used_border_vecs: PackedVector3Array,
+			recursion := 0,
+			shade_min := 0,
+			shade_max := 1,
+			max_distance_between_vecs := 0.000016,
+			vsnap := 0.001):
 	var ang = p1.angle_to(p2)
 	var ang2 = p2.angle_to(p3)
 	var ang3 = p1.angle_to(p3)
 	if recursion > sub_triangle_recursion:#(ang <= vertex_fill_threshold and ang2 <= vertex_fill_threshold and ang3 <= vertex_fill_threshold):
+		#var angle_dict := Dictionary()
+		#var closest := PI
+		#for p in [p1, p2, p3]:
+		for pt in used_vecs:
+			if p1.distance_squared_to(pt) < max_distance_between_vecs:
+				p1 = pt
+			if p2.distance_squared_to(pt) < max_distance_between_vecs:
+				p2 = pt
+			if p3.distance_squared_to(pt) < max_distance_between_vecs:
+				p3 = pt
+		if !used_vecs.has(p1):
+			used_vecs.append(p1)
+		if !used_vecs.has(p2):
+			used_vecs.append(p2)
+		if !used_vecs.has(p3):
+			used_vecs.append(p3)
 		_triangle(p1, p2, p3, arr)
 		var n = Plane(p1, p2, p3).normal
 		_triangle(n,n,n, normal_arr)
@@ -159,85 +199,55 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Arra
 		if true:#ang > vertex_fill_threshold and ang2 > vertex_fill_threshold and ang3 > vertex_fill_threshold:
 			ax = p1.cross(p2).normalized()
 			newpoint = p1.rotated(ax, ang*0.5)
-			var p12 = newpoint
+			var p12 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
 			
 			ax = p2.cross(p3).normalized()
 			newpoint = p2.rotated(ax, ang2*0.5)
-			var p23 = newpoint
-			
+			var p23 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
+
 			ax = p1.cross(p3).normalized()
 			newpoint = p1.rotated(ax, ang3*0.5)
-			var p31 = newpoint
+			var p31 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
 			
-			_sub_triangle(p1, p12, p31, arr, normal_arr, recursion)
+			for pt in used_vecs:
+				if p12.distance_squared_to(pt) < max_distance_between_vecs:
+					p12 = pt
+				if p23.distance_squared_to(pt) < max_distance_between_vecs:
+					p23 = pt
+				if p31.distance_squared_to(pt) < max_distance_between_vecs:
+					p31 = pt
+			for pt in used_border_vecs:
+				if p31.distance_squared_to(pt) < max_distance_between_vecs:
+					p31 = pt
+			if !used_border_vecs.has(p31):
+				used_border_vecs.append(p31)
 			
-			_sub_triangle(p12, p2, p23, arr, normal_arr, recursion)
+			if !used_vecs.has(p12):
+				used_vecs.append(p12)
+			if !used_vecs.has(p23):
+				used_vecs.append(p23)
+			if !used_vecs.has(p31):
+				used_vecs.append(p31)
 			
-			_sub_triangle(p31, p23, p3, arr, normal_arr, recursion)
+			_sub_triangle(p1, p12, p31, arr, normal_arr, color_array, used_vecs, used_border_vecs, recursion)
 			
-			_sub_triangle(p12, p23, p31, arr, normal_arr, recursion)
-#		else:
-#			var angtests = angs.map(func(number): return number > vertex_fill_threshold)
-#			var num_short_edges = angtests.count(false)
-#			print(num_short_edges)
-#
-#			if num_short_edges == 3 or num_short_edges == 2:
-#				_triangle(p1, p2, p3, arr)
-#				n = Plane(p1, p2, p3).normal
-#				_triangle(n,n,n, normal_arr)
-#			else:
-#				var idx = angtests.find(false)
-#				# call _sub_triangle on new triangle opposite short side
-#				if idx == 0: # then the short side is p12
-#					ax = p2.cross(p3).normalized()
-#					newpoint = p2.rotated(ax, ang2*0.5)
-#					var p23 = newpoint
-#
-#					ax = p1.cross(p3).normalized()
-#					newpoint = p1.rotated(ax, ang3*0.5)
-#					var p31 = newpoint
-#
-#					_sub_triangle(p31, p23, p3, arr, normal_arr, recursion)
-#
-#					_sub_triangle(p1, p23, p31, arr, normal_arr, recursion)
-#
-#					_sub_triangle(p23, p1, p2, arr, normal_arr, recursion)
-#				elif idx == 1: # short side is p23
-#					ax = p1.cross(p2).normalized()
-#					newpoint = p1.rotated(ax, ang*0.5)
-#					var p12 = newpoint
-#
-#					ax = p1.cross(p3).normalized()
-#					newpoint = p1.rotated(ax, ang3*0.5)
-#					var p31 = newpoint
-#
-#					_sub_triangle(p1, p12, p31, arr, normal_arr, recursion)
-#
-#					_sub_triangle(p12, p2, p31, arr, normal_arr, recursion)
-#
-#					_sub_triangle(p31, p2, p3, arr, normal_arr, recursion)
-#				else: # short side is p31
-#					ax = p1.cross(p2).normalized()
-#					newpoint = p1.rotated(ax, ang*0.5)
-#					var p12 = newpoint
-#
-#					ax = p2.cross(p3).normalized()
-#					newpoint = p2.rotated(ax, ang2*0.5)
-#					var p23 = newpoint
-#
-#					_sub_triangle(p12, p2, p23, arr, normal_arr, recursion)
-#
-#					_sub_triangle(p1, p12, p3, arr, normal_arr, recursion)
-#
-#					_sub_triangle(p3, p12, p23, arr, normal_arr, recursion)
-				
+			_sub_triangle(p12, p2, p23, arr, normal_arr, color_array, used_vecs, used_border_vecs, recursion)
+			
+			_sub_triangle(p31, p23, p3, arr, normal_arr, color_array, used_vecs, used_border_vecs, recursion)
+			
+			_sub_triangle(p12, p23, p31, arr, normal_arr, color_array, used_vecs, used_border_vecs, recursion)
 
 func _triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array):
 	arr.append(p1)
 	arr.append(p2)
 	arr.append(p3)
+	
+func _tricolor(p1: Color, p2: Color, p3: Color, arr: PackedColorArray):
+	arr.append(p1)
+	arr.append(p2)
+	arr.append(p3)
 
-func _progressive_meshify_inwards(corner_dict: Dictionary, og_verts: PackedVector3Array, msh: ArrayMesh, ref_dict: Dictionary):
+func _progressive_meshify_inwards(corner_dict: Dictionary, og_verts: PackedVector3Array, msh: ArrayMesh):
 	var triangles = PackedVector3Array()
 	var triangle_normals = PackedVector3Array()
 	for cd in corner_dict.keys():
@@ -256,26 +266,26 @@ func _progressive_meshify_inwards(corner_dict: Dictionary, og_verts: PackedVecto
 		new_border_array = fill_border_halfways_array(new_border_array)
 		final_arr.append_array(new_border_array)
 		draw_linemesh(new_border_array, msh)
-		for b in border_array:
-			var ang = b.angle_to(og_verts[cd])
-			var ax = b.cross(og_verts[cd]).normalized()
-			var newpoint = b.rotated(ax, ang*0.25)
-			new_border_array2.append(newpoint)
-		new_border_array2 = fill_border_halfways_array(new_border_array2)
-		new_border_array2 = fill_border_halfways_array(new_border_array2)
-		new_border_array2 = fill_border_halfways_array(new_border_array2)
-		final_arr.append_array(new_border_array2)
-		draw_linemesh(new_border_array2, msh)
-		for b in border_array:
-			var ang = b.angle_to(og_verts[cd])
-			var ax = b.cross(og_verts[cd]).normalized()
-			var newpoint = b.rotated(ax, ang*0.75)
-			new_border_array3.append(newpoint)
-		new_border_array3 = fill_border_halfways_array(new_border_array3)
-		new_border_array3 = fill_border_halfways_array(new_border_array3)
-		new_border_array3 = fill_border_halfways_array(new_border_array3)
-		final_arr.append_array(new_border_array3)
-		draw_linemesh(new_border_array3, msh)
+#		for b in border_array:
+#			var ang = b.angle_to(og_verts[cd])
+#			var ax = b.cross(og_verts[cd]).normalized()
+#			var newpoint = b.rotated(ax, ang*0.25)
+#			new_border_array2.append(newpoint)
+#		new_border_array2 = fill_border_halfways_array(new_border_array2)
+#		new_border_array2 = fill_border_halfways_array(new_border_array2)
+#		new_border_array2 = fill_border_halfways_array(new_border_array2)
+#		final_arr.append_array(new_border_array2)
+#		draw_linemesh(new_border_array2, msh)
+#		for b in border_array:
+#			var ang = b.angle_to(og_verts[cd])
+#			var ax = b.cross(og_verts[cd]).normalized()
+#			var newpoint = b.rotated(ax, ang*0.75)
+#			new_border_array3.append(newpoint)
+#		new_border_array3 = fill_border_halfways_array(new_border_array3)
+#		new_border_array3 = fill_border_halfways_array(new_border_array3)
+#		new_border_array3 = fill_border_halfways_array(new_border_array3)
+#		final_arr.append_array(new_border_array3)
+#		draw_linemesh(new_border_array3, msh)
 #		for b in len(final_arr)-1:
 #			var v0 = final_arr[b]
 #			var v1 = final_arr[b+1]
