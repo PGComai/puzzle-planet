@@ -104,6 +104,7 @@ var placed_signal := false
 var placed_timer := 0.0
 var placed_counting := false
 var snow_start: float
+var max_distance_between_vecs := 0.000016
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -226,10 +227,10 @@ func _generate_mesh():
 		
 		## NEW STUFF
 		
-		recursed_borders = vi_to_borders.duplicate()
-
-		for r in sub_triangle_recursion+1:
-			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts)
+#		recursed_borders = vi_to_borders.duplicate()
+#
+#		for r in sub_triangle_recursion+1:
+#			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts)
 
 		## NEW STUFF
 
@@ -392,65 +393,64 @@ func _generate_mesh():
 		else:
 			snow_start = 0.9
 		var used_border_vecs = PackedVector3Array()
-		var max_distance_between_vecs := 0.000016
 		## new approach
 		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts)
 		##
-		for v in l:
-			var border_array = recursed_borders[v]
-			for ba in border_array:
-				ba = ba.snapped(Vector3(0.001, 0.001, 0.001))
-#				for pt in used_border_vecs:
-#					if ba.distance_squared_to(pt) < max_distance_between_vecs:
-#						ba = pt
-				if !used_border_vecs.has(ba):
-					used_border_vecs.append(ba)
-			var edges_for_particles = border_array.duplicate()
-			#border_array.append(border_array[0])
-			
-			### DRAW MESH ###
-			
-			var prog_tri_result = progressive_triangulate(vi_to_borders[v], v, verts, used_border_vecs)
-			# now tess_result should just be the wall and cutwater triangles
-			#var tess_result = tesselate(verts, v, border_array, offset)
-			
-			var NEW_tess_result = NEW_tesselate(verts, v, border_array, crust_thickness, used_border_vecs)
-			var dxu = verts[v].cross(Vector3.UP)
-			var up = dxu.rotated(verts[v].normalized(), -PI/2)
-			
-			var newpiece = piece.instantiate()
-			newpiece.wall_vertex = NEW_tess_result[0]
-			newpiece.wall_normal = NEW_tess_result[1]
-			newpiece.wall_color = NEW_tess_result[2]
-			newpiece.vertex = prog_tri_result[0]
-			newpiece.normal = prog_tri_result[1]
-			newpiece.color = prog_tri_result[2]
-			newpiece.ocean = ocean
-			if ocean:
-				newpiece.vertex_w = prog_tri_result[3]
-				newpiece.normal_w = prog_tri_result[4]
-				newpiece.color_w = prog_tri_result[5]
-				newpiece.vertex_cw = NEW_tess_result[3]
-				newpiece.normal_cw = NEW_tess_result[4]
-				newpiece.color_cw = NEW_tess_result[5]
-			newpiece.direction = verts[v]
-			puzzle_fits[v] = verts[v]
-			newpiece.idx = v
-			newpiece.siblings = l
-			newpiece.ready_for_launch.connect(_on_ready_for_launch)
-			newpiece.upright_vec = up.normalized()
-			newpiece.particle_edges = edges_for_particles
-			newpiece.offset = piece_offset
-			# checking who stays
-			var dieroll = randi_range(0, 99)
-			if dieroll < percent_complete:
-				newpiece.remove_from_group('pieces')
-				newpiece.staying = true
-			else:
-				newpiece.circle_idx = circle_idx
-				circle_idx += 1
-			
-			pieces.add_child(newpiece)
+#		for v in l:
+#			var border_array = recursed_borders[v]
+#			for ba in border_array:
+#				ba = ba.snapped(Vector3(0.001, 0.001, 0.001))
+##				for pt in used_border_vecs:
+##					if ba.distance_squared_to(pt) < max_distance_between_vecs:
+##						ba = pt
+#				if !used_border_vecs.has(ba):
+#					used_border_vecs.append(ba)
+#			var edges_for_particles = border_array.duplicate()
+#			#border_array.append(border_array[0])
+#
+#			### DRAW MESH ###
+#
+#			var prog_tri_result = progressive_triangulate(vi_to_borders[v], v, verts, used_border_vecs)
+#			# now tess_result should just be the wall and cutwater triangles
+#			#var tess_result = tesselate(verts, v, border_array, offset)
+#
+#			var NEW_tess_result = NEW_tesselate(verts, v, border_array, crust_thickness, used_border_vecs)
+#			var dxu = verts[v].cross(Vector3.UP)
+#			var up = dxu.rotated(verts[v].normalized(), -PI/2)
+#
+#			var newpiece = piece.instantiate()
+#			newpiece.wall_vertex = NEW_tess_result[0]
+#			newpiece.wall_normal = NEW_tess_result[1]
+#			newpiece.wall_color = NEW_tess_result[2]
+#			newpiece.vertex = prog_tri_result[0]
+#			newpiece.normal = prog_tri_result[1]
+#			newpiece.color = prog_tri_result[2]
+#			newpiece.ocean = ocean
+#			if ocean:
+#				newpiece.vertex_w = prog_tri_result[3]
+#				newpiece.normal_w = prog_tri_result[4]
+#				newpiece.color_w = prog_tri_result[5]
+#				newpiece.vertex_cw = NEW_tess_result[3]
+#				newpiece.normal_cw = NEW_tess_result[4]
+#				newpiece.color_cw = NEW_tess_result[5]
+#			newpiece.direction = verts[v]
+#			puzzle_fits[v] = verts[v]
+#			newpiece.idx = v
+#			newpiece.siblings = l
+#			newpiece.ready_for_launch.connect(_on_ready_for_launch)
+#			newpiece.upright_vec = up.normalized()
+#			newpiece.particle_edges = edges_for_particles
+#			newpiece.offset = piece_offset
+#			# checking who stays
+#			var dieroll = randi_range(0, 99)
+#			if dieroll < percent_complete:
+#				newpiece.remove_from_group('pieces')
+#				newpiece.staying = true
+#			else:
+#				newpiece.circle_idx = circle_idx
+#				circle_idx += 1
+#
+#			pieces.add_child(newpiece)
 			
 #	for c in pieces.get_children():
 #		c.visible = false
@@ -472,7 +472,6 @@ func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_v
 #	var triangles = PackedVector3Array()
 #	var triangle_normals = PackedVector3Array()
 	var used_vecs = PackedVector3Array()
-	var max_distance_between_vecs := 0.000016
 	for b in len(border_array)-1:
 		var v0 = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
 		var v1 = border_array[b+1].snapped(Vector3(0.001, 0.001, 0.001))
@@ -504,26 +503,27 @@ func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_v
 		water_triangles, water_tri_normals, water_tri_colors]
 
 func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array):
-	# treats thin triangles differently while making same edge vertices
-	var border_triangles = PackedVector3Array()
-	var border_tri_normals = PackedVector3Array()
-	var border_tri_colors = PackedColorArray()
-	var water_triangles = PackedVector3Array()
-	var water_tri_normals = PackedVector3Array()
-	var water_tri_colors = PackedColorArray()
-	
-	var arrays = [border_triangles, border_tri_normals, border_tri_colors,
-		water_triangles, water_tri_normals, water_tri_colors]
-	
-	####
+	var circle_idx = 0
 	var used_border_vecs = PackedVector3Array()
+	var newborders = vbdict.duplicate()
+	for r in sub_triangle_recursion+1:
+		newborders = NEW_fill_border_halfways(newborders.duplicate(), og_verts, used_border_vecs)
 	for bak in vbdict.keys():
+		var border_triangles = PackedVector3Array()
+		var border_tri_normals = PackedVector3Array()
+		var border_tri_colors = PackedColorArray()
+		var water_triangles = PackedVector3Array()
+		var water_tri_normals = PackedVector3Array()
+		var water_tri_colors = PackedColorArray()
+		
+		var arrays = [border_triangles, border_tri_normals, border_tri_colors,
+			water_triangles, water_tri_normals, water_tri_colors]
+		var new_border_array = newborders[bak]
+		var NEW_tess_result = NEW_tesselate(og_verts, bak, new_border_array, crust_thickness, used_border_vecs)
 		var border_array = vbdict[bak]
 		var on = true
-		var next_array = PackedVector3Array()
 		var used_vecs = PackedVector3Array()
 		for b in len(border_array)-1:
-			var max_distance_between_vecs := 0.000016
 			var v0 = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
 			var v1 = border_array[b+1].snapped(Vector3(0.001, 0.001, 0.001))
 			var vp = og_verts[bak].snapped(Vector3(0.001, 0.001, 0.001))
@@ -547,10 +547,42 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 			if !used_vecs.has(vp):
 				used_vecs.append(vp)
 			_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs)
-	####
-	
-	return [border_triangles, border_tri_normals, border_tri_colors,
-		water_triangles, water_tri_normals, water_tri_colors]
+		var dxu = og_verts[bak].cross(Vector3.UP)
+		var up = dxu.rotated(og_verts[bak].normalized(), -PI/2)
+		
+		var newpiece = piece.instantiate()
+		newpiece.wall_vertex = NEW_tess_result[0]
+		newpiece.wall_normal = NEW_tess_result[1]
+		newpiece.wall_color = NEW_tess_result[2]
+		newpiece.vertex = border_triangles
+		newpiece.normal = border_tri_normals
+		newpiece.color = border_tri_colors
+		newpiece.ocean = ocean
+		if ocean:
+			newpiece.vertex_w = water_triangles
+			newpiece.normal_w = water_tri_normals
+			newpiece.color_w = water_tri_colors
+			newpiece.vertex_cw = NEW_tess_result[3]
+			newpiece.normal_cw = NEW_tess_result[4]
+			newpiece.color_cw = NEW_tess_result[5]
+		newpiece.direction = og_verts[bak]
+		puzzle_fits[bak] = og_verts[bak]
+		newpiece.idx = bak
+		newpiece.siblings = len(og_verts)
+		newpiece.ready_for_launch.connect(_on_ready_for_launch)
+		newpiece.upright_vec = up.normalized()
+		#newpiece.particle_edges = edges_for_particles
+		newpiece.offset = piece_offset
+		# checking who stays
+		var dieroll = randi_range(0, 99)
+		if dieroll < percent_complete:
+			newpiece.remove_from_group('pieces')
+			newpiece.staying = true
+		else:
+			newpiece.circle_idx = circle_idx
+			circle_idx += 1
+		
+		pieces.add_child(newpiece)
 
 func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			used_vecs: PackedVector3Array,
@@ -558,7 +590,6 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			recursion := 0,
 			shade_min := 0,
 			shade_max := 1,
-			max_distance_between_vecs := 0.000016,
 			vsnap := 0.001):
 #	[border_triangles, border_tri_normals, border_tri_colors,            0, 1, 2
 #		water_triangles, water_tri_normals, water_tri_colors]            3, 4, 5
@@ -701,7 +732,6 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 	var cutwater_triangles = PackedVector3Array()
 	var cutwater_tri_normals = PackedVector3Array()
 	var cutwater_tri_colors = PackedColorArray()
-	var max_distance_between_vecs := 0.000016
 
 	for b in len(ring_array)-1:
 		var v0 = ring_array[b]
@@ -1127,40 +1157,70 @@ func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary
 		result[v] = border_array
 	return result
 
-func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
+func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
 	for vi in vbdict.keys():
 		var border_array = vbdict[vi]
 		var new_border_array = PackedVector3Array()
 		for b in len(border_array):
 			var plus1 = b+1
+
 			if plus1 == len(border_array):
 				## last one
 				plus1 = 0
-				var current_border_point = border_array[b]
-				var next_border_point = border_array[plus1]
+				var current_border_point = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
+				var next_border_point = border_array[plus1].snapped(Vector3(0.001, 0.001, 0.001))
+				for pt in used_border_vecs:
+					if current_border_point.distance_squared_to(pt) < max_distance_between_vecs:
+						current_border_point = pt
+					if next_border_point.distance_squared_to(pt) < max_distance_between_vecs:
+						next_border_point = pt
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
 					#if !(new_border_array.has(current_border_point)):
 					new_border_array.append(current_border_point)
-					var halfway = current_border_point.rotated(ax, ang/2.0)
+					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(0.001, 0.001, 0.001))
+					for pt in used_border_vecs:
+						if halfway.distance_squared_to(pt) < max_distance_between_vecs:
+							halfway = pt
 					#if !(new_border_array.has(halfway)):
 					new_border_array.append(halfway)
 					#if !(new_border_array.has(next_border_point)):
 					new_border_array.append(next_border_point)
+					if !used_border_vecs.has(current_border_point):
+						used_border_vecs.append(current_border_point)
+					if !used_border_vecs.has(halfway):
+						used_border_vecs.append(halfway)
+					if !used_border_vecs.has(next_border_point):
+						used_border_vecs.append(next_border_point)
 			else:
-				var current_border_point = border_array[b]
-				var next_border_point = border_array[plus1]
+				var current_border_point = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
+				var next_border_point = border_array[plus1].snapped(Vector3(0.001, 0.001, 0.001))
+				for pt in used_border_vecs:
+					if current_border_point.distance_squared_to(pt) < max_distance_between_vecs:
+						current_border_point = pt
+					if next_border_point.distance_squared_to(pt) < max_distance_between_vecs:
+						next_border_point = pt
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
 					if !(new_border_array.has(current_border_point)):
 						new_border_array.append(current_border_point)
-					var halfway = current_border_point.rotated(ax, ang/2.0)
+					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(0.001, 0.001, 0.001))
+					for pt in used_border_vecs:
+						if halfway.distance_squared_to(pt) < max_distance_between_vecs:
+							halfway = pt
 					if !(new_border_array.has(halfway)):
 						new_border_array.append(halfway)
 					if !(new_border_array.has(next_border_point)):
 						new_border_array.append(next_border_point)
+					
+					if !used_border_vecs.has(current_border_point):
+						used_border_vecs.append(current_border_point)
+					if !used_border_vecs.has(halfway):
+						used_border_vecs.append(halfway)
+					if !used_border_vecs.has(next_border_point):
+						used_border_vecs.append(next_border_point)
 		vbdict[vi] = new_border_array
 	return vbdict
 

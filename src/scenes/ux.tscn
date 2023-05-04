@@ -8,7 +8,16 @@
 [ext_resource type="Script" path="res://scenes/newplanet.gd" id="6_fwx6s"]
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ma754"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4svtt"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3dc5u"]
 
@@ -97,10 +106,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -28.0
-offset_top = 580.0
-offset_right = 29.0
-offset_bottom = 596.0
+offset_left = -15.0
+offset_top = 140.0
+offset_right = 15.0
+offset_bottom = 148.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_kqae3")
@@ -109,8 +118,8 @@ theme_override_colors/font_pressed_color = Color(0.32549, 0.372549, 0.462745, 1)
 theme_override_colors/font_hover_color = Color(0.32549, 0.372549, 0.462745, 1)
 theme_override_colors/font_focus_color = Color(0.32549, 0.372549, 0.462745, 1)
 theme_override_colors/font_hover_pressed_color = Color(0.32549, 0.372549, 0.462745, 1)
-theme_override_font_sizes/font_size = 28
-theme_override_styles/normal = SubResource("StyleBoxEmpty_ma754")
+theme_override_font_sizes/font_size = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_4svtt")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_3dc5u")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_ogvk4")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_nfqoi")
@@ -119,10 +128,10 @@ text = "MENU"
 
 [node name="PopupMenu" type="PopupMenu" parent="MenuButton"]
 transparent_bg = true
-position = Vector2i(40, 760)
-size = Vector2i(640, 324)
+position = Vector2i(5, 200)
+size = Vector2i(170, 112)
 theme_override_constants/v_separation = 10
-theme_override_font_sizes/font_size = 68
+theme_override_font_sizes/font_size = 16
 theme_override_styles/separator = SubResource("StyleBoxEmpty_kjmdu")
 item_count = 4
 item_0/text = "New Planet"
@@ -136,16 +145,16 @@ item_3/id = 3
 script = ExtResource("4_3lqjh")
 
 [node name="PopupPanel" type="PopupPanel" parent="."]
-position = Vector2i(40, 40)
-size = Vector2i(640, 640)
+position = Vector2i(5, 65)
+size = Vector2i(170, 200)
 theme = ExtResource("5_kb0sw")
 script = ExtResource("6_fwx6s")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel"]
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 636.0
-offset_bottom = 636.0
+offset_right = 166.0
+offset_bottom = 196.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
@@ -182,7 +191,7 @@ autowrap_mode = 2
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_fonts/font = ExtResource("7_wkm7n")
-theme_override_font_sizes/font_size = 100
+theme_override_font_sizes/font_size = 34
 text = "50%"
 horizontal_alignment = 2
 autowrap_mode = 2
