@@ -7,16 +7,20 @@ signal picked_you(idx)
 @onready var camrot = $camrot
 @onready var ux = $"../../../../../../.."
 @onready var camera_3d = $camrot/Camera3D
+var global
 
 var rot_h = 0.0
-var h_sensitivity = 0.018
+var h_sensitivity = 0.004
+var v_sensitivity = 0.004
 var og_sens: float
-var h_acc
 var dx_final := 0.0
+var dy_final := 0.0
 
-var erx = 0.0
+var dx = 0.0
+var dy = 0.0
 var drag = false
-var erx_acc = []
+var dx_acc = []
+var dy_acc = []
 var tposy: float
 
 var rotosnaps: int
@@ -32,7 +36,6 @@ var releasetimer = 0.0
 
 var stopped = true
 var front_piece: float
-var slower = 1.0
 
 var cam_dist = 0.0
 
@@ -43,38 +46,57 @@ var holding := false
 var recam := false
 var puzzle_done := false
 var roto_ratio := 1.0
+var snap_to := 0.0
+var vibrate_strength := 0.0
+
+var piece_in_space := false
+var stay_at_angle := 0.0
+var spin_speed := 0.0
+var how_close_to_piece := 0.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	global = get_node('/root/Global')
 	camera_3d.position.z = cam_dist
 	h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
+	v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
+	#h_sensitivity *= global.pieces_at_start/15.0
 	og_sens = h_sensitivity
 
 func _unhandled_input(event):
 	if event is InputEventScreenDrag:
 		if event.position.y > 0.0:
+			holding = true
 			drag = true
-			slower = 1.0
-			stopped = false
-			erx = lerp(erx, event.relative.x * h_sensitivity, 0.05)
-			momentum += erx
-			#erx = pow(event.relative.x * h_sensitivity, 2.0) * sign(event.relative.x)
-	if event is InputEventScreenTouch:
-		slower = 1.0
-		if event.pressed == false:
+			dx = event.relative.x * h_sensitivity
+			dy = event.relative.y * v_sensitivity
+			if abs(dx) > abs(dy):
+				dy = 0.0
+			elif abs(dx) <= abs(dy):
+				dx = 0.0
+		else:
 			holding = false
-			if release_ready and releasetimer < 0.2 and stopped:
+			drag = false
+	if event is InputEventScreenTouch:
+		if event.pressed == false:
+			if !holding:
 				if event.position.y > 0.0:
 					# this is where we pick a piece
 					if piecelocs.has(front_piece):
+						piece_in_space = true
 						emit_signal("picked_you", piecelocs[front_piece])
-			else:
-				if abs(erx) < 0.004 and not drag:
-					slower = 4.0
-			#drag = false
+						stay_at_angle = front_piece
+			elif dy_final < -0.02 and abs(dx_final) < 0.02 and !piece_in_space:
+				if piecelocs.has(front_piece):
+					piece_in_space = true
+					emit_signal("picked_you", piecelocs[front_piece])
+					stay_at_angle = front_piece
+			elif dy_final > 0.02 and abs(dx_final) < 0.02 and piece_in_space:
+				if piecelocs.has(front_piece):
+					emit_signal("picked_you", piecelocs[front_piece])
+					stay_at_angle = front_piece
+			holding = false
 			pick = false
-			release_ready = false
-			releasetimer = 0.0
 		elif event.pressed == true:
 			pick = true
 
@@ -83,62 +105,75 @@ func _process(delta):
 	if puzzle_done:
 		pass
 	else:
-		momentum = lerp(momentum, 0.0, 0.04)
-		#print(momentum)
+		#print(piece_in_space)
+		if piece_in_space:
+			dx = 0.0
+			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
+			camrot.rotation.y = rot_h
 		if drag:
+			if abs(dx) < 0.01:
+				dx = lerp(dx, 0.0, 0.1)
 			snap_ease = 0.0
-			erx_acc.append(erx)
-			if len(erx_acc) > 5:
-				erx_acc.remove_at(0)
-			erx = erx_acc.reduce(func(accum, number): return accum + number, 0)/5
-			if abs(momentum) < 0.0005:
-				hold_timer += delta
-				if hold_timer > 0.2:
-					holding = true
-					hold_timer = 0.0
-			rot_h -= erx
+			dx_acc.append(dx)
+			if len(dx_acc) > 5:
+				dx_acc.remove_at(0)
+			dx_final = dx_acc.reduce(func(accum, number): return accum + number, 0)/5
+			dy_acc.append(dy)
+			if len(dy_acc) > 5:
+				dy_acc.remove_at(0)
+			dy_final = dy_acc.reduce(func(accum, number): return accum + number, 0)/5
+			rot_h -= dx_final
 			if rot_h < 0.0:
 				rot_h = 2*PI-abs(rot_h)
-			#print(rot_h)
 			camrot.rotation.y = rot_h
-		if !drag or holding:
-			#print('snapping')
-			snap_ease = lerp(snap_ease, 12.0, 0.01)
-			erx = lerp(erx, 0.0, 0.05)
-			erx_acc = []
-			rot_h -= erx
+		if !drag and !holding:
+			if len(dx_acc) > 0:
+				dx_acc.remove_at(0)
+			if len(dy_acc) > 0:
+				dy_acc.remove_at(0)
+			dx_final = lerp(dx_final, 0.0, 0.05)
+			dy_final = lerp(dy_final, 0.0, 0.05)
+			snap_ease = lerp(snap_ease, 5.0, 0.01)
+			dx = lerp(dx, 0.0, 0.01)
+			dy = lerp(dy, 0.0, 0.01)
+			rot_h -= dx
 			if rot_h < 0.0:
 				rot_h = 2*PI-abs(rot_h)
 			if rot_h >= 2*PI:
 				rot_h -= 2*PI
-			var snap_to = snappedf(rot_h, 2*PI/rotosnaps)
-			rot_h = lerp_angle(rot_h, snap_to, 0.01*snap_ease/slower)
+			#snap_to = snappedf(rot_h, 2*PI/rotosnaps)
+			rot_h = lerp_angle(rot_h, snap_to, 0.03*snap_ease*(1.0+(1.0-spin_speed)))
 			camrot.rotation.y = rot_h
 			front_piece = snappedf(snap_to, 0.01)
 			if front_piece == 6.28:
 				front_piece = 0.0
-			#print(piecelocs[front_piece])
 			if piecelocs.has(front_piece):
 				emit_signal("found_you", piecelocs[front_piece])
-		if abs(erx) < 0.002:
-			stopped = true
-		else:
-			stopped = false
 		if pick:
 			picktimer += delta
 			if picktimer > 0.05 and !drag:
 				picktimer = 0.0
 				pick = false
-				release_ready = true
-		if release_ready:
-			releasetimer += delta
-			
 		if recam:
 			camera_3d.position.z = lerp(camera_3d.position.z, cam_dist, 0.05)
 			if is_equal_approx(camera_3d.position.z, cam_dist):
 				camera_3d.position.z = cam_dist
 				recam = false
+		snap_to = snappedf(rot_h, 2*PI/rotosnaps)
+		how_close_to_piece = abs(rot_h-snap_to) * 50.0
+		spin_speed = abs(dx_final) * 100.0
+		if how_close_to_piece < 0.001:
+			how_close_to_piece = 0.0
+		if spin_speed < 0.001:
+			spin_speed = 0.0
+		spin_speed = clamp(spin_speed, 0.0, 1.0)
+#		if how_close_to_piece < 0.3:
+		#print(1.0+(1.0-spin_speed))
 		drag = false
+		if is_equal_approx(dx, 0.0):
+			dx = 0.0
+		if is_equal_approx(dy, 0.0):
+			dy = 0.0
 			
 func _on_universe_meshes_made_2():
 	var pieces = get_tree().get_nodes_in_group('pieces')
@@ -165,9 +200,10 @@ func _on_take_me_home(idx):
 			p.reparent(self, false)
 			p.in_space = false
 			p.back_from_space = true
+			piece_in_space = false
 
 func _on_universe_piece_placed_2(cidx):
-	pass
+	piece_in_space = false
 	snaps = []
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	rotosnaps = len(pieces)

@@ -45,7 +45,7 @@ var back_from_space = false
 var angle = 0.0
 var rot_offset = 0.0
 var ax_offset = Vector3.ZERO
-var good_global_rot
+var good_global_rot: Vector3
 var rad = 10
 var staying = false
 var placed = false
@@ -54,6 +54,9 @@ var rearrange_offset: int
 var repos: Vector3
 var rerot: Vector3
 var repositioning := false
+var orient_upright := true
+var off_rot := 0.0
+var good_off_rot: Vector3
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -182,20 +185,17 @@ func arrange(re = false):
 	rot_offset = rot
 	if !re:
 		self.position = newpos
-		self.rotate(ax, rot)
-		var urv = upright_vec.rotated(ax, rot)
-		self.rotate(good_pos.normalized(), urv.signed_angle_to(Vector3.UP, good_pos.normalized()))
-		good_rot = self.rotation.y
-		good_global_rot = self.global_rotation
 	else:
 		self.rotation = Vector3.ZERO
 		repos = newpos
-		self.rotate(ax, rot)
-		var urv = upright_vec.rotated(ax, rot)
-		self.rotate(good_pos.normalized(), urv.signed_angle_to(Vector3.UP, good_pos.normalized()))
-		good_rot = self.rotation.y
-		good_global_rot = self.global_rotation
 		repositioning = true
+	self.rotate(ax, rot)
+	var urv = upright_vec.rotated(ax, rot)
+	self.rotate(good_pos.normalized(), urv.signed_angle_to(Vector3.UP, good_pos.normalized()))
+	good_rot = self.rotation.y
+	good_global_rot = self.global_rotation
+	#if !orient_upright and !re:
+		#self.rotate(good_pos.normalized(), randf_range(0.0, 2*PI))
 	emit_signal("i_am_here",idx ,snappedf(angle, 0.01))
 
 func _on_found_you(_idx):

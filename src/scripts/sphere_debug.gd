@@ -12,6 +12,9 @@ extends MeshInstance3D
 @export var vertex_fill_threshold := 0.1
 @export var vertex_merge_threshold := 0.05
 @export_range(1.0, 5.0, 1.0) var sub_triangle_recursion := 2
+@export_range(1,2) var max_terrain_height_unclamped := 1.1
+@export_range(1,2) var max_terrain_height := 1.5
+@export var ocean := true    
 
 @onready var pieces = $"../Pieces"
 @onready var camera_3d = $"../h/v/Camera3D"
@@ -630,7 +633,10 @@ func get_nearest_vec(vec, vecs: PackedVector3Array):
 	return [nearest, nearest2, nearest3]
 	
 func mm(vec: Vector3):
-	var offset = (noise3d.get_noise_3dv(vec))
-	offset = clamp(remap(offset, -0.2, 0.2, 0.9, 1.1), 0.97, 1.5)
-	return vec * offset
+	var offset = noise3d.get_noise_3dv(vec)
+	if ocean:
+		offset = clamp(remap(offset, -0.2, 0.2, 0.9, max_terrain_height_unclamped), 0.97, max_terrain_height)
+	else:
+		offset = clamp(remap(offset, -0.2, 0.2, 0.95, max_terrain_height_unclamped), 0.95, max_terrain_height)
+	return (vec * offset)
 	

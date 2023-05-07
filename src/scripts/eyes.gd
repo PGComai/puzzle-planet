@@ -70,6 +70,8 @@ func _unhandled_input(event):
 			else:
 				#limit_pull = 0.0
 				lower_limit_reached = false
+		else:
+			drag = false
 	if event is InputEventScreenTouch:
 		if event.pressed == false:
 			drag = false
@@ -132,19 +134,14 @@ func _process(delta):
 	elif $h/v.rotation.x < -(15*PI)/32 and dy_final > 0.0:
 		dy_final /= remap(abs($h/v.rotation.x), (15*PI)/32, PI/2, 2.0, 10.0)
 	rot_v -= dy_final
-
-	if fling:
-		pass
 	
 	if upper_limit_reached:
-		rot_v = clamp(rot_v, -rad_to_deg(PI/2), v_max)
+		rot_v = clamp(rot_v, -PI/2, v_max)
 	elif lower_limit_reached:
-		rot_v = clamp(rot_v, v_min, rad_to_deg(PI/2))
+		rot_v = clamp(rot_v, v_min, PI/2)
 	else:
 		rot_v = clamp(rot_v, v_min, v_max)
-		
-	#print(dx_acc)
-	
+
 	$h.rotation.y = lerp_angle($h.rotation.y, rot_h, 1.0)
 	$h/v.rotation.x = lerp_angle($h/v.rotation.x, rot_v, 1.0)
 	

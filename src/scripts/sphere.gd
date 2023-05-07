@@ -3,12 +3,13 @@ extends Node3D
 signal meshes_made
 signal piece_placed(cidx)
 
+@export var debug := false
 @export var max_points = 500
 @export var generations = 100
 @export var save: bool = false
 @export_enum('load', 'generate') var mesh_source: int = 1
 @export var mesh_resource: Resource
-@export var percent_complete: int = 50
+@export var pieces_at_start: int = 15
 @export var piece_offset := 1.0
 @export_category('Terrain')
 @export var crust_thickness := 1.1
@@ -16,6 +17,7 @@ signal piece_placed(cidx)
 @export var vertex_merge_threshold := 0.05
 @export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
 @export_enum('custom', 'earth', 'mars', 'moon') var planet_style := 0
+@export var test_noise: FastNoiseLite
 @export var height_noise_frequency: float = 1.5
 @export var height_noise_type: FastNoiseLite.NoiseType
 @export var height_noise_domain_warp := false
@@ -36,18 +38,27 @@ signal piece_placed(cidx)
 @export var snow := true 
 @export_range(0,1) var snow_random_low := 0.85
 @export_range(0,1) var snow_random_high := 0.95
-@export_range(1,2) var max_terrain_height_unclamped := 1.1
-@export_range(1,2) var max_terrain_height := 1.5
+@export_range(0,1) var min_terrain_height_unclamped := 0.9
+@export_range(1,1.5) var max_terrain_height_unclamped := 1.1
+@export_range(0,1) var min_terrain_height := 0.9
+@export_range(1,1.5) var max_terrain_height := 1.5
+@export var clamp_terrain := false
+@export var invert_height := false
+@export var craters := false
+@export var crater_height_threshold := 1.05
 @export_category('Colors')
 @export var color_test := Color('Black')
 @export var low_crust_color := Color('3f3227')
 @export var crust_color := Color('3f3227')
 @export var land_snow_color := Color('dbdbdb')
 @export var land_color := Color('4a6c3f')
+@export_range(0.0, 2.0) var land_color_threshold := 1.1
 @export var land_color_2 := Color('4d6032')
+@export_range(0.0, 2.0) var land_color_threshold_2 := 0.9
 @export var land_color_3 := Color('5e724c')
 @export var low_land_color := Color('74432e')
 @export var low_land_bottom_threshold := 0.95
+@export var low_land_top_threshold := 1.1
 @export var sand_color := Color('9f876b')
 @export var water_color := Color('0541ff')
 @export var shallow_water_color := Color('2091bf')
@@ -105,13 +116,14 @@ var placed_timer := 0.0
 var placed_counting := false
 var snow_start: float
 var max_distance_between_vecs := 0.000016
+var global
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var global = get_node('/root/Global')
-	if !(planet_style == 0):
+	global = get_node('/root/Global')
+	if !(planet_style == 0) and !debug:
 		planet_style = global.generate_type
-		percent_complete = global.pct_complete
+		pieces_at_start = global.pieces_at_start
 	randomize()
 	colornoise.noise_type = 4
 	colornoise.frequency = 2.0
@@ -227,10 +239,10 @@ func _generate_mesh():
 		
 		## NEW STUFF
 		
-#		recursed_borders = vi_to_borders.duplicate()
-#
-#		for r in sub_triangle_recursion+1:
-#			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts)
+		recursed_borders = vi_to_borders.duplicate()
+		var used_border_vecs = PackedVector3Array()
+		for r in sub_triangle_recursion+1:
+			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts, used_border_vecs)
 
 		## NEW STUFF
 
@@ -238,33 +250,14 @@ func _generate_mesh():
 #		var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
 #		var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
 		
-		if save:
-			var save_path = 'res://planets/'
-			var save_number = len(DirAccess.get_files_at(save_path))+1
-#			var new_save = save_template.new()
-			var save_name = 'planet' + str(save_number)
-#			new_save.verts = verts
-#			new_save.vi_to_borders = vi_to_borders
-#			new_save.name = save_name
-#			new_save.noise_type = noise3d.noise_type
-#			new_save.noise_frequency = noise3d.frequency
-#			new_save.noise_seed = noise3d.seed
-#			saver.save(new_save, save_path+save_name+'.tres')
-	elif mesh_source == 0:
-		if ResourceLoader.exists('res://planets/planet1.tres'):
-			print('loading')
-			var loaded = mesh_resource
-			verts = loaded.verts
-			vi_to_borders = loaded.vi_to_borders
-		else:
-			load_failed = true
-	
-	if not load_failed:
 		var circle_idx = 0
 		var l = len(verts)
 		
 		if planet_style == 0:
 			pass
+			#test_noise.frequency = height_noise_frequency
+			#noise3d = test_noise
+			#colornoise = test_noise
 		elif planet_style == 1:
 			## override colors to earth style
 			colornoise.noise_type = 4
@@ -303,10 +296,13 @@ func _generate_mesh():
 			crust_color = Color('3f3227')
 			land_snow_color = Color('dbdbdb')
 			land_color = Color('4a6c3f')
+			land_color_threshold = 0.96
 			land_color_2 = Color('4d6032')
-			land_color_3 = Color('5e724c')
+			land_color_threshold = 0.94
+			land_color_3 = Color('b3814c')
 			low_land_color = Color('4a6c3f')
 			low_land_bottom_threshold = 0.5
+			low_land_top_threshold = 0.9
 			sand_color = Color('9f876b')
 			water_color = Color('0541ff')
 			shallow_water_color = Color('2091bf')
@@ -315,8 +311,12 @@ func _generate_mesh():
 			ocean = true
 			snow_random_low = 0.85
 			snow_random_high = 0.95
-			max_terrain_height_unclamped = 1.1
-			max_terrain_height = 1.5
+			max_terrain_height_unclamped = 1.34
+			min_terrain_height_unclamped = 0.65
+			max_terrain_height = 1.3
+			min_terrain_height = 0.8
+			clamp_terrain = false
+			invert_height = false
 			snow = true
 			mantle.mesh.material = mantle_earth_material
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
@@ -328,7 +328,7 @@ func _generate_mesh():
 		elif planet_style == 2:
 			## mars
 			colornoise.noise_type = 4
-			colornoise.frequency = 2.0
+			colornoise.frequency = 1.5
 			colornoise.domain_warp_enabled = false
 			colornoise.domain_warp_amplitude = 30
 			colornoise.domain_warp_fractal_gain = 0.5
@@ -344,8 +344,8 @@ func _generate_mesh():
 			colornoise.fractal_type = 1
 			colornoise.fractal_weighted_strength = 0
 			noise3d.noise_type = 4
-			noise3d.frequency = 2.613
-			noise3d.domain_warp_enabled = true
+			noise3d.frequency = 3.0
+			noise3d.domain_warp_enabled = false
 			noise3d.domain_warp_amplitude = 0.052
 			noise3d.domain_warp_fractal_gain = 0.285
 			noise3d.domain_warp_fractal_lacunarity = 4.253
@@ -362,16 +362,23 @@ func _generate_mesh():
 			ocean = false
 			snow_random_low = 0.976
 			snow_random_high = 0.984
-			max_terrain_height_unclamped = 1.107
-			max_terrain_height = 1.032
+			max_terrain_height_unclamped = 1.01
+			min_terrain_height_unclamped = 0.2
+			max_terrain_height = 1.13
+			min_terrain_height = 1.02
+			clamp_terrain = true
+			invert_height = true
 			low_crust_color = Color('5e1c18')
 			crust_color = Color('542b18')
 			land_snow_color = Color('dbdbdb')
 			land_color = Color('8c5323')
+			land_color_threshold = 1.02
 			land_color_2 = Color('6f4024')
+			land_color_threshold_2 = 0.99
 			land_color_3 = Color('423122')
 			low_land_color = Color('74432e')
 			low_land_bottom_threshold = 0.822
+			low_land_top_threshold = 0.9
 			sand_color = Color('9f876b')
 			water_color = Color('0541ff')
 			shallow_water_color = Color('2091bf')
@@ -382,78 +389,18 @@ func _generate_mesh():
 			atmo.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
 			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
 			#lava_lamp.light_color = lava_lamp_color_mars
-			lava_lamp.visible = false
+			lava_lamp.visible = true
 		elif planet_style == 3:
 			snow = false
-		
 		if snow_random_high > snow_random_low:
 			snow_start = randf_range(snow_random_low, snow_random_high)
 		elif snow_random_high == snow_random_low:
 			snow_start = snow_random_high
 		else:
 			snow_start = 0.9
-		var used_border_vecs = PackedVector3Array()
-		## new approach
-		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts)
-		##
-#		for v in l:
-#			var border_array = recursed_borders[v]
-#			for ba in border_array:
-#				ba = ba.snapped(Vector3(0.001, 0.001, 0.001))
-##				for pt in used_border_vecs:
-##					if ba.distance_squared_to(pt) < max_distance_between_vecs:
-##						ba = pt
-#				if !used_border_vecs.has(ba):
-#					used_border_vecs.append(ba)
-#			var edges_for_particles = border_array.duplicate()
-#			#border_array.append(border_array[0])
-#
-#			### DRAW MESH ###
-#
-#			var prog_tri_result = progressive_triangulate(vi_to_borders[v], v, verts, used_border_vecs)
-#			# now tess_result should just be the wall and cutwater triangles
-#			#var tess_result = tesselate(verts, v, border_array, offset)
-#
-#			var NEW_tess_result = NEW_tesselate(verts, v, border_array, crust_thickness, used_border_vecs)
-#			var dxu = verts[v].cross(Vector3.UP)
-#			var up = dxu.rotated(verts[v].normalized(), -PI/2)
-#
-#			var newpiece = piece.instantiate()
-#			newpiece.wall_vertex = NEW_tess_result[0]
-#			newpiece.wall_normal = NEW_tess_result[1]
-#			newpiece.wall_color = NEW_tess_result[2]
-#			newpiece.vertex = prog_tri_result[0]
-#			newpiece.normal = prog_tri_result[1]
-#			newpiece.color = prog_tri_result[2]
-#			newpiece.ocean = ocean
-#			if ocean:
-#				newpiece.vertex_w = prog_tri_result[3]
-#				newpiece.normal_w = prog_tri_result[4]
-#				newpiece.color_w = prog_tri_result[5]
-#				newpiece.vertex_cw = NEW_tess_result[3]
-#				newpiece.normal_cw = NEW_tess_result[4]
-#				newpiece.color_cw = NEW_tess_result[5]
-#			newpiece.direction = verts[v]
-#			puzzle_fits[v] = verts[v]
-#			newpiece.idx = v
-#			newpiece.siblings = l
-#			newpiece.ready_for_launch.connect(_on_ready_for_launch)
-#			newpiece.upright_vec = up.normalized()
-#			newpiece.particle_edges = edges_for_particles
-#			newpiece.offset = piece_offset
-#			# checking who stays
-#			var dieroll = randi_range(0, 99)
-#			if dieroll < percent_complete:
-#				newpiece.remove_from_group('pieces')
-#				newpiece.staying = true
-#			else:
-#				newpiece.circle_idx = circle_idx
-#				circle_idx += 1
-#
-#			pieces.add_child(newpiece)
-			
-#	for c in pieces.get_children():
-#		c.visible = false
+		
+		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, used_border_vecs)
+
 	emit_signal("meshes_made")
 
 func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
@@ -479,10 +426,15 @@ func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_v
 		for pt in used_border_vecs:
 			if v0.distance_squared_to(pt) < max_distance_between_vecs:
 				v0 = pt
+				break
+		for pt in used_border_vecs:
 			if v1.distance_squared_to(pt) < max_distance_between_vecs:
 				v1 = pt
+				break
+		for pt in used_border_vecs:
 			if vp.distance_squared_to(pt) < max_distance_between_vecs:
 				vp = pt
+				break
 		if !used_border_vecs.has(v0):
 			used_border_vecs.append(v0)
 		if !used_border_vecs.has(v1):
@@ -502,9 +454,9 @@ func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_v
 	return [border_triangles, border_tri_normals, border_tri_colors,
 		water_triangles, water_tri_normals, water_tri_colors]
 
-func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array):
-	var circle_idx = 0
-	var used_border_vecs = PackedVector3Array()
+func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
+	var pieces_stayed := 0
+	var circle_idx := 0
 	var newborders = vbdict.duplicate()
 	for r in sub_triangle_recursion+1:
 		newborders = NEW_fill_border_halfways(newborders.duplicate(), og_verts, used_border_vecs)
@@ -530,16 +482,15 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 			for pt in used_border_vecs:
 				if v0.distance_squared_to(pt) < max_distance_between_vecs:
 					v0 = pt
+					break
+			for pt in used_border_vecs:
 				if v1.distance_squared_to(pt) < max_distance_between_vecs:
 					v1 = pt
+					break
+			for pt in used_border_vecs:
 				if vp.distance_squared_to(pt) < max_distance_between_vecs:
 					vp = pt
-			if !used_border_vecs.has(v0):
-				used_border_vecs.append(v0)
-			if !used_border_vecs.has(v1):
-				used_border_vecs.append(v1)
-			if !used_border_vecs.has(vp):
-				used_border_vecs.append(vp)
+					break
 			if !used_vecs.has(v0):
 				used_vecs.append(v0)
 			if !used_vecs.has(v1):
@@ -571,13 +522,14 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		newpiece.siblings = len(og_verts)
 		newpiece.ready_for_launch.connect(_on_ready_for_launch)
 		newpiece.upright_vec = up.normalized()
+		newpiece.orient_upright = !global.rotation
 		#newpiece.particle_edges = edges_for_particles
 		newpiece.offset = piece_offset
 		# checking who stays
-		var dieroll = randi_range(0, 99)
-		if dieroll < percent_complete:
+		if pieces_stayed < pieces_at_start:
 			newpiece.remove_from_group('pieces')
 			newpiece.staying = true
+			pieces_stayed += 1
 		else:
 			newpiece.circle_idx = circle_idx
 			circle_idx += 1
@@ -599,10 +551,15 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		for pt in used_vecs:
 			if p1.distance_squared_to(pt) < max_distance_between_vecs:
 				p1 = pt
+				break
+		for pt in used_vecs:
 			if p2.distance_squared_to(pt) < max_distance_between_vecs:
 				p2 = pt
+				break
+		for pt in used_vecs:
 			if p3.distance_squared_to(pt) < max_distance_between_vecs:
 				p3 = pt
+				break
 		if !used_vecs.has(p1):
 			used_vecs.append(p1)
 		if !used_vecs.has(p2):
@@ -617,18 +574,18 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		
 		# land color
 		var land_colors = [land_color, land_color_2, land_color_3]
-		var p1_color = land_colors[color_vary(p1)].lerp(low_land_color, clamp(remap(p1.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var p2_color = land_colors[color_vary(p2)].lerp(low_land_color, clamp(remap(p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var p3_color = land_colors[color_vary(p3)].lerp(low_land_color, clamp(remap(p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		if p1.length() < sand_threshold and ocean:
+		var p1_color = land_colors[color_vary(p1)].lerp(low_land_color, 1-clamp(remap(p1.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
+		var p2_color = land_colors[color_vary(p2)].lerp(low_land_color, 1-clamp(remap(p2.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
+		var p3_color = land_colors[color_vary(p3)].lerp(low_land_color, 1-clamp(remap(p3.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
+		if p1.length_squared() < pow(sand_threshold, 2) and ocean:
 			p1_color = sand_color
 		elif asin(abs(p1.normalized().y)) > snow_start and snow:
 			p1_color = land_snow_color
-		if p2.length() < sand_threshold and ocean:
+		if p2.length_squared() < pow(sand_threshold, 2) and ocean:
 			p2_color = sand_color
 		elif asin(abs(p2.normalized().y)) > snow_start and snow:
 			p2_color = land_snow_color
-		if p3.length() < sand_threshold and ocean:
+		if p3.length_squared() < pow(sand_threshold, 2) and ocean:
 			p3_color = sand_color
 		elif asin(abs(p3.normalized().y)) > snow_start and snow:
 			p3_color = land_snow_color
@@ -690,13 +647,19 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			for pt in used_vecs:
 				if p12.distance_squared_to(pt) < max_distance_between_vecs:
 					p12 = pt
+					break
+			for pt in used_vecs:
 				if p23.distance_squared_to(pt) < max_distance_between_vecs:
 					p23 = pt
+					break
+			for pt in used_vecs:
 				if p31.distance_squared_to(pt) < max_distance_between_vecs:
 					p31 = pt
+					break
 			for pt in used_border_vecs:
 				if p31.distance_squared_to(pt) < max_distance_between_vecs:
 					p31 = pt
+					break
 			if !used_border_vecs.has(p31):
 				used_border_vecs.append(p31)
 			
@@ -739,8 +702,8 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 		for pt in used_border_vecs:
 			if v0.distance_squared_to(pt) < max_distance_between_vecs:
 				v0 = pt
-			if v0.distance_squared_to(pt) < max_distance_between_vecs:
-				v0 = pt
+			if v1.distance_squared_to(pt) < max_distance_between_vecs:
+				v1 = pt
 		if !used_border_vecs.has(v0):
 			used_border_vecs.append(v0)
 		if !used_border_vecs.has(v1):
@@ -1172,8 +1135,11 @@ func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, 
 				for pt in used_border_vecs:
 					if current_border_point.distance_squared_to(pt) < max_distance_between_vecs:
 						current_border_point = pt
+						break
+				for pt in used_border_vecs:
 					if next_border_point.distance_squared_to(pt) < max_distance_between_vecs:
 						next_border_point = pt
+						break
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
@@ -1183,6 +1149,7 @@ func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, 
 					for pt in used_border_vecs:
 						if halfway.distance_squared_to(pt) < max_distance_between_vecs:
 							halfway = pt
+							break
 					#if !(new_border_array.has(halfway)):
 					new_border_array.append(halfway)
 					#if !(new_border_array.has(next_border_point)):
@@ -1199,8 +1166,11 @@ func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, 
 				for pt in used_border_vecs:
 					if current_border_point.distance_squared_to(pt) < max_distance_between_vecs:
 						current_border_point = pt
+						break
+				for pt in used_border_vecs:
 					if next_border_point.distance_squared_to(pt) < max_distance_between_vecs:
 						next_border_point = pt
+						break
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
@@ -1210,6 +1180,7 @@ func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, 
 					for pt in used_border_vecs:
 						if halfway.distance_squared_to(pt) < max_distance_between_vecs:
 							halfway = pt
+							break
 					if !(new_border_array.has(halfway)):
 						new_border_array.append(halfway)
 					if !(new_border_array.has(next_border_point)):
@@ -1291,11 +1262,6 @@ func NEW_delaunay(points: PackedVector3Array, return_tris := false):
 							is_good2 = false
 				var surface_array = []
 				surface_array.resize(Mesh.ARRAY_MAX)
-				
-				# trying to merge points yet again
-				
-				
-				
 				var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
 				var plarr2 = PackedVector3Array([points[p], points[p3], points[p2]])
 				
@@ -1303,6 +1269,7 @@ func NEW_delaunay(points: PackedVector3Array, return_tris := false):
 					for c in len(centers):
 						if centers[c].angle_to(plc) < vertex_merge_threshold:
 							plc = centers[c]
+							break
 					if !return_tris:
 						#_sub_triangle(points[p], points[p2], points[p3], triangles, triangle_normals)
 						_triangle(points[p], points[p2], points[p3], triangles)
@@ -1321,6 +1288,7 @@ func NEW_delaunay(points: PackedVector3Array, return_tris := false):
 					for c in len(centers):
 						if centers[c].angle_to(plc) < vertex_merge_threshold:
 							plc = centers[c]
+							break
 					if !return_tris:
 						#_sub_triangle(points[p], points[p3], points[p2], triangles, triangle_normals)
 						_triangle(points[p], points[p3], points[p2], triangles)
@@ -1336,32 +1304,8 @@ func NEW_delaunay(points: PackedVector3Array, return_tris := false):
 						if !tris.has(plarr2) and !tris.has(plarr):
 							tris[plarr2] = plc
 						
-	print(len(centers))
-	print(len(tris))
-	
-	# another attempt to merge close points
-#	var vertices_to_merge = Dictionary()
-#	for c in centers:
-#		for c1 in centers:
-#			if c == c1:
-#				pass
-#			else:
-#				var ang = c.angle_to(c1)
-#				if ang >= vertex_merge_threshold:
-#					pass
-#				else:
-#					var ax = c.cross(c1).normalized()
-#					var newpoint = c.rotated(ax, ang/2.0)
-#					vertices_to_merge[c] = newpoint
-#					vertices_to_merge[c1] = newpoint
-	#var newtris = tris.duplicate()
-#	for plarr in tris.keys():
-#		var no_double_vertices = []
-#		if vertices_to_merge.has(tris[plarr]):
-#			tris[plarr] = vertices_to_merge[tris[plarr]]
-	
-	
-#	print(float(len(good_triangles))/float(num_of_points))
+#	print(len(centers))
+#	print(len(tris))
 	return tris
 
 func delaunay(points: PackedVector3Array, return_tris = false):
@@ -1453,18 +1397,29 @@ func shift_points(vecs: PackedVector3Array, gen, max_gen):
 
 func mm(vec: Vector3):
 	var offset = noise3d.get_noise_3dv(vec)
-	if ocean:
-		offset = clamp(remap(offset, -0.2, 0.2, 0.9, max_terrain_height_unclamped), 0.97, max_terrain_height)
-	else:
-		offset = clamp(remap(offset, -0.2, 0.2, 0.95, max_terrain_height_unclamped), 0.95, max_terrain_height)
-	return (vec * offset)#.snapped(Vector3(0.001,0.001,0.001))
+	#print(offset)
+	if invert_height:
+		offset = 1.0 - offset
+#	if ocean:
+#		offset = clamp(remap(offset, -1.0, 1.0, 0.9, max_terrain_height_unclamped), 0.97, max_terrain_height)
+#	else:
+	var newvec = vec * remap(offset, -1.0, 1.0, min_terrain_height_unclamped, max_terrain_height_unclamped)
+	if clamp_terrain:
+		newvec = newvec.limit_length(max_terrain_height)
+		if newvec.length_squared() < pow(min_terrain_height, 2.0):
+			newvec = newvec.normalized() * min_terrain_height
+	if craters:
+		if newvec.length_squared() > pow(crater_height_threshold, 2.0):
+			newvec *= 1 + (pow(crater_height_threshold, 2.0) - newvec.length_squared())
+	return newvec
 
 func color_vary(vec: Vector3):
-	var nval = remap(colornoise.get_noise_3dv(vec), -0.05, 0.05, 0.0, 9.0)
+	var nval = remap(colornoise.get_noise_3dv(vec), -1.0, 1.0, 0.0, 2.0)
+	#var nval = vec.length_squared()
 	#print(nval)
-	if nval <= 3:
+	if nval >= pow(land_color_threshold, 2.0) + randi_range(-0.05, 0.05):
 		return 0
-	elif nval >= 7:
+	elif nval <= pow(land_color_threshold_2, 2.0) + randi_range(-0.05, 0.05):
 		return 2
 	else:
 		return 1

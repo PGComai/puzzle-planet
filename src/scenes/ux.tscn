@@ -10,14 +10,14 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4svtt"]
 bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 expand_margin_left = 3.0
 expand_margin_top = 3.0
 expand_margin_right = 3.0
-expand_margin_bottom = 3.0
+expand_margin_bottom = 2.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3dc5u"]
 
@@ -146,7 +146,7 @@ script = ExtResource("4_3lqjh")
 
 [node name="PopupPanel" type="PopupPanel" parent="."]
 position = Vector2i(5, 65)
-size = Vector2i(170, 200)
+size = Vector2i(170, 250)
 theme = ExtResource("5_kb0sw")
 script = ExtResource("6_fwx6s")
 
@@ -154,10 +154,11 @@ script = ExtResource("6_fwx6s")
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 166.0
-offset_bottom = 196.0
+offset_bottom = 246.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="PlanetTypeLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
@@ -180,11 +181,12 @@ layout_mode = 2
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="PctFillLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
 size_flags_horizontal = 2
-text = "Puzzle fill:"
+text = "Starting Pieces:"
 autowrap_mode = 2
 
 [node name="Pct" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer2"]
@@ -192,22 +194,43 @@ layout_mode = 2
 size_flags_horizontal = 10
 theme_override_fonts/font = ExtResource("7_wkm7n")
 theme_override_font_sizes/font_size = 34
-text = "50%"
+text = "15/30"
 horizontal_alignment = 2
 autowrap_mode = 2
 
 [node name="HSeparator2" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+visible = false
 layout_mode = 2
 
 [node name="PctFillSlider" type="HSlider" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
-min_value = 15.0
+min_value = 1.0
 max_value = 75.0
-step = 5.0
 value = 15.0
 rounded = true
 tick_count = 13
 ticks_on_borders = true
+
+[node name="HSeparator5" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
+
+[node name="HSeparator4" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="PctFillLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Piece Rotation:"
+autowrap_mode = 2
+
+[node name="CheckButton" type="CheckButton" parent="PopupPanel/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 6
 
 [node name="Generate" type="Button" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
@@ -230,5 +253,6 @@ text = "Cancel"
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="PopupPanel" method="_on_popup_menu_id_pressed"]
 [connection signal="item_selected" from="PopupPanel/VBoxContainer/HBoxContainer/OptionButton" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_option_button_item_selected"]
 [connection signal="value_changed" from="PopupPanel/VBoxContainer/PctFillSlider" to="PopupPanel" method="_on_pct_fill_slider_value_changed"]
+[connection signal="toggled" from="PopupPanel/VBoxContainer/HBoxContainer3/CheckButton" to="PopupPanel" method="_on_check_button_toggled"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_generate_button_up"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Cancel" to="PopupPanel" method="_on_cancel_button_up"]

@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bxkq1ttd61vo4"]
+
+[ext_resource type="Shader" uid="uid://b4t2uesmum8pn" path="res://scenes/mantle_moon.tres" id="1_8ssfo"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_8ssfo")
+shader_parameter/emission_color = Color(0.066802, 0.044379, 0.042139, 1)

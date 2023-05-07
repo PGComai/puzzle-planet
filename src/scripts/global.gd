@@ -1,7 +1,9 @@
 extends Node
 
 var generate_type := 1
-var pct_complete := 50
+var pieces_at_start := 15
+var total_pieces := 30
+var rotation := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

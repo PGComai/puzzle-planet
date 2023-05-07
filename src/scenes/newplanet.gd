@@ -5,12 +5,15 @@ extends PopupPanel
 @onready var option_button = $VBoxContainer/HBoxContainer/OptionButton
 
 var global
+var total_pieces := 30
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
-	pct.text = str(global.pct_complete) + '%'
-	pct_fill_slider.set_value_no_signal(global.pct_complete)
+	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
+	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
+	pct_fill_slider.max_value = global.total_pieces - 10
+	pct_fill_slider.tick_count = global.total_pieces - 10
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -25,5 +28,8 @@ func _on_popup_menu_id_pressed(id):
 		self.visible = true
 
 func _on_pct_fill_slider_value_changed(value):
-	pct.text = str(value) + '%'
-	global.pct_complete = value
+	pct.text = str(value) + '/' + str(global.total_pieces)
+	global.pieces_at_start = value
+
+func _on_check_button_toggled(button_pressed):
+	global.rotation = button_pressed

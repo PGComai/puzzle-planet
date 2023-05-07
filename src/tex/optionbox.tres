@@ -77,10 +77,10 @@ bg_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
 
 [resource]
 default_font = ExtResource("2_15yvp")
-Button/font_sizes/font_size = 16
+Button/font_sizes/font_size = 14
 HSeparator/constants/separation = 2
 HSlider/styles/slider = null
-Label/font_sizes/font_size = 16
+Label/font_sizes/font_size = 12
 MenuButton/colors/font_color = Color(0.875, 0.875, 0.875, 1)
 MenuButton/colors/font_disabled_color = Color(1, 1, 1, 0.3)
 MenuButton/colors/font_focus_color = Color(0.95, 0.95, 0.95, 1)
@@ -96,7 +96,7 @@ MenuButton/styles/hover = SubResource("StyleBoxFlat_jid6u")
 MenuButton/styles/normal = SubResource("StyleBoxFlat_giwdd")
 MenuButton/styles/pressed = SubResource("StyleBoxFlat_0ev02")
 OptionButton/constants/h_separation = 0
-OptionButton/font_sizes/font_size = 8
+OptionButton/font_sizes/font_size = 10
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_wpjmi")
 VSplitContainer/constants/autohide = 0
 VSplitContainer/constants/minimum_grab_thickness = 70
