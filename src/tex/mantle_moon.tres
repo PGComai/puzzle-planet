@@ -1,4 +1,4 @@
-[gd_resource type="VisualShader" load_steps=9 format=3 uid="uid://b4t2uesmum8pn"]
+[gd_resource type="VisualShader" load_steps=10 format=3 uid="uid://b4t2uesmum8pn"]
 
 [sub_resource type="Gradient" id="Gradient_8ido4"]
 interpolation_mode = 2
@@ -38,6 +38,9 @@ noise = SubResource("FastNoiseLite_xfasm")
 texture = SubResource("NoiseTexture2D_36s67")
 texture_type = 2
 
+[sub_resource type="VisualShaderNodeColorOp" id="VisualShaderNodeColorOp_s3sco"]
+operator = 4
+
 [resource]
 code = "shader_type spatial;
 uniform sampler2D tex_frg_2 : source_color;
@@ -55,24 +58,57 @@ void fragment() {
 	vec4 n_out3p0 = emission_color;
 
 
+	vec3 n_out5p0;
+// ColorOp:5
+	{
+		float base = vec3(n_out2p0.xyz).x;
+		float blend = vec3(n_out3p0.xyz).x;
+		if (base < 0.5) {
+			n_out5p0.x = 2.0 * base * blend;
+		} else {
+			n_out5p0.x = 1.0 - 2.0 * (1.0 - blend) * (1.0 - base);
+		}
+	}
+	{
+		float base = vec3(n_out2p0.xyz).y;
+		float blend = vec3(n_out3p0.xyz).y;
+		if (base < 0.5) {
+			n_out5p0.y = 2.0 * base * blend;
+		} else {
+			n_out5p0.y = 1.0 - 2.0 * (1.0 - blend) * (1.0 - base);
+		}
+	}
+	{
+		float base = vec3(n_out2p0.xyz).z;
+		float blend = vec3(n_out3p0.xyz).z;
+		if (base < 0.5) {
+			n_out5p0.z = 2.0 * base * blend;
+		} else {
+			n_out5p0.z = 1.0 - 2.0 * (1.0 - blend) * (1.0 - base);
+		}
+	}
+
+
 // Texture2D:4
 	vec4 n_out4p0 = texture(tex_frg_4, UV);
 
 
 // Output:0
 	ALBEDO = vec3(n_out2p0.xyz);
-	EMISSION = vec3(n_out3p0.xyz);
+	EMISSION = n_out5p0;
 	NORMAL_MAP = vec3(n_out4p0.xyz);
 
 
 }
 "
-graph_offset = Vector2(-250.507, -40.1763)
+graph_offset = Vector2(-226.006, -93.2649)
 nodes/fragment/0/position = Vector2(1680, 120)
 nodes/fragment/2/node = SubResource("VisualShaderNodeTexture_na102")
-nodes/fragment/2/position = Vector2(480, 20)
+nodes/fragment/2/position = Vector2(220, -160)
 nodes/fragment/3/node = SubResource("VisualShaderNodeColorParameter_73jvf")
-nodes/fragment/3/position = Vector2(40, 200)
+nodes/fragment/3/position = Vector2(-400, 340)
 nodes/fragment/4/node = SubResource("VisualShaderNodeTexture_7tsbw")
-nodes/fragment/4/position = Vector2(480, 500)
-nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0, 4, 0, 0, 9, 3, 0, 0, 5)
+nodes/fragment/4/position = Vector2(280, 720)
+nodes/fragment/5/node = SubResource("VisualShaderNodeColorOp_s3sco")
+nodes/fragment/5/position = Vector2(1060, 180)
+nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0, 4, 0, 0, 9, 3, 0, 5, 1, 2, 0, 5, 0, 5, 0, 0, 5)

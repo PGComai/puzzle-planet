@@ -45,7 +45,8 @@ signal piece_placed(cidx)
 @export var clamp_terrain := false
 @export var invert_height := false
 @export var craters := false
-@export var crater_height_threshold := 1.05
+@export var crater_size_multiplier := 1.0
+@export var crater_height_multiplier := 1.0
 @export_range(1, 100) var num_craters := 10
 @export var crater_height_curve: Curve
 @export_category('Colors')
@@ -53,11 +54,15 @@ signal piece_placed(cidx)
 @export var low_crust_color := Color('3f3227')
 @export var crust_color := Color('3f3227')
 @export var land_snow_color := Color('dbdbdb')
+@export var land_color_ease_curve: Curve
 @export var land_color := Color('4a6c3f')
 @export_range(0.0, 2.0) var land_color_threshold := 1.1
 @export var land_color_2 := Color('4d6032')
 @export_range(0.0, 2.0) var land_color_threshold_2 := 0.9
 @export var land_color_3 := Color('5e724c')
+@export var tint_color := Color('69808a')
+@export var tint_color_2 := Color('69808a')
+@export var tint_color_3 := Color('69808a')
 @export var low_land_color := Color('74432e')
 @export var low_land_bottom_threshold := 0.95
 @export var low_land_top_threshold := 1.1
@@ -101,12 +106,14 @@ signal piece_placed(cidx)
 @onready var mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
 @onready var lava_lamp = $"../Lava Lamp"
 @onready var moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
+@onready var moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
 
 var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
 
 var noise3d = FastNoiseLite.new()
 var colornoise = FastNoiseLite.new()
+var colornoise2 = FastNoiseLite.new()
 var saver = ResourceSaver
 var loader = ResourceLoader
 var load_failed: bool = false
@@ -133,6 +140,7 @@ func _ready():
 	colornoise.noise_type = 4
 	colornoise.frequency = 2.0
 	colornoise.seed = randi_range(0, 100000)
+	colornoise2.seed = randi_range(0, 100000)
 	colornoise.domain_warp_enabled = color_noise_domain_warp
 	colornoise.domain_warp_amplitude = color_domain_warp_amplitude
 	colornoise.domain_warp_fractal_gain = color_domain_warp_fractal_gain
@@ -237,7 +245,6 @@ func _generate_mesh():
 		
 		var delaunay_triangle_centers: Dictionary
 		delaunay_triangle_centers = NEW_delaunay(verts, true)
-
 		var my_delaunay_points = NEW_verts_to_dpoints(verts, delaunay_triangle_centers)
 		
 		vi_to_borders = make_border_array(verts, my_delaunay_points)
@@ -404,7 +411,7 @@ func _generate_mesh():
 		elif planet_style == 3:
 			# moon
 			colornoise.noise_type = 4
-			colornoise.frequency = 2.0
+			colornoise.frequency = 3.0
 			colornoise.domain_warp_enabled = false
 			colornoise.domain_warp_amplitude = 30
 			colornoise.domain_warp_fractal_gain = 0.5
@@ -419,6 +426,22 @@ func _generate_mesh():
 			colornoise.fractal_ping_pong_strength = 2
 			colornoise.fractal_type = 1
 			colornoise.fractal_weighted_strength = 0.735
+			colornoise2.noise_type = 4
+			colornoise2.frequency = 5.0
+			colornoise2.domain_warp_enabled = false
+			colornoise2.domain_warp_amplitude = 30
+			colornoise2.domain_warp_fractal_gain = 0.5
+			colornoise2.domain_warp_fractal_lacunarity = 6
+			colornoise2.domain_warp_fractal_octaves = 5
+			colornoise2.domain_warp_fractal_type = 1
+			colornoise2.domain_warp_frequency = 0.05
+			colornoise2.domain_warp_type = 0
+			colornoise2.fractal_gain = 0.5
+			colornoise2.fractal_lacunarity = 2
+			colornoise2.fractal_octaves = 5
+			colornoise2.fractal_ping_pong_strength = 2
+			colornoise2.fractal_type = 1
+			colornoise2.fractal_weighted_strength = 0.735
 			noise3d.noise_type = 4
 			noise3d.frequency = 2.731
 			noise3d.domain_warp_enabled = false
@@ -435,14 +458,17 @@ func _generate_mesh():
 			noise3d.fractal_ping_pong_strength = 2.0
 			noise3d.fractal_type = 1
 			noise3d.fractal_weighted_strength = 0.0
-			low_crust_color = Color('292929')
+			low_crust_color = Color('452e27')
 			crust_color = Color('353535')
 			land_snow_color = Color('dbdbdb')
-			land_color = Color('737373')
+			land_color = Color('969696')
 			land_color_threshold = 1.011
-			land_color_2 = Color('5b5b5b')
+			land_color_2 = Color('6a6a6a')
 			land_color_threshold = 0.962
 			land_color_3 = Color('464646')
+			tint_color = Color('5f78c0')
+			tint_color_2 = Color('8a7c40')
+			tint_color_3 = Color('b5622d')
 			low_land_color = Color('242424')
 			low_land_bottom_threshold = 0.911
 			low_land_top_threshold = 1.254
@@ -462,15 +488,14 @@ func _generate_mesh():
 			invert_height = false
 			snow = false
 			craters = true
-			crater_height_threshold = 1.137
 			num_craters = 50
 			crater_height_curve = moon_crater_curve
+			land_color_ease_curve = moon_land_curve
 			mantle.mesh.material = mantle_moon_material
 			atmo.visible = false
 			atmo_2.visible = false
 			lava_lamp.light_color = lava_lamp_color_earth
 			lava_lamp.visible = false
-			
 		if snow_random_high > snow_random_low:
 			snow_start = randf_range(snow_random_low, snow_random_high)
 		elif snow_random_high == snow_random_low:
@@ -487,7 +512,7 @@ func _generate_mesh():
 func craterize():
 	for cr in num_craters:
 		var impact = Vector3(randfn(0.0, 1.0), randfn(0.0, 1.0), randfn(0.0, 1.0)).normalized()
-		var strength = randfn(3.0, 2.0)
+		var strength = randfn(3.0, 1.5)
 		crater_array.append([impact, strength])
 
 func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
@@ -661,9 +686,9 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		
 		# land color
 		var land_colors = [land_color, land_color_2, land_color_3]
-		var p1_color = land_colors[color_vary(p1)].lerp(low_land_color, 1-clamp(remap(p1.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
-		var p2_color = land_colors[color_vary(p2)].lerp(low_land_color, 1-clamp(remap(p2.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
-		var p3_color = land_colors[color_vary(p3)].lerp(low_land_color, 1-clamp(remap(p3.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
+		var p1_color = color_vary(p1, land_colors).lerp(low_land_color, 1-clamp(remap(p1.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
+		var p2_color = color_vary(p2, land_colors).lerp(low_land_color, 1-clamp(remap(p2.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
+		var p3_color = color_vary(p3, land_colors).lerp(low_land_color, 1-clamp(remap(p3.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
 #		if craters:
 #			var my_craters = []
 #			for cr in crater_array:
@@ -938,8 +963,8 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		var vpw = vp.normalized()*water_offset
 		var vpw_depth = vp.length_squared() - vpw.length_squared()
 		
-		var v0p_color = land_colors[color_vary(v0p)].lerp(low_land_color, clamp(remap(v0p.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var v1p_color = land_colors[color_vary(v1p)].lerp(low_land_color, clamp(remap(v1p.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var v0p_color = color_vary(v0p, land_colors).lerp(low_land_color, clamp(remap(v0p.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var v1p_color = color_vary(v1p, land_colors).lerp(low_land_color, clamp(remap(v1p.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
 		var depth_start = 0.001
 		var depth_end = 0.05
 		var v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
@@ -1000,8 +1025,8 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		var v1p2w = v1p2.normalized()*water_offset
 		var v1p2w_depth = v1p2.length_squared() - v1p2w.length_squared()
 		
-		var v0p2_color = land_colors[color_vary(v0p2)].lerp(low_land_color, clamp(remap(v0p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var v1p2_color = land_colors[color_vary(v1p2)].lerp(low_land_color, clamp(remap(v1p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var v0p2_color = color_vary(v0p2, land_colors).lerp(low_land_color, clamp(remap(v0p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var v1p2_color = color_vary(v1p2, land_colors).lerp(low_land_color, clamp(remap(v1p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
 		
 		if v0p2.length() < sand_threshold and ocean:
 			v0p2_color = sand_color
@@ -1056,8 +1081,8 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		var v1p3w = v1p3.normalized()*water_offset
 		var v1p3w_depth = v1p3.length_squared() - v1p3w.length_squared()
 		
-		var v0p3_color = land_colors[color_vary(v0p3)].lerp(low_land_color, clamp(remap(v0p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var v1p3_color = land_colors[color_vary(v1p3)].lerp(low_land_color, clamp(remap(v1p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var v0p3_color = color_vary(v0p3, land_colors).lerp(low_land_color, clamp(remap(v0p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var v1p3_color = color_vary(v1p3, land_colors).lerp(low_land_color, clamp(remap(v1p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
 		
 		if v0p3.length() < sand_threshold and ocean:
 			v0p3_color = sand_color
@@ -1105,7 +1130,7 @@ func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVect
 		
 		#vp
 		
-		var vp_color = land_colors[color_vary(vp)].lerp(low_land_color, clamp(remap(vp.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
+		var vp_color = color_vary(vp, land_colors).lerp(low_land_color, clamp(remap(vp.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
 		var vpw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-vpw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		
 		if vp.length() < sand_threshold and ocean:
@@ -1508,25 +1533,38 @@ func mm(vec: Vector3):
 		var my_craters = []
 		for cr in crater_array:
 			var dist = vec.normalized().distance_squared_to(cr[0])
-			if dist <= cr[1] * 0.01:
-				var dist_mapped = remap(dist, 0.0, cr[1] * 0.01, 0.0, 1.0)
+			var crsize = 0.01 * crater_size_multiplier
+			if dist <= cr[1] * crsize:
+				var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
 				my_craters.append(dist_mapped)
 		for mycr_i in len(my_craters):
-			newvec *= 1.0 + (crater_height_curve.sample(my_craters[mycr_i]) * 0.02 * ((mycr_i + 1) / len(my_craters)))
-#		if newvec.length_squared() > pow(crater_height_threshold, 2.0):
-#			newvec *= 1 + (pow(crater_height_threshold, 2.0) - newvec.length_squared())
+			newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
 	return newvec
 
-func color_vary(vec: Vector3):
-	var nval = remap(colornoise.get_noise_3dv(vec), -1.0, 1.0, 0.0, 2.0)
-	#var nval = vec.length_squared()
+func color_vary(vec: Vector3, colors: Array):
+	var nval = colornoise.get_noise_3dv(vec)
+	var nval2 = colornoise2.get_noise_3dv(vec)
+	var return_color: Color
+	if planet_style == 3:
+		nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
+		nval2 = remap(clamp(nval2, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
+	elif planet_style == 1 or planet_style == 2:
+		nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 	#print(nval)
-	if nval >= pow(land_color_threshold, 2.0) + randi_range(-0.05, 0.05):
-		return 0
-	elif nval <= pow(land_color_threshold_2, 2.0) + randi_range(-0.05, 0.05):
-		return 2
-	else:
-		return 1
+	if nval > 0.5:
+		var final_val = remap(nval, 0.5, 1.0, 0.0, 1.0)
+		return_color = colors[1].lerp(colors[0], land_color_ease_curve.sample_baked(final_val))
+	elif nval <= 0.5:
+		var final_val = remap(nval, 0.0, 0.5, 0.0, 1.0)
+		return_color = colors[2].lerp(colors[1], land_color_ease_curve.sample_baked(final_val))
+	if planet_style == 3:
+		if nval2 > 0.5:
+			var tint_val = remap(nval2, 0.5, 1.0, 0.0, 1.0)
+			return_color = return_color.lerp(tint_color_2.lerp(tint_color, tint_val), 0.07)
+		elif nval2 <= 0.5:
+			var tint_val = remap(nval2, 0.0, 0.5, 0.0, 1.0)
+			return_color = return_color.lerp(tint_color_3.lerp(tint_color_2, tint_val), 0.07)
+	return return_color
 	
 func _piece_fit(delta):
 	if current_piece.global_position.normalized().angle_to(current_piece.direction.normalized()) < PI/32:
