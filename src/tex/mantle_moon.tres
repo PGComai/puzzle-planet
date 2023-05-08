@@ -1,0 +1,78 @@
+[gd_resource type="VisualShader" load_steps=9 format=3 uid="uid://b4t2uesmum8pn"]
+
+[sub_resource type="Gradient" id="Gradient_8ido4"]
+interpolation_mode = 2
+colors = PackedColorArray(0.147672, 0.147672, 0.147672, 1, 0.241156, 0.241156, 0.241156, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_miwr3"]
+frequency = 0.046
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_asxvv"]
+width = 128
+height = 128
+seamless = true
+color_ramp = SubResource("Gradient_8ido4")
+noise = SubResource("FastNoiseLite_miwr3")
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_na102"]
+texture = SubResource("NoiseTexture2D_asxvv")
+texture_type = 1
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_73jvf"]
+parameter_name = "emission_color"
+default_value_enabled = true
+default_value = Color(0.0767046, 0.0525974, 0.0494796, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_xfasm"]
+frequency = 0.023
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_36s67"]
+width = 128
+height = 128
+seamless = true
+as_normal_map = true
+bump_strength = 2.4
+noise = SubResource("FastNoiseLite_xfasm")
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_7tsbw"]
+texture = SubResource("NoiseTexture2D_36s67")
+texture_type = 2
+
+[resource]
+code = "shader_type spatial;
+uniform sampler2D tex_frg_2 : source_color;
+uniform vec4 emission_color : source_color = vec4(0.076705, 0.052597, 0.049480, 1.000000);
+uniform sampler2D tex_frg_4 : hint_normal;
+
+
+
+void fragment() {
+// Texture2D:2
+	vec4 n_out2p0 = texture(tex_frg_2, UV);
+
+
+// ColorParameter:3
+	vec4 n_out3p0 = emission_color;
+
+
+// Texture2D:4
+	vec4 n_out4p0 = texture(tex_frg_4, UV);
+
+
+// Output:0
+	ALBEDO = vec3(n_out2p0.xyz);
+	EMISSION = vec3(n_out3p0.xyz);
+	NORMAL_MAP = vec3(n_out4p0.xyz);
+
+
+}
+"
+graph_offset = Vector2(-250.507, -40.1763)
+nodes/fragment/0/position = Vector2(1680, 120)
+nodes/fragment/2/node = SubResource("VisualShaderNodeTexture_na102")
+nodes/fragment/2/position = Vector2(480, 20)
+nodes/fragment/3/node = SubResource("VisualShaderNodeColorParameter_73jvf")
+nodes/fragment/3/position = Vector2(40, 200)
+nodes/fragment/4/node = SubResource("VisualShaderNodeTexture_7tsbw")
+nodes/fragment/4/position = Vector2(480, 500)
+nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0, 4, 0, 0, 9, 3, 0, 0, 5)

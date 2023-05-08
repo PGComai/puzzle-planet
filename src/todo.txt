@@ -2,7 +2,6 @@
 - stars can block sunlight
 - better scrolling/dragging
 - rock strata in crust
-- puzzle fill as number of pieces instead of percent
 
 maybe:
 	- slant screen divider for one-handed ease

@@ -10,8 +10,8 @@ signal picked_you(idx)
 var global
 
 var rot_h = 0.0
-var h_sensitivity = 0.004
-var v_sensitivity = 0.004
+var h_sensitivity = 0.003
+var v_sensitivity = 0.003
 var og_sens: float
 var dx_final := 0.0
 var dy_final := 0.0
@@ -128,9 +128,9 @@ func _process(delta):
 			camrot.rotation.y = rot_h
 		if !drag and !holding:
 			if len(dx_acc) > 0:
-				dx_acc.remove_at(0)
+				dx_acc.remove_at(len(dx_acc)-1)
 			if len(dy_acc) > 0:
-				dy_acc.remove_at(0)
+				dy_acc.remove_at(len(dy_acc)-1)
 			dx_final = lerp(dx_final, 0.0, 0.05)
 			dy_final = lerp(dy_final, 0.0, 0.05)
 			snap_ease = lerp(snap_ease, 5.0, 0.01)

@@ -1,7 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://ds16salbf23bf"]
 
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
-[ext_resource type="PackedScene" uid="uid://wien31bmex6c" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
+[ext_resource type="PackedScene" uid="uid://bw4ivf82s2q7a" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
 [ext_resource type="PackedScene" uid="uid://dgkcqaccoxiol" path="res://scenes/browser.tscn" id="3_j5u16"]
 [ext_resource type="Script" path="res://scenes/popup.gd" id="4_3lqjh"]
 [ext_resource type="Theme" uid="uid://h80aogkghxi5" path="res://tex/optionbox.tres" id="5_kb0sw"]
@@ -169,12 +169,15 @@ autowrap_mode = 2
 [node name="OptionButton" type="OptionButton" parent="PopupPanel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 10
-item_count = 2
+theme_override_font_sizes/font_size = 8
+item_count = 3
 selected = 0
 popup/item_0/text = "Earth"
 popup/item_0/id = 0
 popup/item_1/text = "Mars"
 popup/item_1/id = 1
+popup/item_2/text = "The Moon"
+popup/item_2/id = 2
 
 [node name="HSeparator" type="HSeparator" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2

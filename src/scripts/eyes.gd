@@ -169,7 +169,4 @@ func _on_generate_button_up():
 
 func _on_option_button_item_selected(index):
 	var global = get_node('/root/Global')
-	if index == 0:
-		global.generate_type = 1
-	elif index == 1:
-		global.generate_type = 2
+	global.generate_type = index + 1

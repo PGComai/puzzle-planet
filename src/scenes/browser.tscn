@@ -12,6 +12,9 @@ sky_material = SubResource("ProceduralSkyMaterial_dvmvx")
 [sub_resource type="Environment" id="Environment_44v1c"]
 sky = SubResource("Sky_6rrgr")
 tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
+fog_density = 0.3453
 
 [node name="Browser" type="Node3D"]
 script = ExtResource("1_n1lns")

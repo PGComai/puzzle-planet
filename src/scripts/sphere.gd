@@ -46,6 +46,8 @@ signal piece_placed(cidx)
 @export var invert_height := false
 @export var craters := false
 @export var crater_height_threshold := 1.05
+@export_range(1, 100) var num_craters := 10
+@export var crater_height_curve: Curve
 @export_category('Colors')
 @export var color_test := Color('Black')
 @export var low_crust_color := Color('3f3227')
@@ -96,7 +98,9 @@ signal piece_placed(cidx)
 @onready var mantle = $"../Mantle"
 @onready var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
 @onready var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
+@onready var mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
 @onready var lava_lamp = $"../Lava Lamp"
+@onready var moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
 
 var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
@@ -117,6 +121,7 @@ var placed_counting := false
 var snow_start: float
 var max_distance_between_vecs := 0.000016
 var global
+var crater_array := []
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -317,7 +322,10 @@ func _generate_mesh():
 			min_terrain_height = 0.8
 			clamp_terrain = false
 			invert_height = false
+			craters = false
 			snow = true
+			atmo.visible = true
+			atmo_2.visible = true
 			mantle.mesh.material = mantle_earth_material
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
 			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
@@ -368,6 +376,7 @@ func _generate_mesh():
 			min_terrain_height = 1.02
 			clamp_terrain = true
 			invert_height = true
+			craters = false
 			low_crust_color = Color('5e1c18')
 			crust_color = Color('542b18')
 			land_snow_color = Color('dbdbdb')
@@ -383,6 +392,8 @@ func _generate_mesh():
 			water_color = Color('0541ff')
 			shallow_water_color = Color('2091bf')
 			snow = true
+			atmo.visible = true
+			atmo_2.visible = true
 			mantle.mesh.material = mantle_mars_material
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
 			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
@@ -391,7 +402,75 @@ func _generate_mesh():
 			#lava_lamp.light_color = lava_lamp_color_mars
 			lava_lamp.visible = true
 		elif planet_style == 3:
+			# moon
+			colornoise.noise_type = 4
+			colornoise.frequency = 2.0
+			colornoise.domain_warp_enabled = false
+			colornoise.domain_warp_amplitude = 30
+			colornoise.domain_warp_fractal_gain = 0.5
+			colornoise.domain_warp_fractal_lacunarity = 6
+			colornoise.domain_warp_fractal_octaves = 5
+			colornoise.domain_warp_fractal_type = 1
+			colornoise.domain_warp_frequency = 0.05
+			colornoise.domain_warp_type = 0
+			colornoise.fractal_gain = 0.5
+			colornoise.fractal_lacunarity = 2
+			colornoise.fractal_octaves = 5
+			colornoise.fractal_ping_pong_strength = 2
+			colornoise.fractal_type = 1
+			colornoise.fractal_weighted_strength = 0.735
+			noise3d.noise_type = 4
+			noise3d.frequency = 2.731
+			noise3d.domain_warp_enabled = false
+			noise3d.domain_warp_amplitude = 30.0
+			noise3d.domain_warp_fractal_gain = 0.5
+			noise3d.domain_warp_fractal_lacunarity = 6.0
+			noise3d.domain_warp_fractal_octaves = 5
+			noise3d.domain_warp_fractal_type = 1
+			noise3d.domain_warp_frequency = 0.05
+			noise3d.domain_warp_type = 0
+			noise3d.fractal_gain = 0.5
+			noise3d.fractal_lacunarity = 2.0
+			noise3d.fractal_octaves = 5
+			noise3d.fractal_ping_pong_strength = 2.0
+			noise3d.fractal_type = 1
+			noise3d.fractal_weighted_strength = 0.0
+			low_crust_color = Color('292929')
+			crust_color = Color('353535')
+			land_snow_color = Color('dbdbdb')
+			land_color = Color('737373')
+			land_color_threshold = 1.011
+			land_color_2 = Color('5b5b5b')
+			land_color_threshold = 0.962
+			land_color_3 = Color('464646')
+			low_land_color = Color('242424')
+			low_land_bottom_threshold = 0.911
+			low_land_top_threshold = 1.254
+			sand_color = Color('9f876b')
+			water_color = Color('0541ff')
+			shallow_water_color = Color('2091bf')
+			sand_threshold = 1.1
+			water_offset = 1.09
+			ocean = false
+			snow_random_low = 0.85
+			snow_random_high = 0.95
+			max_terrain_height_unclamped = 1.1
+			min_terrain_height_unclamped = 0.882
+			max_terrain_height = 1.092
+			min_terrain_height = 0.43
+			clamp_terrain = false
+			invert_height = false
 			snow = false
+			craters = true
+			crater_height_threshold = 1.137
+			num_craters = 50
+			crater_height_curve = moon_crater_curve
+			mantle.mesh.material = mantle_moon_material
+			atmo.visible = false
+			atmo_2.visible = false
+			lava_lamp.light_color = lava_lamp_color_earth
+			lava_lamp.visible = false
+			
 		if snow_random_high > snow_random_low:
 			snow_start = randf_range(snow_random_low, snow_random_high)
 		elif snow_random_high == snow_random_low:
@@ -399,9 +478,17 @@ func _generate_mesh():
 		else:
 			snow_start = 0.9
 		
+		craterize()
+		
 		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, used_border_vecs)
 
 	emit_signal("meshes_made")
+
+func craterize():
+	for cr in num_craters:
+		var impact = Vector3(randfn(0.0, 1.0), randfn(0.0, 1.0), randfn(0.0, 1.0)).normalized()
+		var strength = randfn(3.0, 2.0)
+		crater_array.append([impact, strength])
 
 func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
 	# treats thin triangles differently while making same edge vertices
@@ -577,6 +664,15 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		var p1_color = land_colors[color_vary(p1)].lerp(low_land_color, 1-clamp(remap(p1.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
 		var p2_color = land_colors[color_vary(p2)].lerp(low_land_color, 1-clamp(remap(p2.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
 		var p3_color = land_colors[color_vary(p3)].lerp(low_land_color, 1-clamp(remap(p3.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
+#		if craters:
+#			var my_craters = []
+#			for cr in crater_array:
+#				var dist1 = p1.normalized().distance_squared_to(cr[0])
+#				if dist1 <= cr[1] * 0.01:
+#					var dist1_mapped = remap(dist1, 0.0, cr[1] * 0.01, 0.0, 1.0)
+#					my_craters.append(dist1_mapped)
+#				for mycr_i in len(my_craters):
+#					newvec *= 1.0 + (crater_height_curve.sample(my_craters[mycr_i]) * 0.02 * ((mycr_i + 1) / len(my_craters)))
 		if p1.length_squared() < pow(sand_threshold, 2) and ocean:
 			p1_color = sand_color
 		elif asin(abs(p1.normalized().y)) > snow_start and snow:
@@ -1409,8 +1505,16 @@ func mm(vec: Vector3):
 		if newvec.length_squared() < pow(min_terrain_height, 2.0):
 			newvec = newvec.normalized() * min_terrain_height
 	if craters:
-		if newvec.length_squared() > pow(crater_height_threshold, 2.0):
-			newvec *= 1 + (pow(crater_height_threshold, 2.0) - newvec.length_squared())
+		var my_craters = []
+		for cr in crater_array:
+			var dist = vec.normalized().distance_squared_to(cr[0])
+			if dist <= cr[1] * 0.01:
+				var dist_mapped = remap(dist, 0.0, cr[1] * 0.01, 0.0, 1.0)
+				my_craters.append(dist_mapped)
+		for mycr_i in len(my_craters):
+			newvec *= 1.0 + (crater_height_curve.sample(my_craters[mycr_i]) * 0.02 * ((mycr_i + 1) / len(my_craters)))
+#		if newvec.length_squared() > pow(crater_height_threshold, 2.0):
+#			newvec *= 1 + (pow(crater_height_threshold, 2.0) - newvec.length_squared())
 	return newvec
 
 func color_vary(vec: Vector3):
