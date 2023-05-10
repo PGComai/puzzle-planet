@@ -34,8 +34,8 @@ signal piece_placed(cidx)
 @export var fractal_ping_pong_strength := 2.0
 @export var fractal_type: FastNoiseLite.FractalType = 1
 @export var fractal_weighted_strength := 0.0
-@export var ocean := true    
-@export var snow := true 
+@export var ocean := true
+@export var snow := true
 @export_range(0,1) var snow_random_low := 0.85
 @export_range(0,1) var snow_random_high := 0.95
 @export_range(0,1) var min_terrain_height_unclamped := 0.9
@@ -129,6 +129,9 @@ var snow_start: float
 var max_distance_between_vecs := 0.000016
 var global
 var crater_array := []
+
+var vectree: Dictionary
+var treesnap := Vector3(0.01, 0.01, 0.01)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -508,6 +511,11 @@ func _generate_mesh():
 		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, used_border_vecs)
 
 	emit_signal("meshes_made")
+
+func snap_to_existing(vec: Vector3):
+	var tree_vec = vec.snapped(treesnap)
+	if !vectree.has(tree_vec):
+		vectree[tree_vec] = [vec]
 
 func craterize():
 	for cr in num_craters:
