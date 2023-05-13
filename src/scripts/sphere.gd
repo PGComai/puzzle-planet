@@ -13,7 +13,6 @@ signal piece_placed(cidx)
 @export var piece_offset := 1.0
 @export_category('Terrain')
 @export var crust_thickness := 1.1
-@export var vertex_fill_threshold := 0.1
 @export var vertex_merge_threshold := 0.05
 @export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
 @export_enum('custom', 'earth', 'mars', 'moon') var planet_style := 0
@@ -92,7 +91,7 @@ signal piece_placed(cidx)
 @onready var pieces = $"../Pieces"
 @onready var save_template = preload("res://scripts/save_template.gd")
 @onready var piece_target = $"../h/v/Camera3D/piece_target"
-@onready var shadow_light = $"../h/v/Camera3D/piece_target/ShadowLight"
+@onready var shadow_light = $"../h/v/Camera3D/ShadowLight"
 @onready var camera_3d = $"../h/v/Camera3D"
 @onready var where = $where
 @onready var sun = $"../Sun"
@@ -118,7 +117,8 @@ var saver = ResourceSaver
 var loader = ResourceLoader
 var load_failed: bool = false
 var looking: bool = false
-var current_piece: MeshInstance3D
+var current_piece: Node3D
+var current_piece_mesh: MeshInstance3D
 var fit_timer: float = 0.0
 var fit: bool = false
 var puzzle_fits: Dictionary
@@ -131,10 +131,15 @@ var global
 var crater_array := []
 
 var vectree: Dictionary
-var treesnap := Vector3(0.01, 0.01, 0.01)
+var treesnap: Vector3
+var treestep := 0.15
+var vsnap := 0.00005
+
+var correct_rotation := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	treesnap = Vector3(treestep, treestep, treestep)
 	global = get_node('/root/Global')
 	if !(planet_style == 0) and !debug:
 		planet_style = global.generate_type
@@ -181,18 +186,7 @@ func _process(delta):
 	if looking:
 		_piece_fit(delta)
 	if fit_timer > 1.5:
-		current_piece.reparent(pieces, false)
-		current_piece.placed = true
-		current_piece.position = Vector3.ZERO
-		current_piece.rotation = Vector3.ZERO
-		current_piece.global_position = piece_target.global_position
-		fit = true
-		looking = false
-		fit_timer = 0.0
-		shadow_light._on = false
-		sun._on = true
-		sun_2._on = true
-		space._on = false
+		_place_piece()
 	if fit:
 		if !placed_signal:
 			current_piece.remove_from_group('pieces')
@@ -211,6 +205,21 @@ func _process(delta):
 			placed_counting = false
 			placed_timer = 0.0
 		
+
+func _place_piece():
+	current_piece.reparent(pieces, false)
+	current_piece.placed = true
+	current_piece.position = Vector3.ZERO
+	current_piece.rotation = Vector3.ZERO
+	current_piece_mesh.rotation = Vector3.ZERO
+	current_piece.global_position = piece_target.global_position
+	fit = true
+	looking = false
+	fit_timer = 0.0
+	shadow_light._on = false
+	sun._on = true
+	sun_2._on = true
+	space._on = false
 
 func _generate_mesh():
 	var verts := PackedVector3Array()
@@ -254,16 +263,10 @@ func _generate_mesh():
 		
 		## NEW STUFF
 		
-		recursed_borders = vi_to_borders.duplicate()
+		#recursed_borders = vi_to_borders.duplicate()
 		var used_border_vecs = PackedVector3Array()
-		for r in sub_triangle_recursion+1:
-			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts, used_border_vecs)
-
-		## NEW STUFF
-
-#		var newdict = fill_border_halfways(vi_to_borders.duplicate(true), verts)
-#		var newnewdict = fill_border_halfways(newdict.duplicate(true), verts)
-#		var newnewnewdict = fill_border_halfways(newnewdict.duplicate(true), verts)
+#		for r in sub_triangle_recursion+1:
+#			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts, used_border_vecs)
 		
 		var circle_idx = 0
 		var l = len(verts)
@@ -513,66 +516,60 @@ func _generate_mesh():
 	emit_signal("meshes_made")
 
 func snap_to_existing(vec: Vector3):
+	#print(len(vectree))
 	var tree_vec = vec.snapped(treesnap)
+	var tv_up = Vector3(tree_vec.x, tree_vec.y + treestep, tree_vec.z)
+	var tv_up_l = Vector3(tree_vec.x - treestep, tree_vec.y + treestep, tree_vec.z)
+	var tv_up_l_f = Vector3(tree_vec.x - treestep, tree_vec.y + treestep, tree_vec.z - treestep)
+	var tv_up_l_b = Vector3(tree_vec.x - treestep, tree_vec.y + treestep, tree_vec.z + treestep)
+	var tv_up_r = Vector3(tree_vec.x + treestep, tree_vec.y + treestep, tree_vec.z)
+	var tv_up_r_f = Vector3(tree_vec.x + treestep, tree_vec.y + treestep, tree_vec.z - treestep)
+	var tv_up_r_b = Vector3(tree_vec.x + treestep, tree_vec.y + treestep, tree_vec.z + treestep)
+	var tv_up_f = Vector3(tree_vec.x, tree_vec.y + treestep, tree_vec.z - treestep)
+	var tv_up_b = Vector3(tree_vec.x, tree_vec.y + treestep, tree_vec.z + treestep)
+	var tv_down = Vector3(tree_vec.x, tree_vec.y - treestep, tree_vec.z)
+	var tv_down_l = Vector3(tree_vec.x - treestep, tree_vec.y - treestep, tree_vec.z)
+	var tv_down_l_f = Vector3(tree_vec.x - treestep, tree_vec.y - treestep, tree_vec.z - treestep)
+	var tv_down_l_b = Vector3(tree_vec.x - treestep, tree_vec.y - treestep, tree_vec.z + treestep)
+	var tv_down_r = Vector3(tree_vec.x + treestep, tree_vec.y - treestep, tree_vec.z)
+	var tv_down_r_f = Vector3(tree_vec.x + treestep, tree_vec.y - treestep, tree_vec.z - treestep)
+	var tv_down_r_b = Vector3(tree_vec.x + treestep, tree_vec.y - treestep, tree_vec.z + treestep)
+	var tv_down_f = Vector3(tree_vec.x, tree_vec.y - treestep, tree_vec.z - treestep)
+	var tv_down_b = Vector3(tree_vec.x, tree_vec.y - treestep, tree_vec.z + treestep)
+	var tv_left = Vector3(tree_vec.x - treestep, tree_vec.y, tree_vec.z)
+	var tv_left_f = Vector3(tree_vec.x - treestep, tree_vec.y, tree_vec.z - treestep)
+	var tv_left_b = Vector3(tree_vec.x - treestep, tree_vec.y, tree_vec.z + treestep)
+	var tv_right = Vector3(tree_vec.x + treestep, tree_vec.y, tree_vec.z)
+	var tv_right_f = Vector3(tree_vec.x + treestep, tree_vec.y, tree_vec.z - treestep)
+	var tv_right_b = Vector3(tree_vec.x + treestep, tree_vec.y, tree_vec.z + treestep)
+	var tv_fwd = Vector3(tree_vec.x, tree_vec.y, tree_vec.z - treestep)
+	var tv_back = Vector3(tree_vec.x, tree_vec.y, tree_vec.z + treestep)
 	if !vectree.has(tree_vec):
-		vectree[tree_vec] = [vec]
+		vectree[tree_vec] = PackedVector3Array([vec])
+	else:
+		var found = false
+		for shift in [tree_vec, tv_up, tv_down, tv_left, tv_right, tv_fwd, tv_back,
+					tv_up_l, tv_up_l_f, tv_up_l_b, tv_up_r, tv_up_r_f, tv_up_r_b,
+					tv_up_f, tv_up_b,
+					tv_down_l, tv_down_l_f, tv_down_l_b, tv_down_r, tv_down_r_f, tv_down_r_b,
+					tv_down_f, tv_down_b,
+					tv_left_f, tv_left_b, tv_right_f, tv_right_b]:
+			if found: break
+			if vectree.has(shift):
+				for pt in vectree[shift]:
+					if vec.distance_squared_to(pt) < max_distance_between_vecs:
+						vec = pt
+						found = true
+						break
+		if !found:
+			vectree[tree_vec].append(vec)
+	return vec
 
 func craterize():
 	for cr in num_craters:
 		var impact = Vector3(randfn(0.0, 1.0), randfn(0.0, 1.0), randfn(0.0, 1.0)).normalized()
 		var strength = randfn(3.0, 1.5)
 		crater_array.append([impact, strength])
-
-func progressive_triangulate(border_array: PackedVector3Array, og_idx: int, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
-	# treats thin triangles differently while making same edge vertices
-	var border_triangles = PackedVector3Array()
-	var border_tri_normals = PackedVector3Array()
-	var border_tri_colors = PackedColorArray()
-	var water_triangles = PackedVector3Array()
-	var water_tri_normals = PackedVector3Array()
-	var water_tri_colors = PackedColorArray()
-	
-	var arrays = [border_triangles, border_tri_normals, border_tri_colors,
-		water_triangles, water_tri_normals, water_tri_colors]
-	
-	####
-#	var triangles = PackedVector3Array()
-#	var triangle_normals = PackedVector3Array()
-	var used_vecs = PackedVector3Array()
-	for b in len(border_array)-1:
-		var v0 = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
-		var v1 = border_array[b+1].snapped(Vector3(0.001, 0.001, 0.001))
-		var vp = og_verts[og_idx].snapped(Vector3(0.001, 0.001, 0.001))
-		for pt in used_border_vecs:
-			if v0.distance_squared_to(pt) < max_distance_between_vecs:
-				v0 = pt
-				break
-		for pt in used_border_vecs:
-			if v1.distance_squared_to(pt) < max_distance_between_vecs:
-				v1 = pt
-				break
-		for pt in used_border_vecs:
-			if vp.distance_squared_to(pt) < max_distance_between_vecs:
-				vp = pt
-				break
-		if !used_border_vecs.has(v0):
-			used_border_vecs.append(v0)
-		if !used_border_vecs.has(v1):
-			used_border_vecs.append(v1)
-		if !used_border_vecs.has(vp):
-			used_border_vecs.append(vp)
-		if !used_vecs.has(v0):
-			used_vecs.append(v0)
-		if !used_vecs.has(v1):
-			used_vecs.append(v1)
-		if !used_vecs.has(vp):
-			used_vecs.append(vp)
-		_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs)
-	#draw_trimesh(triangles, triangle_normals, msh)
-	####
-	
-	return [border_triangles, border_tri_normals, border_tri_colors,
-		water_triangles, water_tri_normals, water_tri_colors]
 
 func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
 	var pieces_stayed := 0
@@ -596,28 +593,14 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		var on = true
 		var used_vecs = PackedVector3Array()
 		for b in len(border_array)-1:
-			var v0 = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
-			var v1 = border_array[b+1].snapped(Vector3(0.001, 0.001, 0.001))
-			var vp = og_verts[bak].snapped(Vector3(0.001, 0.001, 0.001))
-			for pt in used_border_vecs:
-				if v0.distance_squared_to(pt) < max_distance_between_vecs:
-					v0 = pt
-					break
-			for pt in used_border_vecs:
-				if v1.distance_squared_to(pt) < max_distance_between_vecs:
-					v1 = pt
-					break
-			for pt in used_border_vecs:
-				if vp.distance_squared_to(pt) < max_distance_between_vecs:
-					vp = pt
-					break
-			if !used_vecs.has(v0):
-				used_vecs.append(v0)
-			if !used_vecs.has(v1):
-				used_vecs.append(v1)
-			if !used_vecs.has(vp):
-				used_vecs.append(vp)
+			var v0 = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
+			var v1 = border_array[b+1].snapped(Vector3(vsnap, vsnap, vsnap))
+			var vp = og_verts[bak].snapped(Vector3(vsnap, vsnap, vsnap))
+			v0 = snap_to_existing(v0)
+			v1 = snap_to_existing(v1)
+			vp = snap_to_existing(vp)
 			_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs)
+			
 		var dxu = og_verts[bak].cross(Vector3.UP)
 		var up = dxu.rotated(og_verts[bak].normalized(), -PI/2)
 		
@@ -637,12 +620,18 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 			newpiece.normal_cw = NEW_tess_result[4]
 			newpiece.color_cw = NEW_tess_result[5]
 		newpiece.direction = og_verts[bak]
+		newpiece.lat = og_verts[bak].angle_to(Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized()) * sign(og_verts[bak].y)
+		newpiece.lon = Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized().angle_to(Vector3.FORWARD) * sign(og_verts[bak].x)
+		newpiece.rotation_saver = Quaternion(og_verts[bak], Vector3.BACK)
 		puzzle_fits[bak] = og_verts[bak]
 		newpiece.idx = bak
 		newpiece.siblings = len(og_verts)
 		newpiece.ready_for_launch.connect(_on_ready_for_launch)
 		newpiece.upright_vec = up.normalized()
 		newpiece.orient_upright = !global.rotation
+		if global.rotation:
+			var randrot = randf_range(0.0, 2*PI)
+			newpiece.random_rotation_offset = randrot
 		#newpiece.particle_edges = edges_for_particles
 		newpiece.offset = piece_offset
 		# checking who stays
@@ -661,32 +650,16 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			used_border_vecs: PackedVector3Array,
 			recursion := 0,
 			shade_min := 0,
-			shade_max := 1,
-			vsnap := 0.001):
+			shade_max := 1):
 #	[border_triangles, border_tri_normals, border_tri_colors,            0, 1, 2
 #		water_triangles, water_tri_normals, water_tri_colors]            3, 4, 5
 	if recursion > sub_triangle_recursion:
 		# i think this is where we need to apply color, height, etc to vertices
 		
-		for pt in used_vecs:
-			if p1.distance_squared_to(pt) < max_distance_between_vecs:
-				p1 = pt
-				break
-		for pt in used_vecs:
-			if p2.distance_squared_to(pt) < max_distance_between_vecs:
-				p2 = pt
-				break
-		for pt in used_vecs:
-			if p3.distance_squared_to(pt) < max_distance_between_vecs:
-				p3 = pt
-				break
-		if !used_vecs.has(p1):
-			used_vecs.append(p1)
-		if !used_vecs.has(p2):
-			used_vecs.append(p2)
-		if !used_vecs.has(p3):
-			used_vecs.append(p3)
-		
+		p1 = snap_to_existing(p1)
+		p2 = snap_to_existing(p2)
+		p3 = snap_to_existing(p3)
+
 		# land height
 		p1 = mm(p1*crust_thickness)
 		p2 = mm(p2*crust_thickness)
@@ -697,15 +670,7 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		var p1_color = color_vary(p1, land_colors).lerp(low_land_color, 1-clamp(remap(p1.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
 		var p2_color = color_vary(p2, land_colors).lerp(low_land_color, 1-clamp(remap(p2.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
 		var p3_color = color_vary(p3, land_colors).lerp(low_land_color, 1-clamp(remap(p3.length_squared(), pow(low_land_bottom_threshold, 2.0), pow(low_land_top_threshold, 2.0), 0.0, 1.0), 0.0, 1.0))
-#		if craters:
-#			var my_craters = []
-#			for cr in crater_array:
-#				var dist1 = p1.normalized().distance_squared_to(cr[0])
-#				if dist1 <= cr[1] * 0.01:
-#					var dist1_mapped = remap(dist1, 0.0, cr[1] * 0.01, 0.0, 1.0)
-#					my_craters.append(dist1_mapped)
-#				for mycr_i in len(my_craters):
-#					newvec *= 1.0 + (crater_height_curve.sample(my_craters[mycr_i]) * 0.02 * ((mycr_i + 1) / len(my_craters)))
+		
 		if p1.length_squared() < pow(sand_threshold, 2) and ocean:
 			p1_color = sand_color
 		elif asin(abs(p1.normalized().y)) > snow_start and snow:
@@ -773,31 +738,9 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			newpoint = p1.rotated(ax, ang3*0.5)
 			var p31 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
 			
-			for pt in used_vecs:
-				if p12.distance_squared_to(pt) < max_distance_between_vecs:
-					p12 = pt
-					break
-			for pt in used_vecs:
-				if p23.distance_squared_to(pt) < max_distance_between_vecs:
-					p23 = pt
-					break
-			for pt in used_vecs:
-				if p31.distance_squared_to(pt) < max_distance_between_vecs:
-					p31 = pt
-					break
-			for pt in used_border_vecs:
-				if p31.distance_squared_to(pt) < max_distance_between_vecs:
-					p31 = pt
-					break
-			if !used_border_vecs.has(p31):
-				used_border_vecs.append(p31)
-			
-			if !used_vecs.has(p12):
-				used_vecs.append(p12)
-			if !used_vecs.has(p23):
-				used_vecs.append(p23)
-			if !used_vecs.has(p31):
-				used_vecs.append(p31)
+			p12 = snap_to_existing(p12)
+			p23 = snap_to_existing(p23)
+			p31 = snap_to_existing(p31)
 			
 			_sub_triangle(p1, p12, p31, arrays, used_vecs, used_border_vecs, recursion)
 			
@@ -826,17 +769,10 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 	var cutwater_tri_colors = PackedColorArray()
 
 	for b in len(ring_array)-1:
-		var v0 = ring_array[b]
-		var v1 = ring_array[b+1]
-		for pt in used_border_vecs:
-			if v0.distance_squared_to(pt) < max_distance_between_vecs:
-				v0 = pt
-			if v1.distance_squared_to(pt) < max_distance_between_vecs:
-				v1 = pt
-		if !used_border_vecs.has(v0):
-			used_border_vecs.append(v0)
-		if !used_border_vecs.has(v1):
-			used_border_vecs.append(v1)
+		var v0 = ring_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
+		var v1 = ring_array[b+1].snapped(Vector3(vsnap, vsnap, vsnap))
+		v0 = snap_to_existing(v0)
+		v1 = snap_to_existing(v1)
 		var v0p = mm(v0*thickness)
 		var v0pw = v0p.normalized()*water_offset
 		var v0pw_depth = v0p.length_squared() - v0pw.length_squared()
@@ -1201,16 +1137,6 @@ func NEW_verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
 					result[v].append(dtc[dtc_k])
 	return result
 
-func verts_to_dpoints(og_verts: PackedVector3Array, dtc: Dictionary):
-	var result = {}
-	var l = len(og_verts)
-	for v in l:
-		result[v] = PackedVector3Array()
-		for dtc_k in dtc.keys():
-			if og_verts[v] in dtc_k:
-				result[v].append(dtc[dtc_k])
-	return result
-
 func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary):
 	var result = {}
 	var l = len(og_verts)
@@ -1259,90 +1185,37 @@ func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, 
 			if plus1 == len(border_array):
 				## last one
 				plus1 = 0
-				var current_border_point = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
-				var next_border_point = border_array[plus1].snapped(Vector3(0.001, 0.001, 0.001))
-				for pt in used_border_vecs:
-					if current_border_point.distance_squared_to(pt) < max_distance_between_vecs:
-						current_border_point = pt
-						break
-				for pt in used_border_vecs:
-					if next_border_point.distance_squared_to(pt) < max_distance_between_vecs:
-						next_border_point = pt
-						break
+				var current_border_point = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
+				var next_border_point = border_array[plus1].snapped(Vector3(vsnap, vsnap, vsnap))
+				current_border_point = snap_to_existing(current_border_point)
+				next_border_point = snap_to_existing(next_border_point)
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
 					#if !(new_border_array.has(current_border_point)):
 					new_border_array.append(current_border_point)
-					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(0.001, 0.001, 0.001))
-					for pt in used_border_vecs:
-						if halfway.distance_squared_to(pt) < max_distance_between_vecs:
-							halfway = pt
-							break
+					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(vsnap, vsnap, vsnap))
+					halfway = snap_to_existing(halfway)
 					#if !(new_border_array.has(halfway)):
 					new_border_array.append(halfway)
 					#if !(new_border_array.has(next_border_point)):
 					new_border_array.append(next_border_point)
-					if !used_border_vecs.has(current_border_point):
-						used_border_vecs.append(current_border_point)
-					if !used_border_vecs.has(halfway):
-						used_border_vecs.append(halfway)
-					if !used_border_vecs.has(next_border_point):
-						used_border_vecs.append(next_border_point)
 			else:
-				var current_border_point = border_array[b].snapped(Vector3(0.001, 0.001, 0.001))
-				var next_border_point = border_array[plus1].snapped(Vector3(0.001, 0.001, 0.001))
-				for pt in used_border_vecs:
-					if current_border_point.distance_squared_to(pt) < max_distance_between_vecs:
-						current_border_point = pt
-						break
-				for pt in used_border_vecs:
-					if next_border_point.distance_squared_to(pt) < max_distance_between_vecs:
-						next_border_point = pt
-						break
+				var current_border_point = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
+				var next_border_point = border_array[plus1].snapped(Vector3(vsnap, vsnap, vsnap))
+				current_border_point = snap_to_existing(current_border_point)
+				next_border_point = snap_to_existing(next_border_point)
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
 					if !(new_border_array.has(current_border_point)):
 						new_border_array.append(current_border_point)
-					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(0.001, 0.001, 0.001))
-					for pt in used_border_vecs:
-						if halfway.distance_squared_to(pt) < max_distance_between_vecs:
-							halfway = pt
-							break
+					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(vsnap, vsnap, vsnap))
+					halfway = snap_to_existing(halfway)
 					if !(new_border_array.has(halfway)):
 						new_border_array.append(halfway)
 					if !(new_border_array.has(next_border_point)):
 						new_border_array.append(next_border_point)
-					
-					if !used_border_vecs.has(current_border_point):
-						used_border_vecs.append(current_border_point)
-					if !used_border_vecs.has(halfway):
-						used_border_vecs.append(halfway)
-					if !used_border_vecs.has(next_border_point):
-						used_border_vecs.append(next_border_point)
-		vbdict[vi] = new_border_array
-	return vbdict
-
-func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array):
-	for vi in vbdict.keys():
-		var border_array = vbdict[vi]
-		var new_border_array = PackedVector3Array()
-		for b in len(border_array):
-			var plus1 = b+1
-			if plus1 == len(border_array):
-				## last one
-				pass
-			else:
-				var current_border_point = border_array[b]
-				var next_border_point = border_array[plus1]
-				
-				var bb_dist = current_border_point.distance_to(next_border_point)
-				new_border_array.append(current_border_point)
-				if bb_dist > vertex_fill_threshold:
-					var halfway = current_border_point.move_toward(next_border_point, bb_dist/2.0).normalized()
-					new_border_array.append(halfway)
-				new_border_array.append(next_border_point)
 		vbdict[vi] = new_border_array
 	return vbdict
 
@@ -1437,74 +1310,6 @@ func NEW_delaunay(points: PackedVector3Array, return_tris := false):
 #	print(len(tris))
 	return tris
 
-func delaunay(points: PackedVector3Array, return_tris = false):
-	var tris = {}
-	var centers = PackedVector3Array()
-	var good_triangles = []
-	var num_of_points = len(points)
-	var all_possible_threes = []
-	for p in num_of_points:
-		for p2 in num_of_points:
-			for p3 in num_of_points:
-				all_possible_threes.append([p,p2,p3])
-	#print(len(all_possible_threes))
-	for three in all_possible_threes:
-		var p = three[0]
-		var p2 = three[1]
-		var p3 = three[2]
-		if p2 == p or points[p].angle_to(points[p2]) > PI/2 or p3 == p or p3 == p2 or points[p].angle_to(points[p3]) > PI/2 or points[p2].angle_to(points[p3]) > PI/2:
-			pass
-		else:
-			## at this point we have three unique points
-			var new = true
-			for gt in good_triangles:
-				if p in gt and p2 in gt and p3 in gt:
-					new = false
-			
-			if !new:
-				pass
-			else:
-				var pl = Plane(points[p],points[p2],points[p3])
-				var pl2 = Plane(points[p],points[p3],points[p2])
-				var plc = pl.get_center()
-				var pl2c = pl2.get_center()
-
-				var is_good = true
-				var is_good2 = true
-
-				for pp in num_of_points:
-					if pl.is_point_over(points[pp]):
-						if abs(pl.distance_to(points[pp])) > 0.0005:
-							is_good = false
-					if pl2.is_point_over(points[pp]):
-						if abs(pl2.distance_to(points[pp])) > 0.0005:
-							is_good2 = false
-
-				var surface_array = []
-				surface_array.resize(Mesh.ARRAY_MAX)
-				if is_good:
-					good_triangles.append([p,p2,p3])
-					if !return_tris:
-						var off = plc.normalized()*0.0
-						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p2]+off,points[p3]+off])
-					else:
-						var plarr = PackedVector3Array([points[p], points[p2], points[p3]])
-						tris[plarr] = plc.normalized()
-						centers.append(plc.normalized())
-				if is_good2:
-					good_triangles.append([p,p3,p2])
-					if !return_tris:
-						var off = plc.normalized()*0.0
-						surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array([points[p]+off,points[p3]+off,points[p2]+off])
-					else:
-						var plarr = PackedVector3Array([points[p], points[p3], points[p2]])
-						tris[plarr] = pl2c.normalized()
-						centers.append(pl2c.normalized())
-	#print(len(good_triangles))
-	#print(float(good_triangles)/float(num_of_points))
-	if return_tris:
-		return tris
-
 func array_of_points(arr: PackedVector3Array):
 	randomize()
 	var rx = randfn(0.0, 2.0)
@@ -1576,8 +1381,15 @@ func color_vary(vec: Vector3, colors: Array):
 	
 func _piece_fit(delta):
 	if current_piece.global_position.normalized().angle_to(current_piece.direction.normalized()) < PI/32:
-		#print('beep!')
-		fit_timer += delta
+		if global.rotation:
+			if correct_rotation:
+				fit_timer += delta
+			else:
+				fit_timer = 0.0
+		else:
+			fit_timer += delta
+	else:
+		fit_timer = 0.0
 	#where.position = current_piece.direction
 	
 func _on_ready_for_launch(_idx):
@@ -1586,6 +1398,7 @@ func _on_ready_for_launch(_idx):
 		if p.idx == _idx:
 			p.reparent(piece_target, false)
 			current_piece = p
+			current_piece_mesh = current_piece.get_child(0)
 			p.position.y = -6.0
 			p.in_space = true
 			if !p.is_connected('take_me_home', _on_piece_take_me_home):
@@ -1602,3 +1415,10 @@ func _on_piece_take_me_home(_idx):
 	sun._on = true
 	sun_2._on = true
 	looking = false
+
+func _on_universe_spin_piece(rot):
+	var the_rot = fmod(abs(rot), 2*PI)
+	if the_rot < (0.0 + (PI/32)) or the_rot > ((2*PI) - (PI/32)):
+		correct_rotation = true
+	else:
+		correct_rotation = false

@@ -1,18 +1,19 @@
-[gd_scene load_steps=6 format=3 uid="uid://bcdyfumcutir4"]
+[gd_scene load_steps=19 format=3 uid="uid://bcdyfumcutir4"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
+[ext_resource type="Script" path="res://scenes/themesh.gd" id="2_wvf37"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 roughness = 0.78
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_hjkf3"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_4ibd5"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iyjmg"]
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
-roughness = 0.79
+roughness = 0.94
 texture_filter = 0
 grow_amount = -0.001
 point_size = 2.6
@@ -22,14 +23,102 @@ distance_fade_max_distance = 0.3
 [sub_resource type="ArrayMesh" id="ArrayMesh_ker4h"]
 resource_local_to_scene = true
 
-[node name="planet_piece" type="MeshInstance3D" groups=["pieces"]]
-material_overlay = SubResource("StandardMaterial3D_nx1bn")
-mesh = SubResource("ArrayMesh_hjkf3")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b5ptj"]
+albedo_color = Color(0.282353, 0.372549, 0.882353, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_u1pd2"]
+material = SubResource("StandardMaterial3D_b5ptj")
+radius = 0.05
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_15kp0"]
+albedo_color = Color(0.788235, 0.164706, 0.160784, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_sox24"]
+material = SubResource("StandardMaterial3D_15kp0")
+radius = 0.05
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2fggi"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ip4f6"]
+material = SubResource("StandardMaterial3D_2fggi")
+radius = 0.05
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xrim5"]
+albedo_color = Color(0.603922, 0.384314, 0.0509804, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_unyvo"]
+material = SubResource("StandardMaterial3D_xrim5")
+radius = 0.05
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pbyqv"]
+albedo_color = Color(0.305882, 0.384314, 0.843137, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_p12ph"]
+material = SubResource("StandardMaterial3D_pbyqv")
+radius = 0.05
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_du276"]
+albedo_color = Color(0.231373, 0.572549, 0.207843, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_gl2kt"]
+material = SubResource("StandardMaterial3D_du276")
+radius = 0.05
+height = 0.1
+
+[node name="planet_piece" type="Node3D" groups=["pieces"]]
 script = ExtResource("1_jrwu8")
 
-[node name="upward" type="Node3D" parent="."]
+[node name="themesh" type="MeshInstance3D" parent="."]
+material_overlay = SubResource("StandardMaterial3D_nx1bn")
+mesh = SubResource("ArrayMesh_4ibd5")
+script = ExtResource("2_wvf37")
 
-[node name="walls" type="MeshInstance3D" parent="."]
+[node name="walls" type="MeshInstance3D" parent="themesh"]
 layers = 33
 material_overlay = SubResource("StandardMaterial3D_iyjmg")
 mesh = SubResource("ArrayMesh_ker4h")
+skeleton = NodePath("../..")
+
+[node name="fwd" type="MeshInstance3D" parent="themesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+visible = false
+mesh = SubResource("SphereMesh_u1pd2")
+skeleton = NodePath("../..")
+
+[node name="right" type="MeshInstance3D" parent="themesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0)
+visible = false
+mesh = SubResource("SphereMesh_sox24")
+skeleton = NodePath("../..")
+
+[node name="upward" type="Node3D" parent="."]
+visible = false
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="upward"]
+mesh = SubResource("SphereMesh_ip4f6")
+skeleton = NodePath("../..")
+
+[node name="inward" type="Node3D" parent="."]
+visible = false
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="inward"]
+mesh = SubResource("SphereMesh_unyvo")
+skeleton = NodePath("../..")
+
+[node name="zbasis" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.584741)
+visible = false
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="zbasis"]
+mesh = SubResource("SphereMesh_p12ph")
+skeleton = NodePath("../..")
+
+[node name="up" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+visible = false
+mesh = SubResource("SphereMesh_gl2kt")

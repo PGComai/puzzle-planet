@@ -2,12 +2,14 @@ extends Node3D
 
 signal meshes_made2
 signal piece_placed2
+signal spin_piece(rot)
 
 @export var h_sensitivity = 0.005
 @export var v_sensitivity = 0.005
 
 @onready var camera_3d = $h/v/Camera3D
 @onready var sub_viewport = $".."
+@onready var piece_target = $h/v/Camera3D/piece_target
 
 var rot_h = 0.0
 var rot_v = 0.0
@@ -95,7 +97,6 @@ func _process(delta):
 			dx_acc.remove_at(0)
 		if len(dy_acc) > 0:
 			dy_acc.remove_at(0)
-#		initial_grab = initial_grab.slerp(current_grab, 0.1)
 		if fling:
 			if upper_limit_reached:
 				dy_final = -fling_strength
@@ -142,8 +143,8 @@ func _process(delta):
 	else:
 		rot_v = clamp(rot_v, v_min, v_max)
 
-	$h.rotation.y = lerp_angle($h.rotation.y, rot_h, 1.0)
-	$h/v.rotation.x = lerp_angle($h/v.rotation.x, rot_v, 1.0)
+	$h.rotation.y = rot_h
+	$h/v.rotation.x = rot_v
 	
 func pointer(coll_layer: int):
 	var spaceState = get_world_3d().direct_space_state
@@ -170,3 +171,6 @@ func _on_generate_button_up():
 func _on_option_button_item_selected(index):
 	var global = get_node('/root/Global')
 	global.generate_type = index + 1
+
+func _on_browser_wheel_rot(rot):
+	emit_signal('spin_piece', rot)

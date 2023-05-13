@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://dgkcqaccoxiol"]
+[gd_scene load_steps=6 format=3 uid="uid://dgkcqaccoxiol"]
 
 [ext_resource type="Script" path="res://scripts/browser.gd" id="1_n1lns"]
+[ext_resource type="ArrayMesh" uid="uid://jc8722fqtglo" path="res://models/wheel.obj" id="2_5ymt6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dvmvx"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -16,6 +17,7 @@ tonemap_mode = 2
 fog_enabled = true
 fog_light_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
 fog_density = 0.2641
+fog_sky_affect = 0.0
 
 [node name="Browser" type="Node3D"]
 script = ExtResource("1_n1lns")
@@ -40,3 +42,10 @@ light_energy = 2.036
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, -10.8)
 visible = false
 light_energy = 0.54
+
+[node name="wheel" type="Node3D" parent="camrot/Camera3D"]
+transform = Transform3D(0.612, 0, 0, 0, 0.612, 6.52278e-15, 0, -6.52278e-15, 0.612, 0, 12, -4)
+
+[node name="wheelmesh" type="MeshInstance3D" parent="camrot/Camera3D/wheel"]
+mesh = ExtResource("2_5ymt6")
+skeleton = NodePath("../..")

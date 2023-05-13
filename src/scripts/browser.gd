@@ -2,12 +2,17 @@ extends Node3D
 
 signal found_you(idx)
 signal picked_you(idx)
+signal wheel_rot(rot)
 
 @onready var orbit = $Orbit
 @onready var camrot = $camrot
 @onready var ux = $"../../../../../../.."
 @onready var camera_3d = $camrot/Camera3D
+@onready var sub_viewport_container = $"../.."
+@onready var wheel = $camrot/Camera3D/wheel
+
 var global
+var piece_rotation := false
 
 var rot_h = 0.0
 var h_sensitivity = 0.003
@@ -54,9 +59,18 @@ var stay_at_angle := 0.0
 var spin_speed := 0.0
 var how_close_to_piece := 0.0
 
+var first_touch := 0.0
+var first_touch_too_low := false
+
+var clicked := false
+var holding_top := false
+
+var chosen_piece_rotation := 0.0
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	piece_rotation = global.rotation
 	camera_3d.position.z = cam_dist
 	h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -65,7 +79,14 @@ func _ready():
 
 func _unhandled_input(event):
 	if event is InputEventScreenDrag:
+		if !holding and !holding_top:
+			first_touch = (event.position.y / sub_viewport_container.size.y)
+			if first_touch >= 0.9:
+				first_touch_too_low = true
+			else:
+				first_touch_too_low = false
 		if event.position.y > 0.0:
+			holding_top = false
 			holding = true
 			drag = true
 			dx = event.relative.x * h_sensitivity
@@ -75,26 +96,28 @@ func _unhandled_input(event):
 			elif abs(dx) <= abs(dy):
 				dx = 0.0
 		else:
+			holding_top = true
 			holding = false
 			drag = false
 	if event is InputEventScreenTouch:
 		if event.pressed == false:
-			if !holding:
+			if !holding and !holding_top:
 				if event.position.y > 0.0:
 					# this is where we pick a piece
 					if piecelocs.has(front_piece):
 						piece_in_space = true
 						emit_signal("picked_you", piecelocs[front_piece])
 						stay_at_angle = front_piece
-			elif dy_final < -0.02 and abs(dx_final) < 0.02 and !piece_in_space:
+			elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space and !first_touch_too_low:
 				if piecelocs.has(front_piece):
 					piece_in_space = true
 					emit_signal("picked_you", piecelocs[front_piece])
 					stay_at_angle = front_piece
-			elif dy_final > 0.02 and abs(dx_final) < 0.02 and piece_in_space:
+			elif dy_final > 0.01 and abs(dx_final) < 0.02 and piece_in_space and first_touch > 0.0:
 				if piecelocs.has(front_piece):
 					emit_signal("picked_you", piecelocs[front_piece])
 					stay_at_angle = front_piece
+			holding_top = false
 			holding = false
 			pick = false
 		elif event.pressed == true:
@@ -105,14 +128,11 @@ func _process(delta):
 	if puzzle_done:
 		pass
 	else:
-		#print(piece_in_space)
-		if piece_in_space:
-			dx = 0.0
-			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
-			camrot.rotation.y = rot_h
 		if drag:
 			if abs(dx) < 0.01:
 				dx = lerp(dx, 0.0, 0.1)
+			if abs(dy) < 0.01:
+				dy = lerp(dy, 0.0, 0.1)
 			snap_ease = 0.0
 			dx_acc.append(dx)
 			if len(dx_acc) > 5:
@@ -122,33 +142,44 @@ func _process(delta):
 			if len(dy_acc) > 5:
 				dy_acc.remove_at(0)
 			dy_final = dy_acc.reduce(func(accum, number): return accum + number, 0)/5
-			rot_h -= dx_final
-			if rot_h < 0.0:
-				rot_h = 2*PI-abs(rot_h)
-			camrot.rotation.y = rot_h
-		if !drag and !holding:
+		else:
 			if len(dx_acc) > 0:
-				dx_acc.remove_at(len(dx_acc)-1)
+				dx_acc.remove_at(0)
 			if len(dy_acc) > 0:
-				dy_acc.remove_at(len(dy_acc)-1)
+				dy_acc.remove_at(0)
 			dx_final = lerp(dx_final, 0.0, 0.05)
 			dy_final = lerp(dy_final, 0.0, 0.05)
 			snap_ease = lerp(snap_ease, 5.0, 0.01)
-			dx = lerp(dx, 0.0, 0.01)
-			dy = lerp(dy, 0.0, 0.01)
-			rot_h -= dx
-			if rot_h < 0.0:
-				rot_h = 2*PI-abs(rot_h)
-			if rot_h >= 2*PI:
-				rot_h -= 2*PI
-			#snap_to = snappedf(rot_h, 2*PI/rotosnaps)
-			rot_h = lerp_angle(rot_h, snap_to, 0.03*snap_ease*(1.0+(1.0-spin_speed)))
-			camrot.rotation.y = rot_h
 			front_piece = snappedf(snap_to, 0.01)
 			if front_piece == 6.28:
 				front_piece = 0.0
 			if piecelocs.has(front_piece):
 				emit_signal("found_you", piecelocs[front_piece])
+		if piece_in_space:
+			if piece_rotation:
+				camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.05)
+				wheel.position.y = lerp(wheel.position.y, 5.636, 0.1)
+				wheel.rotation.z += dx_final
+				emit_signal('wheel_rot', wheel.rotation.z)
+			else:
+				dx = 0.0
+				rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
+				camrot.rotation.y = rot_h
+		else:
+			if piece_rotation:
+				camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.05)
+				wheel.rotation.z = 0.0
+				wheel.position.y = lerp(wheel.position.y, 12.0, 0.1)
+			rot_h -= dx_final
+		if rot_h < 0.0:
+			rot_h = 2*PI-abs(rot_h)
+		if rot_h >= 2*PI:
+			rot_h -= 2*PI
+		#snap_to = snappedf(rot_h, 2*PI/rotosnaps)
+		#if how_close_to_piece < 0.2:
+		if !holding:
+			rot_h = lerp_angle(rot_h, snap_to, 0.03*snap_ease*(1.0-spin_speed))
+		camrot.rotation.y = rot_h
 		if pick:
 			picktimer += delta
 			if picktimer > 0.05 and !drag:
@@ -167,8 +198,13 @@ func _process(delta):
 		if spin_speed < 0.001:
 			spin_speed = 0.0
 		spin_speed = clamp(spin_speed, 0.0, 1.0)
-#		if how_close_to_piece < 0.3:
-		#print(1.0+(1.0-spin_speed))
+		if how_close_to_piece < 0.2 and !clicked:
+			#print('click')
+			clicked = true
+		if how_close_to_piece >= 0.2:
+			clicked = false
+		
+		#print(how_close_to_piece)
 		drag = false
 		if is_equal_approx(dx, 0.0):
 			dx = 0.0
@@ -188,8 +224,12 @@ func _on_universe_meshes_made_2():
 		p.reparent(self, false)
 		p.i_am_here.connect(_on_i_am_here)
 		p.take_me_home.connect(_on_take_me_home)
+		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
 		p.arrange()
-		
+
+func _on_this_is_my_rotation(rot):
+	wheel.rotation.z = rot
+
 func _on_i_am_here(idx, ang):
 	piecelocs[ang] = idx
 	

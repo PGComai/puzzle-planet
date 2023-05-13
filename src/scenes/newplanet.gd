@@ -3,6 +3,7 @@ extends PopupPanel
 @onready var pct = $VBoxContainer/HBoxContainer2/Pct
 @onready var pct_fill_slider = $VBoxContainer/PctFillSlider
 @onready var option_button = $VBoxContainer/HBoxContainer/OptionButton
+@onready var rot_button = $VBoxContainer/HBoxContainer3/CheckButton
 
 var global
 var total_pieces := 30
@@ -10,6 +11,7 @@ var total_pieces := 30
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	rot_button.set_pressed_no_signal(global.rotation)
 	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
 	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
 	pct_fill_slider.max_value = global.total_pieces - 10

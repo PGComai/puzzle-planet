@@ -251,6 +251,7 @@ text = "Cancel"
 
 [connection signal="meshes_made2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_meshes_made_2"]
 [connection signal="piece_placed2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_piece_placed_2"]
+[connection signal="wheel_rot" from="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_browser_wheel_rot"]
 [connection signal="pressed" from="MenuButton" to="MenuButton/PopupMenu" method="_on_menu_button_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="MenuButton/PopupMenu" method="_on_id_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="PopupPanel" method="_on_popup_menu_id_pressed"]
