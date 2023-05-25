@@ -192,7 +192,7 @@ autowrap_mode = 2
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_font_sizes/font_size = 8
-item_count = 4
+item_count = 5
 selected = 0
 popup/item_0/text = "Earth"
 popup/item_0/id = 0
@@ -202,6 +202,8 @@ popup/item_2/text = "The Moon"
 popup/item_2/id = 2
 popup/item_3/text = "Jupiter"
 popup/item_3/id = 3
+popup/item_4/text = "Saturn"
+popup/item_4/id = 4
 
 [node name="HSeparator" type="HSeparator" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2

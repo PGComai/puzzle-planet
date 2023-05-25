@@ -15,7 +15,7 @@ signal piece_placed(cidx)
 @export var crust_thickness := 1.1
 @export var vertex_merge_threshold := 0.05
 @export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
-@export_enum('custom', 'earth', 'mars', 'moon', 'jupiter') var planet_style := 0
+@export_enum('custom', 'earth', 'mars', 'moon', 'jupiter', 'saturn') var planet_style := 0
 @export var test_noise: FastNoiseLite
 @export var height_noise_frequency: float = 1.5
 @export var height_noise_type: FastNoiseLite.NoiseType
@@ -117,10 +117,13 @@ signal piece_placed(cidx)
 @onready var moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
 @onready var jupiter_storm_curve = preload("res://tex/jupiter_storm_curve.tres")
 @onready var mantle_jupiter_material = preload("res://tex/mantle_jupiter_material.tres")
+@onready var rings = $"../Rings"
+@onready var mantle_saturn_material = preload("res://tex/mantle_saturn_material.tres")
 
 var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
 var lava_lamp_color_jupiter = Color('64788f')
+var lava_lamp_color_saturn = Color('8b79b3')
 
 var noise3d = FastNoiseLite.new()
 var colornoise = FastNoiseLite.new()
@@ -359,6 +362,8 @@ func _generate_mesh():
 			snow = true
 			atmo.visible = true
 			atmo_2.visible = true
+			atmo.mesh.radius = 1.26
+			atmo.mesh.height = atmo.mesh.radius * 2.0
 			mantle.mesh.material = mantle_earth_material
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
 			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
@@ -368,6 +373,7 @@ func _generate_mesh():
 			lava_lamp.visible = true
 			h_bands = false
 			craters_to_storms = false
+			rings.visible = false
 		elif planet_style == 2:
 			## mars
 			colornoise.noise_type = 4
@@ -429,6 +435,8 @@ func _generate_mesh():
 			snow = true
 			atmo.visible = true
 			atmo_2.visible = true
+			atmo.mesh.radius = 1.26
+			atmo.mesh.height = atmo.mesh.radius * 2.0
 			mantle.mesh.material = mantle_mars_material
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
 			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
@@ -438,6 +446,7 @@ func _generate_mesh():
 			lava_lamp.visible = true
 			h_bands = false
 			craters_to_storms = false
+			rings.visible = false
 		elif planet_style == 3:
 			# moon
 			colornoise.noise_type = 4
@@ -526,10 +535,13 @@ func _generate_mesh():
 			mantle.mesh.material = mantle_moon_material
 			atmo.visible = false
 			atmo_2.visible = false
+			atmo.mesh.radius = 1.26
+			atmo.mesh.height = atmo.mesh.radius * 2.0
 			lava_lamp.light_color = lava_lamp_color_earth
 			lava_lamp.visible = false
 			h_bands = false
 			craters_to_storms = false
+			rings.visible = false
 		elif planet_style == 4:
 			# jupiter
 			noise3d.noise_type = 1
@@ -572,15 +584,74 @@ func _generate_mesh():
 			mantle.mesh.material = mantle_jupiter_material
 			atmo.visible = true
 			atmo_2.visible = true
+			atmo.mesh.radius = 1.26
+			atmo.mesh.height = atmo.mesh.radius * 2.0
 			lava_lamp.light_color = lava_lamp_color_jupiter
 			lava_lamp.visible = true
 			h_bands = true
 			h_band_snap = 0.001
+			h_band_wiggle = 0.1
 			craters_to_storms = true
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
 			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
 			atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+			rings.visible = false
+		elif planet_style == 5:
+			# saturn
+			noise3d.noise_type = 1
+			noise3d.frequency = 1.685
+			noise3d.domain_warp_enabled = false
+			noise3d.domain_warp_amplitude = 30.0
+			noise3d.domain_warp_fractal_gain = 0.5
+			noise3d.domain_warp_fractal_lacunarity = 6.0
+			noise3d.domain_warp_fractal_octaves = 5
+			noise3d.domain_warp_fractal_type = 1
+			noise3d.domain_warp_frequency = 0.05
+			noise3d.domain_warp_type = 0
+			noise3d.fractal_gain = 0.5
+			noise3d.fractal_lacunarity = 2.0
+			noise3d.fractal_octaves = 5
+			noise3d.fractal_ping_pong_strength = 2.0
+			noise3d.fractal_type = 1
+			noise3d.fractal_weighted_strength = 0.0
+			low_crust_color = Color('8b79b3')
+			land_color = Color('94633d')
+			land_color_threshold = 1.1
+			land_color_2 = Color('7a664b')
+			land_color_threshold = 0.9
+			land_color_3 = Color('6c4f3b')
+			ocean = false
+			snow_random_low = 0.85
+			snow_random_high = 0.95
+			max_terrain_height_unclamped = 1.067
+			min_terrain_height_unclamped = 1.016
+			max_terrain_height = 1.292
+			min_terrain_height = 0.903
+			clamp_terrain = false
+			invert_height = false
+			snow = false
+			craters = false
+			num_craters = 1
+			crater_size_multiplier = 2.0
+			crater_height_multiplier = 1.5
+			crater_height_curve = jupiter_storm_curve
+			mantle.mesh.material = mantle_saturn_material
+			atmo.visible = true
+			atmo_2.visible = true
+			atmo.mesh.radius = 1.1
+			atmo.mesh.height = atmo.mesh.radius * 2.0
+			lava_lamp.light_color = lava_lamp_color_jupiter
+			lava_lamp.visible = true
+			h_bands = true
+			h_band_snap = 0.001
+			h_band_wiggle = 0.01
+			craters_to_storms = false
+			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+			atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+			rings.visible = true
 		if snow_random_high > snow_random_low:
 			snow_start = randf_range(snow_random_low, snow_random_high)
 		elif snow_random_high == snow_random_low:
