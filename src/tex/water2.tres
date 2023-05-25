@@ -4,4 +4,8 @@
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 roughness = 0.04
+rim = 0.28
+rim_tint = 0.0
+clearcoat = 0.0
+anisotropy = -1.0
 texture_filter = 0

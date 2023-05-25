@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://saslwde4c0a1"]
+
+[ext_resource type="Shader" uid="uid://cbmc4pc5f7j3d" path="res://tex/mantle_saturn.tres" id="1_gh307"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_gh307")

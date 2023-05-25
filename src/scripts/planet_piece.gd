@@ -26,6 +26,7 @@ var vertex_w: PackedVector3Array
 var normal_w: PackedVector3Array
 var color_w: PackedColorArray
 var water_material = preload("res://tex/water2.tres")
+var water_material_nd = preload("res://tex/water2_nodepth.tres")
 var upright_vec: Vector3
 
 var vertex_cw: PackedVector3Array
@@ -70,9 +71,24 @@ var rotation_saver: Quaternion
 var random_rotation_offset := 0.0
 var new_up: Vector3
 
+var ghostball
+var ghost
+var ghostwalls
+var ghostoutline
+var ghostwallsoutline
+var rotowindow
+
+var global
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	global = get_node('/root/Global')
+	rotowindow = get_tree().root.get_node('UX/RotoWindow')
+	ghostball = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall')
+	ghost = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost')
+	ghostwalls = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost/GhostWalls')
+	ghostoutline = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/GhostOutline')
+	ghostwallsoutline = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/GhostOutline/GhostWallsOutline')
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
 	upward.position = upright_vec * 0.7
 	inward.position = direction.normalized() * -0.7
@@ -163,6 +179,9 @@ func _process(delta):
 				good_global_rot = self.global_rotation
 				good_rot = good_global_rot.y
 				repositioning = false
+#				if global.rotation:
+#					rotowindow.visible = false
+#					print('hide roto')
 		else:
 			if found:
 				found_rotate(delta)
@@ -246,8 +265,21 @@ func found_rotate(delta):
 func _on_picked_you(_idx):
 	if in_space:
 		time_to_return = true
+		if global.rotation and idx == _idx:
+			rotowindow.visible = false
+			print('hide roto')
 	else:
 		if idx == _idx:
+			if global.rotation:
+				ghost.mesh = themesh.mesh
+				ghostwalls.mesh = walls.mesh
+				ghostoutline.mesh = themesh.mesh
+				ghostwallsoutline.mesh = walls.mesh
+				ghost.rotation = themesh.rotation
+				ghostoutline.rotation = themesh.rotation
+				ghostball.rotation.z = rotation.z
+				rotowindow.visible = true
+				print('show roto')
 			emit_signal('this_is_my_rotation', self.rotation.z)
 			picked = true
 			in_transit = true
@@ -255,8 +287,8 @@ func _on_picked_you(_idx):
 			picked = false
 
 func _picked_animation():
-	self.position.x = lerp(self.position.x, 0.0, 0.05)
-	self.position.z = lerp(self.position.z, 0.0, 0.05)
+	self.position.x = lerp(self.position.x, 0.0, 0.1)
+	self.position.z = lerp(self.position.z, 0.0, 0.1)
 	self.position.y = lerp(self.position.y, 15.0, 0.02)
 	if self.position.y > 7.0:
 		emit_signal("ready_for_launch", idx)
@@ -265,7 +297,7 @@ func _picked_animation():
 func _unpicked_animation():
 	self.position.x = lerp(self.position.x, good_pos.x, 0.02)
 	self.position.z = lerp(self.position.z, good_pos.z, 0.02)
-	self.position.y = lerp(self.position.y, 0.0, 0.05)
+	self.position.y = lerp(self.position.y, 0.0, 0.1)
 	if self.position.is_equal_approx(Vector3(good_pos.x, 0.0, good_pos.z)):
 		self.position = Vector3(good_pos.x, 0.0, good_pos.z)
 		in_transit = false

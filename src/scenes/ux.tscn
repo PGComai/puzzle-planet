@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://ds16salbf23bf"]
+[gd_scene load_steps=23 format=3 uid="uid://dbjbk8jf6v25l"]
 
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
 [ext_resource type="PackedScene" uid="uid://bw4ivf82s2q7a" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
@@ -7,6 +7,7 @@
 [ext_resource type="Theme" uid="uid://h80aogkghxi5" path="res://tex/optionbox.tres" id="5_kb0sw"]
 [ext_resource type="Script" path="res://scenes/newplanet.gd" id="6_fwx6s"]
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
+[ext_resource type="Script" path="res://scenes/RotoWindow.gd" id="8_dhu1p"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4svtt"]
 bg_color = Color(0, 0, 0, 1)
@@ -30,6 +31,24 @@ expand_margin_bottom = 2.0
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kjmdu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oq1p0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1wa1r"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d8abq"]
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_frjo1"]
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_tvchn"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_huv87"]
+shading_mode = 0
+albedo_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_ga11w"]
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_h4iwd"]
 
 [node name="UX" type="Control"]
 layout_mode = 3
@@ -63,6 +82,7 @@ size_flags_vertical = 3
 alignment_vertical = 0
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="MainBG/VSplit/AspectRatioContainer"]
+texture_filter = 1
 layout_mode = 2
 
 [node name="SubViewport" type="SubViewport" parent="MainBG/VSplit/AspectRatioContainer/SubViewportContainer"]
@@ -82,6 +102,7 @@ layout_mode = 2
 mouse_filter = 1
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="MainBG/VSplit/MarginContainer/AspectRatioContainer"]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -100,6 +121,7 @@ render_target_update_mode = 4
 [node name="Browser" parent="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport" instance=ExtResource("3_j5u16")]
 
 [node name="MenuButton" type="Button" parent="."]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -170,7 +192,7 @@ autowrap_mode = 2
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_font_sizes/font_size = 8
-item_count = 3
+item_count = 4
 selected = 0
 popup/item_0/text = "Earth"
 popup/item_0/id = 0
@@ -178,6 +200,8 @@ popup/item_1/text = "Mars"
 popup/item_1/id = 1
 popup/item_2/text = "The Moon"
 popup/item_2/id = 2
+popup/item_3/text = "Jupiter"
+popup/item_3/id = 3
 
 [node name="HSeparator" type="HSeparator" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
@@ -249,9 +273,76 @@ layout_mode = 2
 size_flags_vertical = 8
 text = "Cancel"
 
+[node name="RotoWindow" type="PanelContainer" parent="."]
+layout_mode = 2
+offset_left = 55.0
+offset_top = 145.0
+offset_right = 125.0
+offset_bottom = 215.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_1wa1r")
+script = ExtResource("8_dhu1p")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="RotoWindow"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="SubViewport" type="SubViewport" parent="RotoWindow/SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(70, 70)
+render_target_update_mode = 4
+
+[node name="PieceView" type="Node3D" parent="RotoWindow/SubViewportContainer/SubViewport"]
+
+[node name="Camera3D" type="Camera3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6.32811)
+cull_mask = 1047552
+projection = 1
+size = 1.5
+
+[node name="GhostBall" type="Node3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.70692)
+
+[node name="Ghost" type="MeshInstance3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.772147)
+layers = 1024
+material_overlay = SubResource("StandardMaterial3D_d8abq")
+cast_shadow = 0
+mesh = SubResource("ArrayMesh_frjo1")
+
+[node name="GhostWalls" type="MeshInstance3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost"]
+layers = 1024
+material_overlay = SubResource("StandardMaterial3D_d8abq")
+cast_shadow = 0
+mesh = SubResource("ArrayMesh_tvchn")
+
+[node name="GhostOutline" type="MeshInstance3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall"]
+transform = Transform3D(1.15, 0, 0, 0, 1.15, 0, 0, 0, 1.15, 0, 0, 0.644827)
+layers = 1024
+material_override = SubResource("StandardMaterial3D_huv87")
+cast_shadow = 0
+mesh = SubResource("ArrayMesh_ga11w")
+
+[node name="GhostWallsOutline" type="MeshInstance3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/GhostOutline"]
+transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0, 0, 0)
+layers = 1024
+material_override = SubResource("StandardMaterial3D_huv87")
+cast_shadow = 0
+mesh = SubResource("ArrayMesh_h4iwd")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D"]
+transform = Transform3D(0.937616, 0.0443273, -0.344835, 0, 0.991839, 0.127497, 0.347672, -0.119544, 0.929964, 0, 0, 0)
+layers = 1024
+light_cull_mask = 4293919744
+sky_mode = 1
+
 [connection signal="meshes_made2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_meshes_made_2"]
 [connection signal="piece_placed2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_piece_placed_2"]
 [connection signal="wheel_rot" from="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_browser_wheel_rot"]
+[connection signal="wheel_rot" from="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" to="RotoWindow" method="_on_browser_wheel_rot"]
 [connection signal="pressed" from="MenuButton" to="MenuButton/PopupMenu" method="_on_menu_button_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="MenuButton/PopupMenu" method="_on_id_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="PopupPanel" method="_on_popup_menu_id_pressed"]

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://cl5ceswdg1kqg"]
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_ct462"]
+
+[node name="piece_ghost" type="MeshInstance3D"]
+layers = 1024
+mesh = SubResource("ArrayMesh_ct462")

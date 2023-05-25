@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cwc3wus86ykcr"]
+
+[resource]
+render_priority = 1
+no_depth_test = true
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+roughness = 0.04
+rim = 0.28
+rim_tint = 0.0
+clearcoat = 0.0
+anisotropy = -1.0
+texture_filter = 0

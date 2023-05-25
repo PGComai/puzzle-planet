@@ -8,9 +8,6 @@ func _ready():
 		#print('yo')
 		self.rotate_object_local(Vector3.UP, planet_piece.lon + PI)
 		self.rotate_x(planet_piece.lat)
-		
-		
-
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

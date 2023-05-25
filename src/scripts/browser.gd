@@ -3,6 +3,7 @@ extends Node3D
 signal found_you(idx)
 signal picked_you(idx)
 signal wheel_rot(rot)
+signal click(speed)
 
 @onready var orbit = $Orbit
 @onready var camrot = $camrot
@@ -10,6 +11,9 @@ signal wheel_rot(rot)
 @onready var camera_3d = $camrot/Camera3D
 @onready var sub_viewport_container = $"../.."
 @onready var wheel = $camrot/Camera3D/wheel
+@onready var wheelmesh = $camrot/Camera3D/wheel/wheelmesh
+@onready var audio_stream_player = $AudioStreamPlayer
+@onready var ghost = $"../../../../../../../RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost"
 
 var global
 var piece_rotation := false
@@ -67,6 +71,9 @@ var holding_top := false
 
 var chosen_piece_rotation := 0.0
 
+var last_frame_snap_to := 0.0
+var disable_click := false
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
@@ -79,6 +86,7 @@ func _ready():
 
 func _unhandled_input(event):
 	if event is InputEventScreenDrag:
+		disable_click = false
 		if !holding and !holding_top:
 			first_touch = (event.position.y / sub_viewport_container.size.y)
 			if first_touch >= 0.9:
@@ -155,20 +163,22 @@ func _process(delta):
 				front_piece = 0.0
 			if piecelocs.has(front_piece):
 				emit_signal("found_you", piecelocs[front_piece])
+		#dx_final = clamp(dx_final, -0.05, 0.05)
+		#print(dx_final)
 		if piece_in_space:
 			if piece_rotation:
-				camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.05)
+				camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.1)
 				wheel.position.y = lerp(wheel.position.y, 5.636, 0.1)
-				wheel.rotation.z += dx_final
-				emit_signal('wheel_rot', wheel.rotation.z)
+				wheelmesh.rotation.z += dx_final
+				emit_signal('wheel_rot', wheelmesh.rotation.z)
 			else:
 				dx = 0.0
-				rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
-				camrot.rotation.y = rot_h
+			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
+			camrot.rotation.y = rot_h
 		else:
 			if piece_rotation:
-				camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.05)
-				wheel.rotation.z = 0.0
+				camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.1)
+				wheelmesh.rotation.z = 0.0
 				wheel.position.y = lerp(wheel.position.y, 12.0, 0.1)
 			rot_h -= dx_final
 		if rot_h < 0.0:
@@ -191,18 +201,25 @@ func _process(delta):
 				camera_3d.position.z = cam_dist
 				recam = false
 		snap_to = snappedf(rot_h, 2*PI/rotosnaps)
-		how_close_to_piece = abs(rot_h-snap_to) * 50.0
+		#print(snap_to)
+		how_close_to_piece = clamp(abs(rot_h-snap_to) * 50.0, 0.0, 10.1)
 		spin_speed = abs(dx_final) * 100.0
 		if how_close_to_piece < 0.001:
 			how_close_to_piece = 0.0
 		if spin_speed < 0.001:
 			spin_speed = 0.0
 		spin_speed = clamp(spin_speed, 0.0, 1.0)
-		if how_close_to_piece < 0.2 and !clicked:
-			#print('click')
-			clicked = true
-		if how_close_to_piece >= 0.2:
-			clicked = false
+#		if how_close_to_piece < 10.0 and clicked:
+#			clicked = false
+#		if how_close_to_piece == 10.1 and !clicked:
+#			emit_signal("click", spin_speed)
+#			#print('click')
+#			#print(spin_speed)
+#			clicked = true
+		if !is_equal_approx(last_frame_snap_to, snap_to) and !(is_equal_approx(last_frame_snap_to, 2*PI) and is_equal_approx(snap_to, 0.0)) and !(is_equal_approx(snap_to, 2*PI) and is_equal_approx(last_frame_snap_to, 0.0)) and !disable_click:
+			var click_force = remap(clamp(abs(dx_final), 0.01, 0.1), 0.01, 0.1, 1.0, 1.2)
+			#print(click_force)
+			emit_signal("click", click_force)
 		
 		#print(how_close_to_piece)
 		drag = false
@@ -210,6 +227,8 @@ func _process(delta):
 			dx = 0.0
 		if is_equal_approx(dy, 0.0):
 			dy = 0.0
+		
+		last_frame_snap_to = snap_to
 			
 func _on_universe_meshes_made_2():
 	var pieces = get_tree().get_nodes_in_group('pieces')
@@ -228,7 +247,7 @@ func _on_universe_meshes_made_2():
 		p.arrange()
 
 func _on_this_is_my_rotation(rot):
-	wheel.rotation.z = rot
+	wheelmesh.rotation.z = rot
 
 func _on_i_am_here(idx, ang):
 	piecelocs[ang] = idx
@@ -243,6 +262,7 @@ func _on_take_me_home(idx):
 			piece_in_space = false
 
 func _on_universe_piece_placed_2(cidx):
+	disable_click = true
 	piece_in_space = false
 	snaps = []
 	var pieces = get_tree().get_nodes_in_group('pieces')
@@ -251,6 +271,8 @@ func _on_universe_piece_placed_2(cidx):
 		puzzle_done = true
 		print('done')
 	else:
+		print(piecelocs)
+		piecelocs = {}
 		h_sensitivity = og_sens * (float(max_rotosnaps)/float(rotosnaps))
 		print(float(max_rotosnaps)/float(rotosnaps))
 		cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
