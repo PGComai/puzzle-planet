@@ -74,6 +74,8 @@ var chosen_piece_rotation := 0.0
 var last_frame_snap_to := 0.0
 var disable_click := false
 
+var rotating := false
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
@@ -97,7 +99,10 @@ func _unhandled_input(event):
 			holding_top = false
 			holding = true
 			drag = true
-			dx = event.relative.x * h_sensitivity
+			if !rotating:
+				dx = event.relative.x * h_sensitivity
+			else:
+				dx = event.relative.x * og_sens
 			dy = event.relative.y * v_sensitivity
 			if abs(dx) > abs(dy):
 				dy = 0.0
@@ -167,6 +172,7 @@ func _process(delta):
 		#print(dx_final)
 		if piece_in_space:
 			if piece_rotation:
+				rotating = true
 				camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.1)
 				wheel.position.y = lerp(wheel.position.y, 5.636, 0.1)
 				wheelmesh.rotation.z += dx_final
@@ -176,6 +182,7 @@ func _process(delta):
 			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
 			camrot.rotation.y = rot_h
 		else:
+			rotating = false
 			if piece_rotation:
 				camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.1)
 				wheelmesh.rotation.z = 0.0
