@@ -364,6 +364,8 @@ func _generate_mesh():
 			atmo_2.visible = true
 			atmo.mesh.radius = 1.26
 			atmo.mesh.height = atmo.mesh.radius * 2.0
+			atmo_2.mesh.radius = 1.26
+			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 			mantle.mesh.material = mantle_earth_material
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
 			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
@@ -437,6 +439,8 @@ func _generate_mesh():
 			atmo_2.visible = true
 			atmo.mesh.radius = 1.26
 			atmo.mesh.height = atmo.mesh.radius * 2.0
+			atmo_2.mesh.radius = 1.26
+			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 			mantle.mesh.material = mantle_mars_material
 			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
 			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
@@ -537,6 +541,8 @@ func _generate_mesh():
 			atmo_2.visible = false
 			atmo.mesh.radius = 1.26
 			atmo.mesh.height = atmo.mesh.radius * 2.0
+			atmo_2.mesh.radius = 1.26
+			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 			lava_lamp.light_color = lava_lamp_color_earth
 			lava_lamp.visible = false
 			h_bands = false
@@ -586,6 +592,8 @@ func _generate_mesh():
 			atmo_2.visible = true
 			atmo.mesh.radius = 1.26
 			atmo.mesh.height = atmo.mesh.radius * 2.0
+			atmo_2.mesh.radius = 1.26
+			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 			lava_lamp.light_color = lava_lamp_color_jupiter
 			lava_lamp.visible = true
 			h_bands = true
@@ -639,8 +647,10 @@ func _generate_mesh():
 			mantle.mesh.material = mantle_saturn_material
 			atmo.visible = true
 			atmo_2.visible = true
-			atmo.mesh.radius = 1.1
+			atmo.mesh.radius = 1.23
 			atmo.mesh.height = atmo.mesh.radius * 2.0
+			atmo_2.mesh.radius = 1.23
+			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 			lava_lamp.light_color = lava_lamp_color_jupiter
 			lava_lamp.visible = true
 			h_bands = true

@@ -1,4 +1,4 @@
-[gd_resource type="VisualShader" load_steps=21 format=3 uid="uid://cy8vgmr77vu3n"]
+[gd_resource type="VisualShader" load_steps=22 format=3 uid="uid://cy8vgmr77vu3n"]
 
 [sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_um2mv"]
 parameter_name = "Scattered_Color"
@@ -66,6 +66,10 @@ operator = 2
 
 [sub_resource type="VisualShaderNodeFresnel" id="VisualShaderNodeFresnel_s3uok"]
 default_input_values = [2, false, 3, 1.809]
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_8odso"]
+default_input_values = [0, 1.0, 1, 2.0]
+operator = 2
 
 [resource]
 code = "shader_type spatial;
@@ -179,14 +183,19 @@ void light() {
 	float n_out33p0 = n_out34p0 * n_out25p0;
 
 
+// FloatOp:49
+	float n_in49p1 = 2.00000;
+	float n_out49p0 = n_out33p0 * n_in49p1;
+
+
 // Output:0
 	DIFFUSE_LIGHT = vec3(n_out37p0.xyz);
-	ALPHA = n_out33p0;
+	ALPHA = n_out49p0;
 
 
 }
 "
-graph_offset = Vector2(-760.47, -440.778)
+graph_offset = Vector2(-902.926, -260.147)
 flags/ambient_light_disabled = true
 nodes/vertex/0/position = Vector2(700, 140)
 nodes/fragment/0/position = Vector2(1620, 100)
@@ -199,7 +208,7 @@ nodes/light/23/position = Vector2(-2420, 580)
 nodes/light/24/node = SubResource("VisualShaderNodeInput_8h7em")
 nodes/light/24/position = Vector2(-2440, 360)
 nodes/light/25/node = SubResource("VisualShaderNodeClamp_vd0xk")
-nodes/light/25/position = Vector2(-40, 680)
+nodes/light/25/position = Vector2(-100, 640)
 nodes/light/26/node = SubResource("VisualShaderNodeFresnel_cmrdn")
 nodes/light/26/position = Vector2(-760, 660)
 nodes/light/27/node = SubResource("VisualShaderNodeInput_6bl28")
@@ -209,7 +218,7 @@ nodes/light/28/position = Vector2(-460, -600)
 nodes/light/29/node = SubResource("VisualShaderNodeDotProduct_xgn8n")
 nodes/light/29/position = Vector2(-1900, 280)
 nodes/light/33/node = SubResource("VisualShaderNodeFloatOp_1nx0e")
-nodes/light/33/position = Vector2(260, 360)
+nodes/light/33/position = Vector2(180, 380)
 nodes/light/34/node = SubResource("VisualShaderNodeClamp_k783q")
 nodes/light/34/position = Vector2(-920, 100)
 nodes/light/37/node = SubResource("VisualShaderNodeMix_b7ou1")
@@ -221,15 +230,17 @@ nodes/light/41/position = Vector2(-1400, 820)
 nodes/light/42/node = SubResource("VisualShaderNodeRemap_pyoro")
 nodes/light/42/position = Vector2(-1300, 160)
 nodes/light/43/node = SubResource("VisualShaderNodeFloatParameter_c5btp")
-nodes/light/43/position = Vector2(-980, 920)
+nodes/light/43/position = Vector2(-1000, 920)
 nodes/light/44/node = SubResource("VisualShaderNodeColorParameter_ihffc")
 nodes/light/44/position = Vector2(-626.621, -404.041)
 nodes/light/45/node = SubResource("VisualShaderNodeFloatOp_ccmpm")
-nodes/light/45/position = Vector2(-360, 840)
+nodes/light/45/position = Vector2(-420, 840)
 nodes/light/46/node = SubResource("VisualShaderNodeFloatConstant_0x0x4")
-nodes/light/46/position = Vector2(-840, 1180)
+nodes/light/46/position = Vector2(-900, 1180)
 nodes/light/47/node = SubResource("VisualShaderNodeFloatOp_jdjtp")
 nodes/light/47/position = Vector2(-460, 540)
 nodes/light/48/node = SubResource("VisualShaderNodeFresnel_s3uok")
 nodes/light/48/position = Vector2(-840, 420)
-nodes/light/connections = PackedInt32Array(23, 0, 26, 1, 25, 0, 33, 1, 24, 0, 26, 0, 24, 0, 29, 1, 27, 0, 29, 0, 34, 0, 33, 0, 33, 0, 0, 2, 28, 0, 37, 0, 41, 0, 26, 3, 29, 0, 42, 0, 37, 0, 0, 0, 42, 0, 34, 0, 34, 0, 39, 0, 39, 0, 37, 2, 44, 0, 37, 1, 46, 0, 45, 1, 43, 0, 45, 0, 45, 0, 25, 2, 26, 0, 47, 1, 24, 0, 48, 0, 23, 0, 48, 1, 48, 0, 47, 0, 47, 0, 25, 0)
+nodes/light/49/node = SubResource("VisualShaderNodeFloatOp_8odso")
+nodes/light/49/position = Vector2(500, 380)
+nodes/light/connections = PackedInt32Array(23, 0, 26, 1, 25, 0, 33, 1, 24, 0, 26, 0, 24, 0, 29, 1, 27, 0, 29, 0, 34, 0, 33, 0, 28, 0, 37, 0, 41, 0, 26, 3, 29, 0, 42, 0, 37, 0, 0, 0, 42, 0, 34, 0, 34, 0, 39, 0, 39, 0, 37, 2, 44, 0, 37, 1, 46, 0, 45, 1, 43, 0, 45, 0, 45, 0, 25, 2, 26, 0, 47, 1, 24, 0, 48, 0, 23, 0, 48, 1, 48, 0, 47, 0, 47, 0, 25, 0, 33, 0, 49, 0, 49, 0, 0, 2)

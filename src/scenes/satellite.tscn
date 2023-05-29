@@ -1,0 +1,57 @@
+[gd_scene load_steps=9 format=3 uid="uid://gpngi8kur37d"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_tkydf"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_rhleq"]
+width = 64
+height = 64
+seamless = true
+as_normal_map = true
+noise = SubResource("FastNoiseLite_tkydf")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ieep"]
+albedo_color = Color(0.694118, 0.592157, 0.211765, 1)
+roughness = 0.02
+normal_texture = SubResource("NoiseTexture2D_rhleq")
+
+[sub_resource type="BoxMesh" id="BoxMesh_0kkem"]
+material = SubResource("StandardMaterial3D_1ieep")
+size = Vector3(0.05, 0.05, 0.05)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_o27sa"]
+noise_type = 2
+fractal_type = 3
+cellular_jitter = 0.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_bii0y"]
+width = 64
+height = 64
+as_normal_map = true
+noise = SubResource("FastNoiseLite_o27sa")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_24n2h"]
+cull_mode = 2
+albedo_color = Color(0.0627451, 0.152941, 0.286275, 1)
+roughness = 0.01
+normal_scale = 0.31
+normal_texture = SubResource("NoiseTexture2D_bii0y")
+
+[sub_resource type="QuadMesh" id="QuadMesh_nwx2k"]
+material = SubResource("StandardMaterial3D_24n2h")
+size = Vector2(0.35, 0.13)
+
+[node name="Satellite" type="Node3D"]
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(-2.18557e-08, -0.5, 0, 0.5, -2.18557e-08, 0, 0, 0, 0.5, 0, 0, 0)
+mesh = SubResource("BoxMesh_0kkem")
+
+[node name="Solar Pole" type="MeshInstance3D" parent="Body"]
+
+[node name="Panel1" type="MeshInstance3D" parent="Body/Solar Pole"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("QuadMesh_nwx2k")
+
+[node name="Panel2" type="MeshInstance3D" parent="Body/Solar Pole"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+mesh = SubResource("QuadMesh_nwx2k")

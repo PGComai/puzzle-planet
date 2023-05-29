@@ -1,4 +1,4 @@
-[gd_resource type="VisualShader" load_steps=23 format=3 uid="uid://c6tkew4bpymkj"]
+[gd_resource type="VisualShader" load_steps=24 format=3 uid="uid://c6tkew4bpymkj"]
 
 [sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_sevrt"]
 parameter_name = "Scattered_Color"
@@ -63,6 +63,10 @@ default_input_values = [1, 0.351, 2, 1.0, 3, 0.0, 4, 1.0]
 
 [sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_8ukln"]
 default_input_values = [0, 1.58, 1, 0.0]
+operator = 2
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_ixg32"]
+default_input_values = [0, 1.0, 1, 2.0]
 operator = 2
 
 [sub_resource type="VisualShaderNodeClamp" id="VisualShaderNodeClamp_xolgn"]
@@ -183,14 +187,19 @@ void light() {
 	float n_out18p0 = n_out41p0 * n_out7p0;
 
 
+// FloatOp:43
+	float n_in43p1 = 2.00000;
+	float n_out43p0 = n_out18p0 * n_in43p1;
+
+
 // Output:0
 	DIFFUSE_LIGHT = vec3(n_out27p0.xyz);
-	ALPHA = n_out18p0;
+	ALPHA = n_out43p0;
 
 
 }
 "
-graph_offset = Vector2(-969.86, -200.616)
+graph_offset = Vector2(-483.021, -173.671)
 modes/cull = 1
 flags/ambient_light_disabled = true
 nodes/vertex/0/position = Vector2(700, 140)
@@ -241,4 +250,6 @@ nodes/light/41/node = SubResource("VisualShaderNodeDotProduct_5v1uf")
 nodes/light/41/position = Vector2(-1340, 380)
 nodes/light/42/node = SubResource("VisualShaderNodeFloatOp_8ukln")
 nodes/light/42/position = Vector2(-1500, 680)
-nodes/light/connections = PackedInt32Array(9, 0, 7, 0, 2, 0, 9, 1, 3, 0, 9, 0, 3, 0, 19, 1, 10, 0, 19, 0, 7, 0, 18, 1, 18, 0, 0, 2, 26, 0, 27, 1, 15, 0, 27, 0, 27, 0, 0, 0, 34, 0, 25, 0, 19, 0, 34, 0, 31, 0, 27, 2, 36, 0, 38, 0, 37, 0, 38, 1, 38, 0, 7, 2, 19, 0, 40, 0, 39, 0, 31, 0, 40, 0, 39, 0, 10, 0, 41, 0, 2, 0, 41, 1, 41, 0, 18, 0, 33, 0, 42, 1, 42, 0, 9, 3)
+nodes/light/43/node = SubResource("VisualShaderNodeFloatOp_ixg32")
+nodes/light/43/position = Vector2(500, 380)
+nodes/light/connections = PackedInt32Array(9, 0, 7, 0, 2, 0, 9, 1, 3, 0, 9, 0, 3, 0, 19, 1, 10, 0, 19, 0, 7, 0, 18, 1, 26, 0, 27, 1, 15, 0, 27, 0, 27, 0, 0, 0, 34, 0, 25, 0, 19, 0, 34, 0, 31, 0, 27, 2, 36, 0, 38, 0, 37, 0, 38, 1, 38, 0, 7, 2, 19, 0, 40, 0, 39, 0, 31, 0, 40, 0, 39, 0, 10, 0, 41, 0, 2, 0, 41, 1, 41, 0, 18, 0, 33, 0, 42, 1, 42, 0, 9, 3, 18, 0, 43, 0, 43, 0, 0, 2)
