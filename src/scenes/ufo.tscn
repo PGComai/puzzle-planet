@@ -1,10 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://cs8eh4rcoct8l"]
+[gd_scene load_steps=14 format=3 uid="uid://cs8eh4rcoct8l"]
 
 [ext_resource type="Shader" uid="uid://dsh1pu8mere1v" path="res://scenes/ufobeam.tres" id="1_ixbkh"]
 [ext_resource type="Script" path="res://scripts/ufo.gd" id="1_p1dcn"]
 
 [sub_resource type="Curve" id="Curve_1xtc4"]
-_data = [Vector2(0, 0.1), 0.0, 1.362, 0, 0, Vector2(1, 0.705522), 0.0, 0.0, 0, 0]
+_data = [Vector2(0, 0.1), 0.0, 1.362, 0, 0, Vector2(1, 0.619632), 0.0, 0.0, 0, 0]
 point_count = 2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u3e1k"]
@@ -16,7 +16,14 @@ material = SubResource("StandardMaterial3D_u3e1k")
 radius = 0.2
 height = 0.08
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p8kje"]
+albedo_color = Color(0.737255, 0.627451, 0.368627, 1)
+roughness = 0.05
+emission_enabled = true
+emission = Color(0.698039, 0.698039, 0.698039, 1)
+
 [sub_resource type="SphereMesh" id="SphereMesh_uttn2"]
+material = SubResource("StandardMaterial3D_p8kje")
 radius = 0.1
 height = 0.1
 is_hemisphere = true
@@ -28,10 +35,29 @@ shader = ExtResource("1_ixbkh")
 [sub_resource type="CylinderMesh" id="CylinderMesh_pihi5"]
 material = SubResource("ShaderMaterial_mgkqt")
 top_radius = 0.1
-bottom_radius = 0.4
-height = 0.729
+bottom_radius = 0.725
+height = 0.852
 cap_top = false
 cap_bottom = false
+
+[sub_resource type="Gradient" id="Gradient_2e4sd"]
+interpolation_mode = 2
+colors = PackedColorArray(0, 0, 0, 1, 0.394353, 0.394353, 0.394353, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_b36ap"]
+gradient = SubResource("Gradient_2e4sd")
+fill_from = Vector2(0, 0.1)
+fill_to = Vector2(0.1, 0.1)
+repeat = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3t35"]
+albedo_texture = SubResource("GradientTexture2D_b36ap")
+
+[sub_resource type="SphereMesh" id="SphereMesh_b4413"]
+material = SubResource("StandardMaterial3D_q3t35")
+radius = 0.122
+height = 0.039
+is_hemisphere = true
 
 [node name="UFO" type="Node3D"]
 visible = false
@@ -50,7 +76,11 @@ mesh = SubResource("SphereMesh_uttn2")
 skeleton = NodePath("../..")
 
 [node name="tractor_beam" type="MeshInstance3D" parent="meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.384355, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4436, 2.58967e-09)
 visible = false
 mesh = SubResource("CylinderMesh_pihi5")
 skeleton = NodePath("../..")
+
+[node name="beamhole" type="MeshInstance3D" parent="meshes"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 0, -0.0151495, 6.62207e-10)
+mesh = SubResource("SphereMesh_b4413")

@@ -7,6 +7,9 @@ signal ready_to_start2
 signal meshes_made2
 signal piece_placed2
 signal spin_piece(rot)
+signal ufo_abducting2(piece)
+signal ufo_abduction_done2
+signal ufo_reset
 
 @export var h_sensitivity = 0.005
 @export var v_sensitivity = 0.005
@@ -201,6 +204,7 @@ func _on_mesh_maker_piece_placed(cidx):
 	emit_signal("piece_placed2", cidx)
 
 func _on_generate_button_up():
+	emit_signal("ufo_reset")
 	shadow_light._on = false
 	sun._on = true
 	sun_2._on = true
@@ -246,3 +250,9 @@ func _on_mesh_maker_ufo_ready(dict):
 
 func _on_ufo_ufo_done():
 	emit_signal("ufo_done2")
+
+func _on_ufo_ufo_abducting(piece, speed):
+	emit_signal("ufo_abducting2", piece, speed)
+
+func _on_ufo_ufo_abduction_done():
+	emit_signal('ufo_abduction_done2')

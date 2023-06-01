@@ -71,6 +71,9 @@ var random_rotation_offset := 0.0
 var new_up: Vector3
 var thickness: float
 var entered := false
+var being_abducted := false
+var abduction_lerp := 0.0
+var abduction_finished := false
 
 var ghostball
 var ghost
@@ -167,10 +170,14 @@ func _ready():
 		themesh.mesh.surface_set_material(themesh.mesh.get_surface_count()-1, water_material)
 	#if staying:
 	self.position = direction * offset
+	get_parent().get_parent().ufo_abducting2.connect(_on_ufo_abducting2)
+	get_parent().get_parent().ufo_abduction_done2.connect(_on_ufo_abduction_done2)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if !placed:
+		if being_abducted:
+			_abducted_animation()
 		if repositioning:
 			self.position = lerp(self.position, repos, 0.1)
 			#var dist = position.distance_to(repos)
@@ -304,3 +311,21 @@ func _unpicked_animation():
 	if self.position.is_equal_approx(Vector3(good_pos.x, 0.0, good_pos.z)):
 		self.position = Vector3(good_pos.x, 0.0, good_pos.z)
 		in_transit = false
+
+func _abducted_animation():
+	position = lerp(position, position.normalized() * 1.3, abduction_lerp)
+	scale = lerp(scale, Vector3(0.1, 0.1, 0.1), abduction_lerp)
+	if abduction_finished:
+		position = Vector3.ZERO
+		scale = Vector3(1.0, 1.0, 1.0)
+		being_abducted = false
+
+func _on_ufo_abducting2(piece, speed):
+	if piece == idx:
+		abduction_lerp = speed
+		print(piece)
+		being_abducted = true
+
+func _on_ufo_abduction_done2():
+	if being_abducted:
+		abduction_finished = true

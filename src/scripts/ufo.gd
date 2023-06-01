@@ -1,6 +1,8 @@
 extends Node3D
 
 signal ufo_done
+signal ufo_abducting(piece, speed)
+signal ufo_abduction_done
 
 @export var journey_speed_curve: Curve
 
@@ -15,6 +17,9 @@ var journey := false
 var checkpoint_last := false
 var lerp_multiplier := 1.0
 var journey_lerp_multiplier := 0.0
+var beam_timer := 0.0
+var beam_done := false
+var abduct_signal_sent := false
 @onready var tractor_beam = $meshes/tractor_beam
 
 # Called when the node enters the scene tree for the first time.
@@ -34,10 +39,10 @@ func _process(delta):
 				lerp_multiplier = 1.0
 				Input.vibrate_handheld(3)
 		elif !journey:
-			_run_journey()
+			_run_journey(delta)
 		elif !checkpoint_last:
-			position = position.slerp(Vector3(0.1, 5.0, 0.1), 0.1 * lerp_multiplier)
-			if position.is_equal_approx(Vector3(0.1, 5.0, 0.1)):
+			position = position.slerp(Vector3(0.1, -5.0, 0.1), 0.1 * lerp_multiplier)
+			if position.is_equal_approx(Vector3(0.1, -5.0, 0.1)):
 				position = Vector3(1.0, 5.0, 0.1)
 				checkpoint_last = true
 				lerp_multiplier = 1.0
@@ -49,7 +54,7 @@ func _process(delta):
 			checkpoint_last = false
 			visible = false
 
-func _run_journey():
+func _run_journey(delta):
 	if next_stop > num_stops - 1:
 		journey = true
 		journey_lerp_multiplier = 0.0
@@ -59,11 +64,30 @@ func _run_journey():
 		var target = locs[path[next_stop]].normalized() * 1.3
 		position = position.slerp(target, journey_speed_curve.sample_baked(journey_lerp_multiplier))
 		if position.is_equal_approx(target):
-			journey_lerp_multiplier = (float(next_stop) + 1.0) / (float(num_stops) + 1.0)
-			position = target
-			next_stop += 1
-			lerp_multiplier = 1.0
-			Input.vibrate_handheld(3)
+			if !abduct_signal_sent:
+				emit_signal("ufo_abducting", path[next_stop], journey_speed_curve.sample_baked(journey_lerp_multiplier))
+				abduct_signal_sent = true
+			if !beam_done:
+				_beam(delta, journey_lerp_multiplier)
+			else:
+				journey_lerp_multiplier = (float(next_stop) + 1.0) / (float(num_stops) + 1.0)
+				position = target
+				next_stop += 1
+				lerp_multiplier = 1.0
+				Input.vibrate_handheld(5)
+				beam_done = false
+				abduct_signal_sent = false
+
+func _beam(delta, multi := 1.0):
+	beam_timer += delta
+	#print(beam_timer)
+	if beam_timer > 0.5 * (1.0/(1.0 + multi)):
+		beam_done = true
+		beam_timer = 0.0
+		tractor_beam.visible = false
+		emit_signal("ufo_abduction_done")
+	else:
+		tractor_beam.visible = true
 
 func _on_universe_ufo_ready_2(dict):
 	locs = dict
@@ -86,3 +110,18 @@ func _make_path():
 func _on_universe_ufo_time():
 	showtime = true
 	visible = true
+
+func _on_universe_ufo_reset():
+	visible = false
+	showtime = false
+	beam_timer = 0.0
+	next_stop = 0
+	checkpoint_1 = false
+	journey = false
+	checkpoint_last = false
+	lerp_multiplier = 1.0
+	journey_lerp_multiplier = 0.0
+	beam_done = false
+	abduct_signal_sent = false
+	position = Vector3(1.0, 5.0, 0.1)
+	tractor_beam.visible = false
