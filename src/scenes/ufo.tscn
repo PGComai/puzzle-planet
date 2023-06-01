@@ -1,0 +1,56 @@
+[gd_scene load_steps=9 format=3 uid="uid://cs8eh4rcoct8l"]
+
+[ext_resource type="Shader" uid="uid://dsh1pu8mere1v" path="res://scenes/ufobeam.tres" id="1_ixbkh"]
+[ext_resource type="Script" path="res://scripts/ufo.gd" id="1_p1dcn"]
+
+[sub_resource type="Curve" id="Curve_1xtc4"]
+_data = [Vector2(0, 0.1), 0.0, 1.362, 0, 0, Vector2(1, 0.705522), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u3e1k"]
+albedo_color = Color(0.513726, 0.454902, 0.541176, 1)
+roughness = 0.18
+
+[sub_resource type="SphereMesh" id="SphereMesh_mce1x"]
+material = SubResource("StandardMaterial3D_u3e1k")
+radius = 0.2
+height = 0.08
+
+[sub_resource type="SphereMesh" id="SphereMesh_uttn2"]
+radius = 0.1
+height = 0.1
+is_hemisphere = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mgkqt"]
+render_priority = 0
+shader = ExtResource("1_ixbkh")
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pihi5"]
+material = SubResource("ShaderMaterial_mgkqt")
+top_radius = 0.1
+bottom_radius = 0.4
+height = 0.729
+cap_top = false
+cap_bottom = false
+
+[node name="UFO" type="Node3D"]
+visible = false
+script = ExtResource("1_p1dcn")
+journey_speed_curve = SubResource("Curve_1xtc4")
+
+[node name="meshes" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+
+[node name="hull" type="MeshInstance3D" parent="meshes"]
+mesh = SubResource("SphereMesh_mce1x")
+skeleton = NodePath("../..")
+
+[node name="bridge" type="MeshInstance3D" parent="meshes"]
+mesh = SubResource("SphereMesh_uttn2")
+skeleton = NodePath("../..")
+
+[node name="tractor_beam" type="MeshInstance3D" parent="meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.384355, 0)
+visible = false
+mesh = SubResource("CylinderMesh_pihi5")
+skeleton = NodePath("../..")

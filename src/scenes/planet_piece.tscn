@@ -1,7 +1,7 @@
-[gd_scene load_steps=19 format=3 uid="uid://bcdyfumcutir4"]
+[gd_scene load_steps=19 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
-[ext_resource type="Script" path="res://scenes/themesh.gd" id="2_wvf37"]
+[ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 vertex_color_use_as_albedo = true
@@ -76,7 +76,7 @@ script = ExtResource("1_jrwu8")
 [node name="themesh" type="MeshInstance3D" parent="."]
 material_overlay = SubResource("StandardMaterial3D_nx1bn")
 mesh = SubResource("ArrayMesh_4ibd5")
-script = ExtResource("2_wvf37")
+script = ExtResource("2_neaqm")
 
 [node name="walls" type="MeshInstance3D" parent="themesh"]
 layers = 33

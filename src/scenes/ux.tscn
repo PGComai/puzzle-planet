@@ -1,13 +1,14 @@
-[gd_scene load_steps=23 format=3 uid="uid://dbjbk8jf6v25l"]
+[gd_scene load_steps=25 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
-[ext_resource type="PackedScene" uid="uid://bw4ivf82s2q7a" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
-[ext_resource type="PackedScene" uid="uid://dgkcqaccoxiol" path="res://scenes/browser.tscn" id="3_j5u16"]
-[ext_resource type="Script" path="res://scenes/popup.gd" id="4_3lqjh"]
+[ext_resource type="PackedScene" uid="uid://ls26k2ueeeb3" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
+[ext_resource type="PackedScene" uid="uid://dh4yuxiqdo80d" path="res://scenes/browser.tscn" id="3_j5u16"]
+[ext_resource type="Script" path="res://scripts/popup.gd" id="4_esiwd"]
 [ext_resource type="Theme" uid="uid://h80aogkghxi5" path="res://tex/optionbox.tres" id="5_kb0sw"]
-[ext_resource type="Script" path="res://scenes/newplanet.gd" id="6_fwx6s"]
+[ext_resource type="Script" path="res://scripts/newplanet.gd" id="6_ql4kd"]
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
-[ext_resource type="Script" path="res://scenes/RotoWindow.gd" id="8_dhu1p"]
+[ext_resource type="Script" path="res://scripts/RotoWindow.gd" id="8_827gc"]
+[ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4svtt"]
 bg_color = Color(0, 0, 0, 1)
@@ -49,6 +50,21 @@ albedo_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
 [sub_resource type="ArrayMesh" id="ArrayMesh_ga11w"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_h4iwd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7l88b"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
 
 [node name="UX" type="Control"]
 layout_mode = 3
@@ -164,13 +180,13 @@ item_2/text = "How To Play"
 item_2/id = 2
 item_3/text = "Back"
 item_3/id = 3
-script = ExtResource("4_3lqjh")
+script = ExtResource("4_esiwd")
 
 [node name="PopupPanel" type="PopupPanel" parent="."]
 position = Vector2i(5, 65)
 size = Vector2i(170, 250)
 theme = ExtResource("5_kb0sw")
-script = ExtResource("6_fwx6s")
+script = ExtResource("6_ql4kd")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel"]
 offset_left = 4.0
@@ -285,7 +301,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_1wa1r")
-script = ExtResource("8_dhu1p")
+script = ExtResource("8_827gc")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="RotoWindow"]
 layout_mode = 2
@@ -341,8 +357,36 @@ layers = 1024
 light_cull_mask = 4293919744
 sky_mode = 1
 
+[node name="StartPuzzle" type="Button" parent="."]
+visible = false
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -4.0
+offset_top = 80.0
+offset_right = 4.0
+offset_bottom = 88.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_kqae3")
+theme_override_styles/normal = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/focus = SubResource("StyleBoxFlat_7l88b")
+text = "Start
+Puzzle
+"
+script = ExtResource("9_7ob1j")
+
 [connection signal="meshes_made2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_meshes_made_2"]
 [connection signal="piece_placed2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_piece_placed_2"]
+[connection signal="ready_to_start2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="StartPuzzle" method="_on_universe_ready_to_start_2"]
+[connection signal="ufo_done2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_ufo_done_2"]
 [connection signal="wheel_rot" from="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_browser_wheel_rot"]
 [connection signal="wheel_rot" from="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" to="RotoWindow" method="_on_browser_wheel_rot"]
 [connection signal="pressed" from="MenuButton" to="MenuButton/PopupMenu" method="_on_menu_button_pressed"]
@@ -352,4 +396,10 @@ sky_mode = 1
 [connection signal="value_changed" from="PopupPanel/VBoxContainer/PctFillSlider" to="PopupPanel" method="_on_pct_fill_slider_value_changed"]
 [connection signal="toggled" from="PopupPanel/VBoxContainer/HBoxContainer3/CheckButton" to="PopupPanel" method="_on_check_button_toggled"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_generate_button_up"]
+[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_generate_button_up"]
+[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="PopupPanel" method="_on_generate_button_up"]
+[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Cancel" to="PopupPanel" method="_on_cancel_button_up"]
+[connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_start_puzzle_button_up"]
+[connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_start_puzzle_button_up"]
+[connection signal="button_up" from="StartPuzzle" to="StartPuzzle" method="_on_button_up"]

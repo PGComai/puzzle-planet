@@ -1,5 +1,9 @@
 extends Node3D
 
+signal ufo_time
+signal ufo_ready2(dict)
+signal ufo_done2
+signal ready_to_start2
 signal meshes_made2
 signal piece_placed2
 signal spin_piece(rot)
@@ -10,6 +14,16 @@ signal spin_piece(rot)
 @onready var camera_3d = $h/v/Camera3D
 @onready var sub_viewport = $".."
 @onready var piece_target = $h/v/Camera3D/piece_target
+@onready var mesh_maker = $MeshMaker
+@onready var pieces = $Pieces
+@onready var new_mesh_maker = preload("res://scenes/mesh_maker.tscn")
+@onready var browser = $"../../../../MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser"
+@onready var sun = $Sun
+@onready var sun_2 = $Sun2
+@onready var space = $Space
+@onready var shadow_light = $h/v/Camera3D/ShadowLight
+@onready var rotowindow = $"../../../../../../RotoWindow"
+@onready var atmosphere = $Atmosphere
 
 var rot_h = 0.0
 var rot_v = 0.0
@@ -30,17 +44,26 @@ var limit_pull := 0.0
 var fling := false
 
 var generate_type := 1
+var last_type := 1
 
 var dx := 0.0
 var dy := 0.0
 var dx_final := 0.0
 var dy_final := 0.0
 
+var ready_for_nmm := false
+
+var global
+
 func _ready():
+	global = get_node('/root/Global')
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	h = sub_viewport.size.y
 	h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
+	RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
+	RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
+	generate_type = global.generate_type
 	
 func _unhandled_input(event):
 	if event is InputEventScreenDrag:
@@ -82,6 +105,9 @@ func _unhandled_input(event):
 				fling = true
 				
 func _process(delta):
+	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
+		add_child(mesh_maker)
+		ready_for_nmm = false
 	#print(dy)
 	#print($h.basis.z.angle_to(current_grab))
 	#print(initial_grab.angle_to(current_grab))
@@ -146,17 +172,27 @@ func _process(delta):
 	$h.rotation.y = rot_h
 	$h/v.rotation.x = rot_v
 	
-func pointer(coll_layer: int):
-	var spaceState = get_world_3d().direct_space_state
-	var mousePos = get_viewport().get_mouse_position()
-	var rayStart = camera_3d.project_ray_origin(mousePos)
-	var rayEnd = rayStart + camera_3d.project_ray_normal(mousePos) * 2000
-	var query = PhysicsRayQueryParameters3D.create(rayStart, rayEnd, coll_layer)
-	var rayDict = spaceState.intersect_ray(query)
-
-	if rayDict.has('position'):
-		return [rayDict['position'],rayDict['normal']]
-	return null
+func _atmo_change():
+	if global.generate_type == 1:
+		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
+	elif global.generate_type == 2:
+		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('d4995a'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
+	elif global.generate_type == 3:
+		atmosphere.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('black'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('black'))
+	elif global.generate_type == 4:
+		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
+	elif global.generate_type == 5:
+		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
 
 func _on_mesh_maker_meshes_made():
 	emit_signal("meshes_made2")
@@ -165,12 +201,48 @@ func _on_mesh_maker_piece_placed(cidx):
 	emit_signal("piece_placed2", cidx)
 
 func _on_generate_button_up():
-	var error = get_tree().reload_current_scene()
-	print(error)
+	shadow_light._on = false
+	sun._on = true
+	sun_2._on = true
+	space._on = false
+	rotowindow.visible = false
+	mesh_maker.queue_free()
+	for n in get_tree().get_nodes_in_group('pieces'):
+		n.queue_free()
+	for n in pieces.get_children():
+		n.queue_free()
+	if global.generate_type != generate_type:
+		_atmo_change()
+#	for n in get_tree().get_nodes_in_group('atmospheres'):
+#		if n.is_inside_tree():
+#			n.queue_free()
+	
+	var nmm = new_mesh_maker.instantiate()
+	nmm.connect('meshes_made', _on_mesh_maker_meshes_made)
+	nmm.connect('piece_placed', _on_mesh_maker_piece_placed)
+	nmm.connect('ready_to_start', _on_mesh_maker_ready_to_start)
+	nmm.connect('ufo_ready', _on_mesh_maker_ufo_ready)
+	mesh_maker = nmm
+	ready_for_nmm = true
+	last_type = generate_type
+	generate_type = global.generate_type
+	#var error = get_tree().reload_current_scene()
+	#print(error)
 
 func _on_option_button_item_selected(index):
-	var global = get_node('/root/Global')
 	global.generate_type = index + 1
 
 func _on_browser_wheel_rot(rot):
 	emit_signal('spin_piece', rot)
+
+func _on_mesh_maker_ready_to_start():
+	emit_signal("ready_to_start2")
+
+func _on_start_puzzle_button_up():
+	emit_signal("ufo_time")
+
+func _on_mesh_maker_ufo_ready(dict):
+	emit_signal('ufo_ready2', dict)
+
+func _on_ufo_ufo_done():
+	emit_signal("ufo_done2")

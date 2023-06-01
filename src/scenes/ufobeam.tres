@@ -1,0 +1,50 @@
+[gd_resource type="VisualShader" load_steps=5 format=3 uid="uid://dsh1pu8mere1v"]
+
+[sub_resource type="VisualShaderNodeColorConstant" id="VisualShaderNodeColorConstant_nfn7v"]
+constant = Color(0.382501, 0.525163, 0.249303, 1)
+
+[sub_resource type="Gradient" id="Gradient_sjoc7"]
+interpolation_mode = 2
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_b55u0"]
+gradient = SubResource("Gradient_sjoc7")
+fill_from = Vector2(0.5, 0.4)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_vrusc"]
+texture = SubResource("GradientTexture2D_b55u0")
+
+[resource]
+code = "shader_type spatial;
+render_mode cull_disabled, unshaded;
+
+uniform sampler2D tex_frg_3;
+
+
+
+void fragment() {
+// ColorConstant:2
+	vec4 n_out2p0 = vec4(0.382501, 0.525163, 0.249303, 1.000000);
+
+
+// Texture2D:3
+	vec4 n_out3p0 = texture(tex_frg_3, UV);
+
+
+// Output:0
+	ALBEDO = vec3(n_out2p0.xyz);
+	ALPHA = n_out3p0.x;
+
+
+}
+"
+graph_offset = Vector2(-83.3333, -140.667)
+modes/cull = 2
+flags/unshaded = true
+nodes/vertex/0/position = Vector2(1400, 240)
+nodes/fragment/0/position = Vector2(1380, 80)
+nodes/fragment/2/node = SubResource("VisualShaderNodeColorConstant_nfn7v")
+nodes/fragment/2/position = Vector2(820, 80)
+nodes/fragment/3/node = SubResource("VisualShaderNodeTexture_vrusc")
+nodes/fragment/3/position = Vector2(500, 420)
+nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0, 3, 0, 0, 1)

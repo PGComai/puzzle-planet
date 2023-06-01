@@ -1,9 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://dgkcqaccoxiol"]
+[gd_scene load_steps=8 format=3 uid="uid://dh4yuxiqdo80d"]
 
 [ext_resource type="Script" path="res://scripts/browser.gd" id="1_n1lns"]
 [ext_resource type="ArrayMesh" uid="uid://jc8722fqtglo" path="res://models/wheel.obj" id="2_5ymt6"]
 [ext_resource type="AudioStream" uid="uid://beohik0eoofjh" path="res://audio/puzzle planet carousel click.ogg" id="3_hn560"]
-[ext_resource type="Script" path="res://scenes/clicker.gd" id="4_6r867"]
+[ext_resource type="Script" path="res://scripts/clicker.gd" id="4_v12kr"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dvmvx"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -55,6 +55,7 @@ skeleton = NodePath("../..")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("3_hn560")
-script = ExtResource("4_6r867")
+script = ExtResource("4_v12kr")
 
 [connection signal="click" from="." to="AudioStreamPlayer" method="_on_browser_click"]
+[connection signal="picked_you" from="." to="." method="_on_picked_you"]

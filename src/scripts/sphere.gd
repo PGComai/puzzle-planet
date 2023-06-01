@@ -1,10 +1,12 @@
 extends Node3D
 
+signal ready_to_start
 signal meshes_made
 signal piece_placed(cidx)
+signal ufo_ready(dict)
 
 @export var debug := false
-@export var max_points = 500
+@export var max_points = 30
 @export var generations = 100
 @export var save: bool = false
 @export_enum('load', 'generate') var mesh_source: int = 1
@@ -13,9 +15,9 @@ signal piece_placed(cidx)
 @export var piece_offset := 1.0
 @export_category('Terrain')
 @export var crust_thickness := 1.1
-@export var vertex_merge_threshold := 0.05
+@export var vertex_merge_threshold := 0.168
 @export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
-@export_enum('custom', 'earth', 'mars', 'moon', 'jupiter', 'saturn') var planet_style := 0
+@export_enum('custom', 'earth', 'mars', 'moon', 'jupiter', 'saturn') var planet_style := 1
 @export var test_noise: FastNoiseLite
 @export var height_noise_frequency: float = 1.5
 @export var height_noise_type: FastNoiseLite.NoiseType
@@ -106,8 +108,8 @@ signal piece_placed(cidx)
 @onready var sun = $"../Sun"
 @onready var space = $"../Space"
 @onready var sun_2 = $"../Sun2"
-@onready var atmo = $"../Atmo"
-@onready var atmo_2 = $"../Atmo2"
+#@onready var atmo = $"../Atmo"
+#@onready var atmo_2 = $"../Atmo2"
 @onready var mantle = $"../Mantle"
 @onready var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
 @onready var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
@@ -119,6 +121,10 @@ signal piece_placed(cidx)
 @onready var mantle_jupiter_material = preload("res://tex/mantle_jupiter_material.tres")
 @onready var rings = $"../Rings"
 @onready var mantle_saturn_material = preload("res://tex/mantle_saturn_material.tres")
+#@onready var atmo_material = preload("res://tex/atmosphere_material.tres")
+#@onready var atmo_2_material = preload("res://tex/atmosphere_inner_material.tres")
+#@onready var atmo_earth_material = preload("res://tex/atmosphere_outer_earth_material.tres")
+#@onready var atmo_2_earth_material = preload("res://tex/atmosphere_inner_earth_material.tres")
 
 var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
@@ -145,20 +151,27 @@ var max_distance_between_vecs := 0.000016
 var global
 var crater_array := []
 
-var vectree: Dictionary
 var treesnap: Vector3
-var treestep := 0.15
+var treestep := 0.2
 var vsnap := 0.00005
 
 var correct_rotation := false
 
 var rotowindow
 
+var thread
+
+var build_planet := true
+var parameters_set := false
+var ufo_locations := {}
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	treesnap = Vector3(treestep, treestep, treestep)
 	global = get_node('/root/Global')
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
+	if !get_parent().is_connected('spin_piece', _on_universe_spin_piece):
+		get_parent().spin_piece.connect(_on_universe_spin_piece)
 	if !(planet_style == 0) and !debug:
 		planet_style = global.generate_type
 		pieces_at_start = global.pieces_at_start
@@ -201,30 +214,48 @@ func _ready():
 	noise3d.cellular_distance_function = height_noise_cellular_distance_function
 	noise3d.cellular_jitter = height_noise_cellular_jitter
 	noise3d.cellular_return_type = height_noise_cellular_return_type
-	_generate_mesh()
+	_set_parameters()
+	thread = Thread.new()
+#	thread = Thread.new()
+#	thread.start(Callable(self, "_generate_mesh"))
+#	thread.wait_to_finish()
+	#_generate_mesh()
 
 func _process(delta):
-	if looking:
-		_piece_fit(delta)
-	if fit_timer > 1.5:
-		_place_piece()
-	if fit:
-		if !placed_signal:
-			current_piece.remove_from_group('pieces')
-			placed_signal = true
-			placed_counting = true
-		current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, 0.1)
-		if current_piece.global_position.is_equal_approx(current_piece.direction):
-			current_piece.global_position = current_piece.direction
-			print('fitted')
-			fit = false
-			placed_signal = false
-	if placed_counting:
-		placed_timer += delta
-		if placed_timer > 0.2:
-			emit_signal("piece_placed", current_piece.circle_idx)
-			placed_counting = false
-			placed_timer = 0.0
+	var result = false
+	if build_planet:
+		if !thread.is_alive() and !thread.is_started():
+			thread.start(Callable(self, "_generate_mesh"))
+		if !thread.is_alive() and thread.is_started():
+			print('wtf')
+			thread.wait_to_finish()
+			print('done')
+			build_planet = false
+			emit_signal("ready_to_start")
+			emit_signal('ufo_ready', ufo_locations)
+			#emit_signal("meshes_made")
+	else:
+		if looking:
+			_piece_fit(delta)
+		if fit_timer > 1.5:
+			_place_piece()
+		if fit:
+			if !placed_signal:
+				current_piece.remove_from_group('pieces')
+				placed_signal = true
+				placed_counting = true
+			current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, 0.1)
+			if current_piece.global_position.is_equal_approx(current_piece.direction):
+				current_piece.global_position = current_piece.direction
+				print('fitted')
+				fit = false
+				placed_signal = false
+		if placed_counting:
+			placed_timer += delta
+			if placed_timer > 0.2:
+				emit_signal("piece_placed", current_piece.circle_idx)
+				placed_counting = false
+				placed_timer = 0.0
 		
 
 func _place_piece():
@@ -244,7 +275,7 @@ func _place_piece():
 	rotowindow.visible = false
 	print('hide roto from sphere')
 
-func _generate_mesh():
+func _generate_mesh(userdata = null):
 	var verts := PackedVector3Array()
 	var borderverts := PackedVector3Array()
 	var colors := PackedColorArray()
@@ -294,374 +325,6 @@ func _generate_mesh():
 		var circle_idx = 0
 		var l = len(verts)
 		
-		if planet_style == 0:
-			pass
-			#test_noise.frequency = height_noise_frequency
-			#noise3d = test_noise
-			#colornoise = test_noise
-		elif planet_style == 1:
-			## override colors to earth style
-			colornoise.noise_type = 4
-			colornoise.frequency = 2.0
-			colornoise.domain_warp_enabled = false
-			colornoise.domain_warp_amplitude = 30
-			colornoise.domain_warp_fractal_gain = 0.5
-			colornoise.domain_warp_fractal_lacunarity = 6
-			colornoise.domain_warp_fractal_octaves = 5
-			colornoise.domain_warp_fractal_type = 1
-			colornoise.domain_warp_frequency = 0.05
-			colornoise.domain_warp_type = 0
-			colornoise.fractal_gain = 0.5
-			colornoise.fractal_lacunarity = 2
-			colornoise.fractal_octaves = 5
-			colornoise.fractal_ping_pong_strength = 2
-			colornoise.fractal_type = 1
-			colornoise.fractal_weighted_strength = 0
-			noise3d.noise_type = 4
-			noise3d.frequency = 1.5
-			noise3d.domain_warp_enabled = false
-			noise3d.domain_warp_amplitude = 30.0
-			noise3d.domain_warp_fractal_gain = 0.5
-			noise3d.domain_warp_fractal_lacunarity = 6.0
-			noise3d.domain_warp_fractal_octaves = 5
-			noise3d.domain_warp_fractal_type = 1
-			noise3d.domain_warp_frequency = 0.05
-			noise3d.domain_warp_type = 0
-			noise3d.fractal_gain = 0.5
-			noise3d.fractal_lacunarity = 2.0
-			noise3d.fractal_octaves = 5
-			noise3d.fractal_ping_pong_strength = 2.0
-			noise3d.fractal_type = 1
-			noise3d.fractal_weighted_strength = 0.0
-			low_crust_color = Color('6e2e0c')
-			crust_color = Color('3f3227')
-			land_snow_color = Color('dbdbdb')
-			land_color = Color('4a6c3f')
-			land_color_threshold = 0.96
-			land_color_2 = Color('4d6032')
-			land_color_threshold = 0.94
-			land_color_3 = Color('b3814c')
-			low_land_color = Color('4a6c3f')
-			low_land_bottom_threshold = 0.5
-			low_land_top_threshold = 0.9
-			sand_color = Color('9f876b')
-			water_color = Color('0541ff')
-			shallow_water_color = Color('2091bf')
-			sand_threshold = 1.1
-			water_offset = 1.09
-			ocean = true
-			snow_random_low = 0.85
-			snow_random_high = 0.95
-			max_terrain_height_unclamped = 1.34
-			min_terrain_height_unclamped = 0.65
-			max_terrain_height = 1.3
-			min_terrain_height = 0.8
-			clamp_terrain = false
-			invert_height = false
-			craters = false
-			snow = true
-			atmo.visible = true
-			atmo_2.visible = true
-			atmo.mesh.radius = 1.26
-			atmo.mesh.height = atmo.mesh.radius * 2.0
-			atmo_2.mesh.radius = 1.26
-			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
-			mantle.mesh.material = mantle_earth_material
-			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
-			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
-			atmo.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
-			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
-			lava_lamp.light_color = lava_lamp_color_earth
-			lava_lamp.visible = true
-			h_bands = false
-			craters_to_storms = false
-			rings.visible = false
-		elif planet_style == 2:
-			## mars
-			colornoise.noise_type = 4
-			colornoise.frequency = 1.5
-			colornoise.domain_warp_enabled = false
-			colornoise.domain_warp_amplitude = 30
-			colornoise.domain_warp_fractal_gain = 0.5
-			colornoise.domain_warp_fractal_lacunarity = 6
-			colornoise.domain_warp_fractal_octaves = 5
-			colornoise.domain_warp_fractal_type = 1
-			colornoise.domain_warp_frequency = 0.05
-			colornoise.domain_warp_type = 0
-			colornoise.fractal_gain = 0.5
-			colornoise.fractal_lacunarity = 2
-			colornoise.fractal_octaves = 5
-			colornoise.fractal_ping_pong_strength = 2
-			colornoise.fractal_type = 1
-			colornoise.fractal_weighted_strength = 0
-			noise3d.noise_type = 4
-			noise3d.frequency = 3.0
-			noise3d.domain_warp_enabled = false
-			noise3d.domain_warp_amplitude = 0.052
-			noise3d.domain_warp_fractal_gain = 0.285
-			noise3d.domain_warp_fractal_lacunarity = 4.253
-			noise3d.domain_warp_fractal_octaves = 5
-			noise3d.domain_warp_fractal_type = 1
-			noise3d.domain_warp_frequency = 0.05
-			noise3d.domain_warp_type = 0
-			noise3d.fractal_gain = 0.5
-			noise3d.fractal_lacunarity = 2.0
-			noise3d.fractal_octaves = 5
-			noise3d.fractal_ping_pong_strength = 2.0
-			noise3d.fractal_type = 1
-			noise3d.fractal_weighted_strength = 0.0
-			ocean = false
-			snow_random_low = 0.976
-			snow_random_high = 0.984
-			max_terrain_height_unclamped = 1.01
-			min_terrain_height_unclamped = 0.2
-			max_terrain_height = 1.13
-			min_terrain_height = 1.02
-			clamp_terrain = true
-			invert_height = true
-			craters = false
-			low_crust_color = Color('5e1c18')
-			crust_color = Color('542b18')
-			land_snow_color = Color('dbdbdb')
-			land_color = Color('8c5323')
-			land_color_threshold = 1.02
-			land_color_2 = Color('6f4024')
-			land_color_threshold_2 = 0.99
-			land_color_3 = Color('423122')
-			low_land_color = Color('74432e')
-			low_land_bottom_threshold = 0.822
-			low_land_top_threshold = 0.9
-			sand_color = Color('9f876b')
-			water_color = Color('0541ff')
-			shallow_water_color = Color('2091bf')
-			snow = true
-			atmo.visible = true
-			atmo_2.visible = true
-			atmo.mesh.radius = 1.26
-			atmo.mesh.height = atmo.mesh.radius * 2.0
-			atmo_2.mesh.radius = 1.26
-			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
-			mantle.mesh.material = mantle_mars_material
-			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
-			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
-			atmo.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
-			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
-			#lava_lamp.light_color = lava_lamp_color_mars
-			lava_lamp.visible = true
-			h_bands = false
-			craters_to_storms = false
-			rings.visible = false
-		elif planet_style == 3:
-			# moon
-			colornoise.noise_type = 4
-			colornoise.frequency = 3.0
-			colornoise.domain_warp_enabled = false
-			colornoise.domain_warp_amplitude = 30
-			colornoise.domain_warp_fractal_gain = 0.5
-			colornoise.domain_warp_fractal_lacunarity = 6
-			colornoise.domain_warp_fractal_octaves = 5
-			colornoise.domain_warp_fractal_type = 1
-			colornoise.domain_warp_frequency = 0.05
-			colornoise.domain_warp_type = 0
-			colornoise.fractal_gain = 0.5
-			colornoise.fractal_lacunarity = 2
-			colornoise.fractal_octaves = 5
-			colornoise.fractal_ping_pong_strength = 2
-			colornoise.fractal_type = 1
-			colornoise.fractal_weighted_strength = 0.735
-			colornoise2.noise_type = 4
-			colornoise2.frequency = 5.0
-			colornoise2.domain_warp_enabled = false
-			colornoise2.domain_warp_amplitude = 30
-			colornoise2.domain_warp_fractal_gain = 0.5
-			colornoise2.domain_warp_fractal_lacunarity = 6
-			colornoise2.domain_warp_fractal_octaves = 5
-			colornoise2.domain_warp_fractal_type = 1
-			colornoise2.domain_warp_frequency = 0.05
-			colornoise2.domain_warp_type = 0
-			colornoise2.fractal_gain = 0.5
-			colornoise2.fractal_lacunarity = 2
-			colornoise2.fractal_octaves = 5
-			colornoise2.fractal_ping_pong_strength = 2
-			colornoise2.fractal_type = 1
-			colornoise2.fractal_weighted_strength = 0.735
-			noise3d.noise_type = 4
-			noise3d.frequency = 2.731
-			noise3d.domain_warp_enabled = false
-			noise3d.domain_warp_amplitude = 30.0
-			noise3d.domain_warp_fractal_gain = 0.5
-			noise3d.domain_warp_fractal_lacunarity = 6.0
-			noise3d.domain_warp_fractal_octaves = 5
-			noise3d.domain_warp_fractal_type = 1
-			noise3d.domain_warp_frequency = 0.05
-			noise3d.domain_warp_type = 0
-			noise3d.fractal_gain = 0.5
-			noise3d.fractal_lacunarity = 2.0
-			noise3d.fractal_octaves = 5
-			noise3d.fractal_ping_pong_strength = 2.0
-			noise3d.fractal_type = 1
-			noise3d.fractal_weighted_strength = 0.0
-			low_crust_color = Color('452e27')
-			crust_color = Color('353535')
-			land_snow_color = Color('dbdbdb')
-			land_color = Color('969696')
-			land_color_threshold = 1.011
-			land_color_2 = Color('6a6a6a')
-			land_color_threshold = 0.962
-			land_color_3 = Color('464646')
-			tint_color = Color('5f78c0')
-			tint_color_2 = Color('8a7c40')
-			tint_color_3 = Color('b5622d')
-			low_land_color = Color('242424')
-			low_land_bottom_threshold = 0.911
-			low_land_top_threshold = 1.254
-			sand_color = Color('9f876b')
-			water_color = Color('0541ff')
-			shallow_water_color = Color('2091bf')
-			sand_threshold = 1.1
-			water_offset = 1.09
-			ocean = false
-			snow_random_low = 0.85
-			snow_random_high = 0.95
-			max_terrain_height_unclamped = 1.1
-			min_terrain_height_unclamped = 0.882
-			max_terrain_height = 1.092
-			min_terrain_height = 0.43
-			clamp_terrain = false
-			invert_height = false
-			snow = false
-			craters = true
-			num_craters = 50
-			crater_size_multiplier = 1.566
-			crater_height_multiplier = 1.8
-			crater_height_curve = moon_crater_curve
-			land_color_ease_curve = moon_land_curve
-			mantle.mesh.material = mantle_moon_material
-			atmo.visible = false
-			atmo_2.visible = false
-			atmo.mesh.radius = 1.26
-			atmo.mesh.height = atmo.mesh.radius * 2.0
-			atmo_2.mesh.radius = 1.26
-			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
-			lava_lamp.light_color = lava_lamp_color_earth
-			lava_lamp.visible = false
-			h_bands = false
-			craters_to_storms = false
-			rings.visible = false
-		elif planet_style == 4:
-			# jupiter
-			noise3d.noise_type = 1
-			noise3d.frequency = 2.928
-			noise3d.domain_warp_enabled = false
-			noise3d.domain_warp_amplitude = 30.0
-			noise3d.domain_warp_fractal_gain = 0.5
-			noise3d.domain_warp_fractal_lacunarity = 6.0
-			noise3d.domain_warp_fractal_octaves = 5
-			noise3d.domain_warp_fractal_type = 1
-			noise3d.domain_warp_frequency = 0.05
-			noise3d.domain_warp_type = 0
-			noise3d.fractal_gain = 0.5
-			noise3d.fractal_lacunarity = 2.0
-			noise3d.fractal_octaves = 5
-			noise3d.fractal_ping_pong_strength = 2.0
-			noise3d.fractal_type = 1
-			noise3d.fractal_weighted_strength = 0.0
-			low_crust_color = Color('64788f')
-			land_color = Color('a17f61')
-			land_color_threshold = 1.1
-			land_color_2 = Color('614739')
-			land_color_threshold = 0.9
-			land_color_3 = Color('b7653c')
-			ocean = false
-			snow_random_low = 0.85
-			snow_random_high = 0.95
-			max_terrain_height_unclamped = 1.124
-			min_terrain_height_unclamped = 1.059
-			max_terrain_height = 1.292
-			min_terrain_height = 0.903
-			clamp_terrain = true
-			invert_height = false
-			snow = false
-			craters = true
-			num_craters = 1
-			crater_size_multiplier = 2.0
-			crater_height_multiplier = 1.5
-			crater_height_curve = jupiter_storm_curve
-			mantle.mesh.material = mantle_jupiter_material
-			atmo.visible = true
-			atmo_2.visible = true
-			atmo.mesh.radius = 1.26
-			atmo.mesh.height = atmo.mesh.radius * 2.0
-			atmo_2.mesh.radius = 1.26
-			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
-			lava_lamp.light_color = lava_lamp_color_jupiter
-			lava_lamp.visible = true
-			h_bands = true
-			h_band_snap = 0.001
-			h_band_wiggle = 0.1
-			craters_to_storms = true
-			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
-			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
-			atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
-			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
-			rings.visible = false
-		elif planet_style == 5:
-			# saturn
-			noise3d.noise_type = 1
-			noise3d.frequency = 1.685
-			noise3d.domain_warp_enabled = false
-			noise3d.domain_warp_amplitude = 30.0
-			noise3d.domain_warp_fractal_gain = 0.5
-			noise3d.domain_warp_fractal_lacunarity = 6.0
-			noise3d.domain_warp_fractal_octaves = 5
-			noise3d.domain_warp_fractal_type = 1
-			noise3d.domain_warp_frequency = 0.05
-			noise3d.domain_warp_type = 0
-			noise3d.fractal_gain = 0.5
-			noise3d.fractal_lacunarity = 2.0
-			noise3d.fractal_octaves = 5
-			noise3d.fractal_ping_pong_strength = 2.0
-			noise3d.fractal_type = 1
-			noise3d.fractal_weighted_strength = 0.0
-			low_crust_color = Color('8b79b3')
-			land_color = Color('94633d')
-			land_color_threshold = 1.1
-			land_color_2 = Color('7a664b')
-			land_color_threshold = 0.9
-			land_color_3 = Color('6c4f3b')
-			ocean = false
-			snow_random_low = 0.85
-			snow_random_high = 0.95
-			max_terrain_height_unclamped = 1.067
-			min_terrain_height_unclamped = 1.016
-			max_terrain_height = 1.292
-			min_terrain_height = 0.903
-			clamp_terrain = false
-			invert_height = false
-			snow = false
-			craters = false
-			num_craters = 1
-			crater_size_multiplier = 2.0
-			crater_height_multiplier = 1.5
-			crater_height_curve = jupiter_storm_curve
-			mantle.mesh.material = mantle_saturn_material
-			atmo.visible = true
-			atmo_2.visible = true
-			atmo.mesh.radius = 1.23
-			atmo.mesh.height = atmo.mesh.radius * 2.0
-			atmo_2.mesh.radius = 1.23
-			atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
-			lava_lamp.light_color = lava_lamp_color_jupiter
-			lava_lamp.visible = true
-			h_bands = true
-			h_band_snap = 0.001
-			h_band_wiggle = 0.01
-			craters_to_storms = false
-			atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
-			atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
-			atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
-			atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
-			rings.visible = true
 		if snow_random_high > snow_random_low:
 			snow_start = randf_range(snow_random_low, snow_random_high)
 		elif snow_random_high == snow_random_low:
@@ -671,11 +334,385 @@ func _generate_mesh():
 		
 		craterize()
 		
-		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, used_border_vecs)
+		var vectree = {}
+		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, used_border_vecs, vectree)
 
-	emit_signal("meshes_made")
+func _set_parameters():
+#	atmo.mesh.material = atmo_material
+#	atmo_2.mesh.material = atmo_2_material
+	if planet_style == 0:
+		pass
+		#test_noise.frequency = height_noise_frequency
+		#noise3d = test_noise
+		#colornoise = test_noise
+	elif planet_style == 1:
+		## override colors to earth style
+		colornoise.noise_type = 4
+		colornoise.frequency = 2.0
+		colornoise.domain_warp_enabled = false
+		colornoise.domain_warp_amplitude = 30
+		colornoise.domain_warp_fractal_gain = 0.5
+		colornoise.domain_warp_fractal_lacunarity = 6
+		colornoise.domain_warp_fractal_octaves = 5
+		colornoise.domain_warp_fractal_type = 1
+		colornoise.domain_warp_frequency = 0.05
+		colornoise.domain_warp_type = 0
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		noise3d.noise_type = 4
+		noise3d.frequency = 1.5
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('6e2e0c')
+		crust_color = Color('3f3227')
+		land_snow_color = Color('dbdbdb')
+		land_color = Color('4a6c3f')
+		land_color_threshold = 0.96
+		land_color_2 = Color('4d6032')
+		land_color_threshold = 0.94
+		land_color_3 = Color('b3814c')
+		low_land_color = Color('4a6c3f')
+		low_land_bottom_threshold = 0.5
+		low_land_top_threshold = 0.9
+		sand_color = Color('9f876b')
+		water_color = Color('0541ff')
+		shallow_water_color = Color('2091bf')
+		sand_threshold = 1.1
+		water_offset = 1.09
+		ocean = true
+		snow_random_low = 0.7
+		snow_random_high = 0.8
+		max_terrain_height_unclamped = 1.34
+		min_terrain_height_unclamped = 0.65
+		max_terrain_height = 1.3
+		min_terrain_height = 0.8
+		clamp_terrain = false
+		invert_height = false
+		craters = false
+		snow = true
+#		atmo.visible = true
+#		atmo_2.visible = true
+#		atmo.mesh.radius = 1.26
+#		atmo.mesh.height = atmo.mesh.radius * 2.0
+#		atmo_2.mesh.radius = 1.26
+#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
+		mantle.mesh.material = mantle_earth_material
+#		atmo.mesh.material = atmo_earth_material
+#		atmo_2.mesh.material = atmo_2_earth_material
+#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
+#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
+#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
+#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
+		lava_lamp.light_color = lava_lamp_color_earth
+		lava_lamp.visible = true
+		h_bands = false
+		craters_to_storms = false
+		rings.visible = false
+	elif planet_style == 2:
+		## mars
+		colornoise.noise_type = 4
+		colornoise.frequency = 1.5
+		colornoise.domain_warp_enabled = false
+		colornoise.domain_warp_amplitude = 30
+		colornoise.domain_warp_fractal_gain = 0.5
+		colornoise.domain_warp_fractal_lacunarity = 6
+		colornoise.domain_warp_fractal_octaves = 5
+		colornoise.domain_warp_fractal_type = 1
+		colornoise.domain_warp_frequency = 0.05
+		colornoise.domain_warp_type = 0
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		noise3d.noise_type = 4
+		noise3d.frequency = 3.0
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 0.052
+		noise3d.domain_warp_fractal_gain = 0.285
+		noise3d.domain_warp_fractal_lacunarity = 4.253
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		ocean = false
+		snow_random_low = 0.9
+		snow_random_high = 0.94
+		max_terrain_height_unclamped = 1.01
+		min_terrain_height_unclamped = 0.2
+		max_terrain_height = 1.13
+		min_terrain_height = 1.02
+		clamp_terrain = true
+		invert_height = true
+		craters = false
+		low_crust_color = Color('5e1c18')
+		crust_color = Color('542b18')
+		land_snow_color = Color('dbdbdb')
+		land_color = Color('8c5323')
+		land_color_threshold = 1.02
+		land_color_2 = Color('6f4024')
+		land_color_threshold_2 = 0.99
+		land_color_3 = Color('423122')
+		low_land_color = Color('74432e')
+		low_land_bottom_threshold = 0.822
+		low_land_top_threshold = 0.9
+		sand_color = Color('9f876b')
+		water_color = Color('0541ff')
+		shallow_water_color = Color('2091bf')
+		snow = true
+#		atmo.visible = true
+#		atmo_2.visible = true
+#		atmo.mesh.radius = 1.26
+#		atmo.mesh.height = atmo.mesh.radius * 2.0
+#		atmo_2.mesh.radius = 1.26
+#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
+		mantle.mesh.material = mantle_mars_material
+#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
+#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
+#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
+#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
+		lava_lamp.light_color = lava_lamp_color_mars
+		lava_lamp.visible = true
+		h_bands = false
+		craters_to_storms = false
+		rings.visible = false
+	elif planet_style == 3:
+		# moon
+		colornoise.noise_type = 4
+		colornoise.frequency = 3.0
+		colornoise.domain_warp_enabled = false
+		colornoise.domain_warp_amplitude = 30
+		colornoise.domain_warp_fractal_gain = 0.5
+		colornoise.domain_warp_fractal_lacunarity = 6
+		colornoise.domain_warp_fractal_octaves = 5
+		colornoise.domain_warp_fractal_type = 1
+		colornoise.domain_warp_frequency = 0.05
+		colornoise.domain_warp_type = 0
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0.735
+		colornoise2.noise_type = 4
+		colornoise2.frequency = 5.0
+		colornoise2.domain_warp_enabled = false
+		colornoise2.domain_warp_amplitude = 30
+		colornoise2.domain_warp_fractal_gain = 0.5
+		colornoise2.domain_warp_fractal_lacunarity = 6
+		colornoise2.domain_warp_fractal_octaves = 5
+		colornoise2.domain_warp_fractal_type = 1
+		colornoise2.domain_warp_frequency = 0.05
+		colornoise2.domain_warp_type = 0
+		colornoise2.fractal_gain = 0.5
+		colornoise2.fractal_lacunarity = 2
+		colornoise2.fractal_octaves = 5
+		colornoise2.fractal_ping_pong_strength = 2
+		colornoise2.fractal_type = 1
+		colornoise2.fractal_weighted_strength = 0.735
+		noise3d.noise_type = 4
+		noise3d.frequency = 2.731
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('452e27')
+		crust_color = Color('353535')
+		land_snow_color = Color('dbdbdb')
+		land_color = Color('969696')
+		land_color_threshold = 1.011
+		land_color_2 = Color('6a6a6a')
+		land_color_threshold = 0.962
+		land_color_3 = Color('464646')
+		tint_color = Color('5f78c0')
+		tint_color_2 = Color('8a7c40')
+		tint_color_3 = Color('b5622d')
+		low_land_color = Color('242424')
+		low_land_bottom_threshold = 0.911
+		low_land_top_threshold = 1.254
+		sand_color = Color('9f876b')
+		water_color = Color('0541ff')
+		shallow_water_color = Color('2091bf')
+		sand_threshold = 1.1
+		water_offset = 1.09
+		ocean = false
+		snow_random_low = 0.85
+		snow_random_high = 0.95
+		max_terrain_height_unclamped = 1.1
+		min_terrain_height_unclamped = 0.882
+		max_terrain_height = 1.092
+		min_terrain_height = 0.43
+		clamp_terrain = false
+		invert_height = false
+		snow = false
+		craters = true
+		num_craters = 50
+		crater_size_multiplier = 1.566
+		crater_height_multiplier = 1.8
+		crater_height_curve = moon_crater_curve
+		land_color_ease_curve = moon_land_curve
+		mantle.mesh.material = mantle_moon_material
+#		atmo.visible = false
+#		atmo_2.visible = false
+#		atmo.mesh.radius = 1.26
+#		atmo.mesh.height = atmo.mesh.radius * 2.0
+#		atmo_2.mesh.radius = 1.26
+#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
+		#lava_lamp.light_color = lava_lamp_color_earth
+		lava_lamp.visible = false
+		h_bands = false
+		craters_to_storms = false
+		rings.visible = false
+	elif planet_style == 4:
+		# jupiter
+		noise3d.noise_type = 1
+		noise3d.frequency = 2.928
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('64788f')
+		land_color = Color('a17f61')
+		land_color_threshold = 1.1
+		land_color_2 = Color('614739')
+		land_color_threshold = 0.9
+		land_color_3 = Color('b7653c')
+		ocean = false
+		snow_random_low = 0.85
+		snow_random_high = 0.95
+		max_terrain_height_unclamped = 1.124
+		min_terrain_height_unclamped = 1.059
+		max_terrain_height = 1.292
+		min_terrain_height = 0.903
+		clamp_terrain = true
+		invert_height = false
+		snow = false
+		craters = true
+		num_craters = 1
+		crater_size_multiplier = 2.0
+		crater_height_multiplier = 1.5
+		crater_height_curve = jupiter_storm_curve
+		mantle.mesh.material = mantle_jupiter_material
+#		atmo.visible = true
+#		atmo_2.visible = true
+#		atmo.mesh.radius = 1.26
+#		atmo.mesh.height = atmo.mesh.radius * 2.0
+#		atmo_2.mesh.radius = 1.26
+#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
+		lava_lamp.light_color = lava_lamp_color_jupiter
+		lava_lamp.visible = true
+		h_bands = true
+		h_band_snap = 0.001
+		h_band_wiggle = 0.1
+		craters_to_storms = true
+#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+		rings.visible = false
+	elif planet_style == 5:
+		# saturn
+		noise3d.noise_type = 1
+		noise3d.frequency = 1.685
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('8b79b3')
+		land_color = Color('94633d')
+		land_color_threshold = 1.1
+		land_color_2 = Color('7a664b')
+		land_color_threshold = 0.9
+		land_color_3 = Color('6c4f3b')
+		ocean = false
+		snow_random_low = 0.85
+		snow_random_high = 0.95
+		max_terrain_height_unclamped = 1.067
+		min_terrain_height_unclamped = 1.016
+		max_terrain_height = 1.292
+		min_terrain_height = 0.903
+		clamp_terrain = false
+		invert_height = false
+		snow = false
+		craters = false
+		num_craters = 1
+		crater_size_multiplier = 2.0
+		crater_height_multiplier = 1.5
+		crater_height_curve = jupiter_storm_curve
+		mantle.mesh.material = mantle_saturn_material
+#		atmo.visible = true
+#		atmo_2.visible = true
+#		atmo.mesh.radius = 1.23
+#		atmo.mesh.height = atmo.mesh.radius * 2.0
+#		atmo_2.mesh.radius = 1.23
+#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
+		lava_lamp.light_color = lava_lamp_color_saturn
+		lava_lamp.visible = true
+		h_bands = true
+		h_band_snap = 0.001
+		h_band_wiggle = 0.01
+		craters_to_storms = false
+#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+		rings.visible = true
+	parameters_set = true
 
-func snap_to_existing(vec: Vector3):
+func snap_to_existing(vec: Vector3, vectree: Dictionary):
 	#print(len(vectree))
 	var tree_vec = vec.snapped(treesnap)
 	var tv_up = Vector3(tree_vec.x, tree_vec.y + treestep, tree_vec.z)
@@ -743,12 +780,12 @@ func craterize():
 #			impact = impact.normalized()
 		crater_array.append([impact, strength])
 
-func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
+func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array, vectree: Dictionary):
 	var pieces_stayed := 0
 	var circle_idx := 0
 	var newborders = vbdict.duplicate()
 	for r in sub_triangle_recursion+1:
-		newborders = NEW_fill_border_halfways(newborders.duplicate(), og_verts, used_border_vecs)
+		newborders = NEW_fill_border_halfways(newborders.duplicate(), og_verts, used_border_vecs, vectree)
 	for bak in vbdict.keys():
 		var border_triangles = PackedVector3Array()
 		var border_tri_normals = PackedVector3Array()
@@ -760,7 +797,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		var arrays = [border_triangles, border_tri_normals, border_tri_colors,
 			water_triangles, water_tri_normals, water_tri_colors]
 		var new_border_array = newborders[bak]
-		var NEW_tess_result = NEW_tesselate(og_verts, bak, new_border_array, crust_thickness, used_border_vecs)
+		var NEW_tess_result = NEW_tesselate(og_verts, bak, new_border_array, crust_thickness, used_border_vecs, vectree)
 		var border_array = vbdict[bak]
 		var on = true
 		var used_vecs = PackedVector3Array()
@@ -768,10 +805,10 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 			var v0 = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
 			var v1 = border_array[b+1].snapped(Vector3(vsnap, vsnap, vsnap))
 			var vp = og_verts[bak].snapped(Vector3(vsnap, vsnap, vsnap))
-			v0 = snap_to_existing(v0)
-			v1 = snap_to_existing(v1)
-			vp = snap_to_existing(vp)
-			_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs)
+			v0 = snap_to_existing(v0, vectree)
+			v1 = snap_to_existing(v1, vectree)
+			vp = snap_to_existing(vp, vectree)
+			_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs, vectree)
 			
 		var dxu = og_verts[bak].cross(Vector3.UP)
 		var up = dxu.rotated(og_verts[bak].normalized(), -PI/2)
@@ -794,6 +831,9 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		newpiece.direction = og_verts[bak]
 		newpiece.lat = og_verts[bak].angle_to(Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized()) * sign(og_verts[bak].y)
 		newpiece.lon = Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized().angle_to(Vector3.FORWARD) * sign(og_verts[bak].x)
+#		print(newpiece.lat)
+#		print(newpiece.lon)
+#		print('..')
 		newpiece.rotation_saver = Quaternion(og_verts[bak], Vector3.BACK)
 		puzzle_fits[bak] = og_verts[bak]
 		newpiece.idx = bak
@@ -801,6 +841,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		newpiece.ready_for_launch.connect(_on_ready_for_launch)
 		newpiece.upright_vec = up.normalized()
 		newpiece.orient_upright = !global.rotation
+		newpiece.thickness = crust_thickness - 1.0
 		if global.rotation:
 			var randrot = randf_range(0.0, 2*PI)
 			newpiece.random_rotation_offset = randrot
@@ -814,12 +855,14 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		else:
 			newpiece.circle_idx = circle_idx
 			circle_idx += 1
+			ufo_locations[bak] = og_verts[bak]
 		
-		pieces.add_child(newpiece)
+		pieces.call_deferred('add_child', newpiece)
 
 func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			used_vecs: PackedVector3Array,
 			used_border_vecs: PackedVector3Array,
+			vectree: Dictionary,
 			recursion := 0,
 			shade_min := 0,
 			shade_max := 1):
@@ -828,9 +871,9 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 	if recursion > sub_triangle_recursion:
 		# i think this is where we need to apply color, height, etc to vertices
 		
-		p1 = snap_to_existing(p1)
-		p2 = snap_to_existing(p2)
-		p3 = snap_to_existing(p3)
+		p1 = snap_to_existing(p1, vectree)
+		p2 = snap_to_existing(p2, vectree)
+		p3 = snap_to_existing(p3, vectree)
 		
 		var p1old = mm(p1)
 		var p2old = mm(p2)
@@ -857,15 +900,15 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		
 		if p1.length_squared() < pow(sand_threshold, 2) and ocean:
 			p1_color = sand_color
-		elif asin(abs(p1.normalized().y)) > snow_start and snow:
+		elif asin(abs(p1.normalized().y)) / (PI/2) > snow_start and snow:
 			p1_color = land_snow_color
 		if p2.length_squared() < pow(sand_threshold, 2) and ocean:
 			p2_color = sand_color
-		elif asin(abs(p2.normalized().y)) > snow_start and snow:
+		elif asin(abs(p2.normalized().y)) / (PI/2) > snow_start and snow:
 			p2_color = land_snow_color
 		if p3.length_squared() < pow(sand_threshold, 2) and ocean:
 			p3_color = sand_color
-		elif asin(abs(p3.normalized().y)) > snow_start and snow:
+		elif asin(abs(p3.normalized().y)) / (PI/2) > snow_start and snow:
 			p3_color = land_snow_color
 		
 		# water height
@@ -930,17 +973,17 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			newpoint = p1.rotated(ax, ang3*0.5)
 			var p31 = newpoint.snapped(Vector3(vsnap, vsnap, vsnap))
 			
-			p12 = snap_to_existing(p12)
-			p23 = snap_to_existing(p23)
-			p31 = snap_to_existing(p31)
+			p12 = snap_to_existing(p12, vectree)
+			p23 = snap_to_existing(p23, vectree)
+			p31 = snap_to_existing(p31, vectree)
 			
-			_sub_triangle(p1, p12, p31, arrays, used_vecs, used_border_vecs, recursion)
+			_sub_triangle(p1, p12, p31, arrays, used_vecs, used_border_vecs, vectree, recursion)
 			
-			_sub_triangle(p12, p2, p23, arrays, used_vecs, used_border_vecs, recursion)
+			_sub_triangle(p12, p2, p23, arrays, used_vecs, used_border_vecs, vectree, recursion)
 			
-			_sub_triangle(p31, p23, p3, arrays, used_vecs, used_border_vecs, recursion)
+			_sub_triangle(p31, p23, p3, arrays, used_vecs, used_border_vecs, vectree, recursion)
 			
-			_sub_triangle(p12, p23, p31, arrays, used_vecs, used_border_vecs, recursion)
+			_sub_triangle(p12, p23, p31, arrays, used_vecs, used_border_vecs, vectree, recursion)
 
 func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: ArrayMesh):
 	var surface_array = []
@@ -951,7 +994,9 @@ func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: 
 	
 	msh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 
-func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array, thickness: float, used_border_vecs: PackedVector3Array,
+func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array, thickness: float,
+		used_border_vecs: PackedVector3Array,
+		vectree: Dictionary,
 		water = true):
 	var wall_triangles = PackedVector3Array()
 	var wall_tri_colors = PackedColorArray()
@@ -963,8 +1008,8 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 	for b in len(ring_array)-1:
 		var v0 = ring_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
 		var v1 = ring_array[b+1].snapped(Vector3(vsnap, vsnap, vsnap))
-		v0 = snap_to_existing(v0)
-		v1 = snap_to_existing(v1)
+		v0 = snap_to_existing(v0, vectree)
+		v1 = snap_to_existing(v1, vectree)
 		var v0p = mm(v0*thickness)
 		var v0pw = v0p.normalized()*water_offset
 		var v0pw_depth = v0p.length_squared() - v0pw.length_squared()
@@ -1431,7 +1476,7 @@ func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary
 		result[v] = border_array
 	return result
 
-func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array):
+func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array, vectree: Dictionary):
 	for vi in vbdict.keys():
 		var border_array = vbdict[vi]
 		var new_border_array = PackedVector3Array()
@@ -1443,15 +1488,15 @@ func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, 
 				plus1 = 0
 				var current_border_point = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
 				var next_border_point = border_array[plus1].snapped(Vector3(vsnap, vsnap, vsnap))
-				current_border_point = snap_to_existing(current_border_point)
-				next_border_point = snap_to_existing(next_border_point)
+				current_border_point = snap_to_existing(current_border_point, vectree)
+				next_border_point = snap_to_existing(next_border_point, vectree)
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
 					#if !(new_border_array.has(current_border_point)):
 					new_border_array.append(current_border_point)
 					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(vsnap, vsnap, vsnap))
-					halfway = snap_to_existing(halfway)
+					halfway = snap_to_existing(halfway, vectree)
 					#if !(new_border_array.has(halfway)):
 					new_border_array.append(halfway)
 					#if !(new_border_array.has(next_border_point)):
@@ -1459,15 +1504,15 @@ func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, 
 			else:
 				var current_border_point = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
 				var next_border_point = border_array[plus1].snapped(Vector3(vsnap, vsnap, vsnap))
-				current_border_point = snap_to_existing(current_border_point)
-				next_border_point = snap_to_existing(next_border_point)
+				current_border_point = snap_to_existing(current_border_point, vectree)
+				next_border_point = snap_to_existing(next_border_point, vectree)
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
 					if !(new_border_array.has(current_border_point)):
 						new_border_array.append(current_border_point)
 					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(vsnap, vsnap, vsnap))
-					halfway = snap_to_existing(halfway)
+					halfway = snap_to_existing(halfway, vectree)
 					if !(new_border_array.has(halfway)):
 						new_border_array.append(halfway)
 					if !(new_border_array.has(next_border_point)):

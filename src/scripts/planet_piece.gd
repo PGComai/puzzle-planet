@@ -64,12 +64,13 @@ var off_rot := 0.0
 var good_off_rot: Vector3
 var zbasis_offset_ax: Vector3
 var zbasis_offset := 0.0
-var mesh_arrange := false
 var lat := 0.0
 var lon := 0.0
 var rotation_saver: Quaternion
 var random_rotation_offset := 0.0
 var new_up: Vector3
+var thickness: float
+var entered := false
 
 var ghostball
 var ghost
@@ -164,14 +165,15 @@ func _ready():
 	
 	if ocean:
 		themesh.mesh.surface_set_material(themesh.mesh.get_surface_count()-1, water_material)
-	if staying:
-		self.position = direction * offset
+	#if staying:
+	self.position = direction * offset
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if !placed:
 		if repositioning:
 			self.position = lerp(self.position, repos, 0.1)
+			#var dist = position.distance_to(repos)
 			self.look_at(Vector3(0.0, self.global_position.y, 0.0), new_up)
 			if self.position.is_equal_approx(repos):
 				self.position = repos
@@ -216,7 +218,8 @@ func _process(delta):
 				back_from_space = false
 
 func arrange(re = false):
-	mesh_arrange = !re
+	if !re:
+		themesh._orient_for_carousel()
 	if !get_parent().is_connected('found_you', _on_found_you):
 		get_parent().found_you.connect(_on_found_you)
 		get_parent().picked_you.connect(_on_picked_you)

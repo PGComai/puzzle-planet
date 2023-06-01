@@ -1,0 +1,36 @@
+[gd_scene load_steps=7 format=3 uid="uid://do2i21h2f6g5q"]
+
+[ext_resource type="Shader" uid="uid://hxbcsbg7215o" path="res://tex/general_atmosphere_outer.tres" id="1_at5y2"]
+[ext_resource type="Shader" uid="uid://cgc3qb21hdi7q" path="res://tex/general_atmosphere_inner.tres" id="1_gskiy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ocguh"]
+render_priority = 0
+shader = ExtResource("1_at5y2")
+
+[sub_resource type="SphereMesh" id="SphereMesh_xy8c2"]
+material = SubResource("ShaderMaterial_ocguh")
+radius = 1.26
+height = 2.52
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_a48bt"]
+render_priority = 0
+shader = ExtResource("1_gskiy")
+
+[sub_resource type="SphereMesh" id="SphereMesh_yq5gg"]
+material = SubResource("ShaderMaterial_a48bt")
+radius = 1.26
+height = 2.52
+
+[node name="Atmosphere" type="Node3D" groups=["atmospheres"]]
+
+[node name="Outer" type="MeshInstance3D" parent="."]
+layers = 2
+cast_shadow = 0
+mesh = SubResource("SphereMesh_xy8c2")
+skeleton = NodePath("../..")
+
+[node name="Inner" type="MeshInstance3D" parent="."]
+layers = 4
+cast_shadow = 0
+mesh = SubResource("SphereMesh_yq5gg")
+skeleton = NodePath("../..")

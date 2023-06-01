@@ -1,0 +1,535 @@
+[gd_scene load_steps=51 format=3 uid="uid://dm6di7m1tccyj"]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_ra3aq"]
+parameter_name = "Scattered_Color"
+default_value_enabled = true
+default_value = Color(0.486275, 0.635294, 0.87451, 1)
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_0ftqs"]
+input_name = "view"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_e4dnq"]
+input_name = "normal"
+
+[sub_resource type="VisualShaderNodeClamp" id="VisualShaderNodeClamp_lt70c"]
+default_input_values = [0, 0.0, 1, 0.0, 2, 0.03]
+
+[sub_resource type="VisualShaderNodeFresnel" id="VisualShaderNodeFresnel_6rlc7"]
+default_input_values = [2, true, 3, 3.5]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_pva0r"]
+input_name = "light"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_hsnen"]
+input_name = "albedo"
+
+[sub_resource type="VisualShaderNodeDotProduct" id="VisualShaderNodeDotProduct_xqqld"]
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_s7n7u"]
+default_input_values = [0, 1.0, 1, 0.0]
+operator = 2
+
+[sub_resource type="VisualShaderNodeClamp" id="VisualShaderNodeClamp_1xejo"]
+
+[sub_resource type="VisualShaderNodeMix" id="VisualShaderNodeMix_2438h"]
+default_input_values = [0, Quaternion(0, 0, 0, 0), 1, Quaternion(1, 1, 1, 1), 2, Quaternion(0.5, 0.5, 0.5, 0.5)]
+op_type = 5
+
+[sub_resource type="VisualShaderNodeFloatFunc" id="VisualShaderNodeFloatFunc_n6dxd"]
+function = 31
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_gki0v"]
+parameter_name = "atmo_fresnel_power"
+qualifier = 1
+
+[sub_resource type="VisualShaderNodeRemap" id="VisualShaderNodeRemap_mta2r"]
+default_input_values = [1, -0.5, 2, 1.0, 3, 0.0, 4, 1.0]
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_bxxq5"]
+parameter_name = "atmo_fresnel_max"
+qualifier = 1
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_0xhyx"]
+parameter_name = "sunset_color"
+default_value_enabled = true
+default_value = Color(0.899758, 0.0822244, 0.166245, 1)
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_sx2lh"]
+default_input_values = [0, 1.0, 1, 0.0]
+
+[sub_resource type="VisualShaderNodeFloatConstant" id="VisualShaderNodeFloatConstant_my7eh"]
+constant = 0.031
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_pydu3"]
+default_input_values = [0, 1.0, 1, 0.0]
+operator = 2
+
+[sub_resource type="VisualShaderNodeFresnel" id="VisualShaderNodeFresnel_ud22s"]
+default_input_values = [2, false, 3, 1.809]
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_6r5sr"]
+default_input_values = [0, 1.0, 1, 2.0]
+operator = 2
+
+[sub_resource type="VisualShader" id="VisualShader_ff4p8"]
+code = "shader_type spatial;
+render_mode ambient_light_disabled;
+
+uniform vec4 Scattered_Color : source_color = vec4(0.486275, 0.635294, 0.874510, 1.000000);
+uniform vec4 sunset_color : source_color = vec4(0.899758, 0.082224, 0.166245, 1.000000);
+global uniform float atmo_fresnel_power;
+global uniform float atmo_fresnel_max;
+
+
+
+void fragment() {
+// ColorParameter:3
+	vec4 n_out3p0 = Scattered_Color;
+
+
+// Output:0
+	ALBEDO = vec3(n_out3p0.xyz);
+
+
+}
+
+void light() {
+// Input:28
+	vec3 n_out28p0 = ALBEDO;
+
+
+// ColorParameter:44
+	vec4 n_out44p0 = sunset_color;
+
+
+// Input:27
+	vec3 n_out27p0 = LIGHT;
+
+
+// Input:24
+	vec3 n_out24p0 = NORMAL;
+
+
+// DotProduct:29
+	float n_out29p0 = dot(n_out27p0, n_out24p0);
+
+
+	float n_out42p0;
+// Remap:42
+	float n_in42p1 = -0.50000;
+	float n_in42p2 = 1.00000;
+	float n_in42p3 = 0.00000;
+	float n_in42p4 = 1.00000;
+	{
+		float __input_range = n_in42p2 - n_in42p1;
+		float __output_range = n_in42p4 - n_in42p3;
+		n_out42p0 = n_in42p3 + __output_range * ((n_out29p0 - n_in42p1) / __input_range);
+	}
+
+
+// Clamp:34
+	float n_in34p1 = 0.00000;
+	float n_in34p2 = 1.00000;
+	float n_out34p0 = clamp(n_out42p0, n_in34p1, n_in34p2);
+
+
+// FloatFunc:39
+	float n_out39p0 = 1.0 - n_out34p0;
+
+
+// Mix:37
+	vec4 n_out37p0 = mix(vec4(n_out28p0, 0.0), n_out44p0, vec4(n_out39p0));
+
+
+// Input:23
+	vec3 n_out23p0 = VIEW;
+
+
+// Fresnel:48
+	float n_in48p3 = 1.80900;
+	float n_out48p0 = pow(1.0 - clamp(dot(n_out24p0, n_out23p0), 0.0, 1.0), n_in48p3);
+
+
+// FloatParameter:41
+	float n_out41p0 = atmo_fresnel_power;
+
+
+// Fresnel:26
+	float n_out26p0 = pow(clamp(dot(n_out24p0, n_out23p0), 0.0, 1.0), n_out41p0);
+
+
+// FloatOp:47
+	float n_out47p0 = n_out48p0 * n_out26p0;
+
+
+// FloatParameter:43
+	float n_out43p0 = atmo_fresnel_max;
+
+
+// FloatConstant:46
+	float n_out46p0 = 0.031000;
+
+
+// FloatOp:45
+	float n_out45p0 = n_out43p0 + n_out46p0;
+
+
+// Clamp:25
+	float n_in25p1 = 0.00000;
+	float n_out25p0 = clamp(n_out47p0, n_in25p1, n_out45p0);
+
+
+// FloatOp:33
+	float n_out33p0 = n_out34p0 * n_out25p0;
+
+
+// FloatOp:49
+	float n_in49p1 = 2.00000;
+	float n_out49p0 = n_out33p0 * n_in49p1;
+
+
+// Output:0
+	DIFFUSE_LIGHT = vec3(n_out37p0.xyz);
+	ALPHA = n_out49p0;
+
+
+}
+"
+flags/ambient_light_disabled = true
+nodes/vertex/0/position = Vector2(700, 140)
+nodes/fragment/0/position = Vector2(1620, 100)
+nodes/fragment/3/node = SubResource("VisualShaderNodeColorParameter_ra3aq")
+nodes/fragment/3/position = Vector2(880, 140)
+nodes/fragment/connections = PackedInt32Array(3, 0, 0, 0)
+nodes/light/0/position = Vector2(880, 300)
+nodes/light/23/node = SubResource("VisualShaderNodeInput_0ftqs")
+nodes/light/23/position = Vector2(-2420, 580)
+nodes/light/24/node = SubResource("VisualShaderNodeInput_e4dnq")
+nodes/light/24/position = Vector2(-2440, 360)
+nodes/light/25/node = SubResource("VisualShaderNodeClamp_lt70c")
+nodes/light/25/position = Vector2(-100, 640)
+nodes/light/26/node = SubResource("VisualShaderNodeFresnel_6rlc7")
+nodes/light/26/position = Vector2(-760, 660)
+nodes/light/27/node = SubResource("VisualShaderNodeInput_pva0r")
+nodes/light/27/position = Vector2(-2460, 160)
+nodes/light/28/node = SubResource("VisualShaderNodeInput_hsnen")
+nodes/light/28/position = Vector2(-460, -600)
+nodes/light/29/node = SubResource("VisualShaderNodeDotProduct_xqqld")
+nodes/light/29/position = Vector2(-1900, 280)
+nodes/light/33/node = SubResource("VisualShaderNodeFloatOp_s7n7u")
+nodes/light/33/position = Vector2(180, 380)
+nodes/light/34/node = SubResource("VisualShaderNodeClamp_1xejo")
+nodes/light/34/position = Vector2(-920, 100)
+nodes/light/37/node = SubResource("VisualShaderNodeMix_2438h")
+nodes/light/37/position = Vector2(260, -281.772)
+nodes/light/39/node = SubResource("VisualShaderNodeFloatFunc_n6dxd")
+nodes/light/39/position = Vector2(-320, -60)
+nodes/light/41/node = SubResource("VisualShaderNodeFloatParameter_gki0v")
+nodes/light/41/position = Vector2(-1400, 820)
+nodes/light/42/node = SubResource("VisualShaderNodeRemap_mta2r")
+nodes/light/42/position = Vector2(-1300, 160)
+nodes/light/43/node = SubResource("VisualShaderNodeFloatParameter_bxxq5")
+nodes/light/43/position = Vector2(-1000, 920)
+nodes/light/44/node = SubResource("VisualShaderNodeColorParameter_0xhyx")
+nodes/light/44/position = Vector2(-626.621, -404.041)
+nodes/light/45/node = SubResource("VisualShaderNodeFloatOp_sx2lh")
+nodes/light/45/position = Vector2(-420, 840)
+nodes/light/46/node = SubResource("VisualShaderNodeFloatConstant_my7eh")
+nodes/light/46/position = Vector2(-900, 1180)
+nodes/light/47/node = SubResource("VisualShaderNodeFloatOp_pydu3")
+nodes/light/47/position = Vector2(-460, 540)
+nodes/light/48/node = SubResource("VisualShaderNodeFresnel_ud22s")
+nodes/light/48/position = Vector2(-840, 420)
+nodes/light/49/node = SubResource("VisualShaderNodeFloatOp_6r5sr")
+nodes/light/49/position = Vector2(500, 380)
+nodes/light/connections = PackedInt32Array(23, 0, 26, 1, 25, 0, 33, 1, 24, 0, 26, 0, 24, 0, 29, 1, 27, 0, 29, 0, 34, 0, 33, 0, 28, 0, 37, 0, 41, 0, 26, 3, 29, 0, 42, 0, 37, 0, 0, 0, 42, 0, 34, 0, 34, 0, 39, 0, 39, 0, 37, 2, 46, 0, 45, 1, 43, 0, 45, 0, 45, 0, 25, 2, 26, 0, 47, 1, 24, 0, 48, 0, 23, 0, 48, 1, 48, 0, 47, 0, 47, 0, 25, 0, 33, 0, 49, 0, 49, 0, 0, 2, 44, 0, 37, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lfpbl"]
+render_priority = 0
+shader = SubResource("VisualShader_ff4p8")
+shader_parameter/Scattered_Color = Color(0.772549, 0.639216, 0.498039, 1)
+shader_parameter/sunset_color = Color(0.886275, 0.635294, 0.466667, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_kb4ks"]
+material = SubResource("ShaderMaterial_lfpbl")
+radius = 1.26
+height = 2.52
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_2kf3o"]
+parameter_name = "Scattered_Color"
+default_value_enabled = true
+default_value = Color(0.486275, 0.635294, 0.87451, 1)
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_vqi72"]
+input_name = "light"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_ibcko"]
+input_name = "albedo"
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_qbiai"]
+default_input_values = [0, 1.0, 1, 0.0]
+operator = 2
+
+[sub_resource type="VisualShaderNodeDotProduct" id="VisualShaderNodeDotProduct_j7dui"]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_n2rkw"]
+input_name = "view"
+
+[sub_resource type="VisualShaderNodeClamp" id="VisualShaderNodeClamp_iacke"]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_qsgj3"]
+parameter_name = "sunset_color"
+default_value_enabled = true
+default_value = Color(0.899758, 0.0822244, 0.166245, 1)
+
+[sub_resource type="VisualShaderNodeMix" id="VisualShaderNodeMix_oe113"]
+default_input_values = [0, Quaternion(0, 0, 0, 0), 1, Quaternion(1, 1, 1, 1), 2, Quaternion(0.5, 0.5, 0.5, 0.5)]
+op_type = 5
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_y21n5"]
+input_name = "normal"
+
+[sub_resource type="VisualShaderNodeFloatFunc" id="VisualShaderNodeFloatFunc_tpg8v"]
+function = 31
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_pujhp"]
+parameter_name = "atmo_fresnel_power"
+qualifier = 1
+
+[sub_resource type="VisualShaderNodeRemap" id="VisualShaderNodeRemap_5ay1i"]
+default_input_values = [1, -0.5, 2, 1.0, 3, 0.0, 4, 1.0]
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_6yyku"]
+parameter_name = "atmo_fresnel_max"
+qualifier = 1
+
+[sub_resource type="VisualShaderNodeFloatConstant" id="VisualShaderNodeFloatConstant_i6qfr"]
+constant = 0.026
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_kef2o"]
+default_input_values = [0, 1.0, 1, 0.0]
+
+[sub_resource type="VisualShaderNodeClamp" id="VisualShaderNodeClamp_rmpqh"]
+
+[sub_resource type="VisualShaderNodeRemap" id="VisualShaderNodeRemap_bgfv1"]
+default_input_values = [1, 0.351, 2, 1.0, 3, 0.0, 4, 1.0]
+
+[sub_resource type="VisualShaderNodeDotProduct" id="VisualShaderNodeDotProduct_0rapp"]
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_mse03"]
+default_input_values = [0, 1.58, 1, 0.0]
+operator = 2
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_pq2xc"]
+default_input_values = [0, 1.0, 1, 2.0]
+operator = 2
+
+[sub_resource type="VisualShaderNodeClamp" id="VisualShaderNodeClamp_b75v2"]
+default_input_values = [0, 0.0, 1, 0.0, 2, 0.03]
+
+[sub_resource type="VisualShaderNodeFresnel" id="VisualShaderNodeFresnel_e8xki"]
+default_input_values = [2, true, 3, 3.5]
+
+[sub_resource type="VisualShader" id="VisualShader_8tmyv"]
+code = "shader_type spatial;
+render_mode cull_front, ambient_light_disabled;
+
+uniform vec4 Scattered_Color : source_color = vec4(0.486275, 0.635294, 0.874510, 1.000000);
+uniform vec4 sunset_color : source_color = vec4(0.899758, 0.082224, 0.166245, 1.000000);
+global uniform float atmo_fresnel_power;
+global uniform float atmo_fresnel_max;
+
+
+
+void fragment() {
+// ColorParameter:3
+	vec4 n_out3p0 = Scattered_Color;
+
+
+// Output:0
+	ALBEDO = vec3(n_out3p0.xyz);
+
+
+}
+
+void light() {
+// Input:15
+	vec3 n_out15p0 = ALBEDO;
+
+
+// ColorParameter:26
+	vec4 n_out26p0 = sunset_color;
+
+
+// Input:10
+	vec3 n_out10p0 = LIGHT;
+
+
+// Input:3
+	vec3 n_out3p0 = NORMAL;
+
+
+// DotProduct:19
+	float n_out19p0 = dot(n_out10p0, n_out3p0);
+
+
+	float n_out40p0;
+// Remap:40
+	float n_in40p1 = 0.35100;
+	float n_in40p2 = 1.00000;
+	float n_in40p3 = 0.00000;
+	float n_in40p4 = 1.00000;
+	{
+		float __input_range = n_in40p2 - n_in40p1;
+		float __output_range = n_in40p4 - n_in40p3;
+		n_out40p0 = n_in40p3 + __output_range * ((n_out19p0 - n_in40p1) / __input_range);
+	}
+
+
+// Clamp:39
+	float n_in39p1 = 0.00000;
+	float n_in39p2 = 1.00000;
+	float n_out39p0 = clamp(n_out40p0, n_in39p1, n_in39p2);
+
+
+// FloatFunc:31
+	float n_out31p0 = 1.0 - n_out39p0;
+
+
+// Mix:27
+	vec4 n_out27p0 = mix(vec4(n_out15p0, 0.0), n_out26p0, vec4(n_out31p0));
+
+
+// Input:2
+	vec3 n_out2p0 = VIEW;
+
+
+// DotProduct:41
+	float n_out41p0 = dot(n_out10p0, n_out2p0);
+
+
+// FloatParameter:33
+	float n_out33p0 = atmo_fresnel_power;
+
+
+// FloatOp:42
+	float n_in42p0 = 1.58000;
+	float n_out42p0 = n_in42p0 * n_out33p0;
+
+
+// Fresnel:9
+	float n_out9p0 = pow(clamp(dot(n_out3p0, n_out2p0), 0.0, 1.0), n_out42p0);
+
+
+// FloatParameter:36
+	float n_out36p0 = atmo_fresnel_max;
+
+
+// FloatConstant:37
+	float n_out37p0 = 0.026000;
+
+
+// FloatOp:38
+	float n_out38p0 = n_out36p0 + n_out37p0;
+
+
+// Clamp:7
+	float n_in7p1 = 0.00000;
+	float n_out7p0 = clamp(n_out9p0, n_in7p1, n_out38p0);
+
+
+// FloatOp:18
+	float n_out18p0 = n_out41p0 * n_out7p0;
+
+
+// FloatOp:43
+	float n_in43p1 = 2.00000;
+	float n_out43p0 = n_out18p0 * n_in43p1;
+
+
+// Output:0
+	DIFFUSE_LIGHT = vec3(n_out27p0.xyz);
+	ALPHA = n_out43p0;
+
+
+}
+"
+graph_offset = Vector2(-201.457, -303.81)
+modes/cull = 1
+flags/ambient_light_disabled = true
+nodes/vertex/0/position = Vector2(700, 140)
+nodes/fragment/0/position = Vector2(1620, 100)
+nodes/fragment/3/node = SubResource("VisualShaderNodeColorParameter_2kf3o")
+nodes/fragment/3/position = Vector2(860, -80)
+nodes/fragment/connections = PackedInt32Array(3, 0, 0, 0)
+nodes/light/0/position = Vector2(860, 320)
+nodes/light/2/node = SubResource("VisualShaderNodeInput_n2rkw")
+nodes/light/2/position = Vector2(-2680, 420)
+nodes/light/3/node = SubResource("VisualShaderNodeInput_y21n5")
+nodes/light/3/position = Vector2(-2680, 240)
+nodes/light/7/node = SubResource("VisualShaderNodeClamp_b75v2")
+nodes/light/7/position = Vector2(-140, 600)
+nodes/light/9/node = SubResource("VisualShaderNodeFresnel_e8xki")
+nodes/light/9/position = Vector2(-820, 640)
+nodes/light/10/node = SubResource("VisualShaderNodeInput_vqi72")
+nodes/light/10/position = Vector2(-2720, 0)
+nodes/light/15/node = SubResource("VisualShaderNodeInput_ibcko")
+nodes/light/15/position = Vector2(-600, -520)
+nodes/light/18/node = SubResource("VisualShaderNodeFloatOp_qbiai")
+nodes/light/18/position = Vector2(160, 380)
+nodes/light/19/node = SubResource("VisualShaderNodeDotProduct_j7dui")
+nodes/light/19/position = Vector2(-2200, 140)
+nodes/light/25/node = SubResource("VisualShaderNodeClamp_iacke")
+nodes/light/25/position = Vector2(-1260, 40)
+nodes/light/26/node = SubResource("VisualShaderNodeColorParameter_qsgj3")
+nodes/light/26/position = Vector2(-1100, -440)
+nodes/light/27/node = SubResource("VisualShaderNodeMix_oe113")
+nodes/light/27/position = Vector2(20, -320)
+nodes/light/31/node = SubResource("VisualShaderNodeFloatFunc_tpg8v")
+nodes/light/31/position = Vector2(-900, -80)
+nodes/light/33/node = SubResource("VisualShaderNodeFloatParameter_pujhp")
+nodes/light/33/position = Vector2(-1920, 760)
+nodes/light/34/node = SubResource("VisualShaderNodeRemap_5ay1i")
+nodes/light/34/position = Vector2(-1620, 100)
+nodes/light/36/node = SubResource("VisualShaderNodeFloatParameter_6yyku")
+nodes/light/36/position = Vector2(-1080, 880)
+nodes/light/37/node = SubResource("VisualShaderNodeFloatConstant_i6qfr")
+nodes/light/37/position = Vector2(-980, 1180)
+nodes/light/38/node = SubResource("VisualShaderNodeFloatOp_kef2o")
+nodes/light/38/position = Vector2(-440, 780)
+nodes/light/39/node = SubResource("VisualShaderNodeClamp_rmpqh")
+nodes/light/39/position = Vector2(-1400, -180)
+nodes/light/40/node = SubResource("VisualShaderNodeRemap_bgfv1")
+nodes/light/40/position = Vector2(-1820, -200)
+nodes/light/41/node = SubResource("VisualShaderNodeDotProduct_0rapp")
+nodes/light/41/position = Vector2(-1340, 380)
+nodes/light/42/node = SubResource("VisualShaderNodeFloatOp_mse03")
+nodes/light/42/position = Vector2(-1500, 680)
+nodes/light/43/node = SubResource("VisualShaderNodeFloatOp_pq2xc")
+nodes/light/43/position = Vector2(500, 380)
+nodes/light/connections = PackedInt32Array(9, 0, 7, 0, 2, 0, 9, 1, 3, 0, 9, 0, 3, 0, 19, 1, 10, 0, 19, 0, 7, 0, 18, 1, 15, 0, 27, 0, 27, 0, 0, 0, 34, 0, 25, 0, 19, 0, 34, 0, 31, 0, 27, 2, 36, 0, 38, 0, 37, 0, 38, 1, 38, 0, 7, 2, 19, 0, 40, 0, 39, 0, 31, 0, 40, 0, 39, 0, 10, 0, 41, 0, 2, 0, 41, 1, 41, 0, 18, 0, 33, 0, 42, 1, 42, 0, 9, 3, 18, 0, 43, 0, 43, 0, 0, 2, 26, 0, 27, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_abour"]
+render_priority = 0
+shader = SubResource("VisualShader_8tmyv")
+shader_parameter/Scattered_Color = Color(0.772549, 0.639216, 0.498039, 1)
+shader_parameter/sunset_color = Color(0.886275, 0.635294, 0.466667, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_g23sy"]
+material = SubResource("ShaderMaterial_abour")
+radius = 1.26
+height = 2.52
+
+[node name="Atmosphere" type="Node3D" groups=["atmospheres"]]
+
+[node name="Outer" type="MeshInstance3D" parent="."]
+layers = 2
+cast_shadow = 0
+mesh = SubResource("SphereMesh_kb4ks")
+skeleton = NodePath("../..")
+
+[node name="Inner" type="MeshInstance3D" parent="."]
+layers = 4
+cast_shadow = 0
+mesh = SubResource("SphereMesh_g23sy")
+skeleton = NodePath("../..")

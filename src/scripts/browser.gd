@@ -36,7 +36,6 @@ var rotosnaps: int
 var max_rotosnaps: int
 var snaps = []
 var snap_ease = 0.0
-var counter = 0
 var piecelocs: Dictionary
 var picktimer = 0.0
 var pick = false
@@ -75,6 +74,10 @@ var last_frame_snap_to := 0.0
 var disable_click := false
 
 var rotating := false
+
+var pieces_ready := false
+
+var wheel_moving := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -140,6 +143,8 @@ func _unhandled_input(event):
 func _process(delta):
 	if puzzle_done:
 		pass
+	elif !pieces_ready:
+		pass
 	else:
 		if drag:
 			if abs(dx) < 0.01:
@@ -173,8 +178,7 @@ func _process(delta):
 		if piece_in_space:
 			if piece_rotation:
 				rotating = true
-				camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.1)
-				wheel.position.y = lerp(wheel.position.y, 5.636, 0.1)
+				toggle_wheel('down')
 				wheelmesh.rotation.z += dx_final
 				emit_signal('wheel_rot', wheelmesh.rotation.z)
 			else:
@@ -184,9 +188,7 @@ func _process(delta):
 		else:
 			rotating = false
 			if piece_rotation:
-				camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.1)
-				wheelmesh.rotation.z = 0.0
-				wheel.position.y = lerp(wheel.position.y, 12.0, 0.1)
+				toggle_wheel('up')
 			rot_h -= dx_final
 		if rot_h < 0.0:
 			rot_h = 2*PI-abs(rot_h)
@@ -238,10 +240,14 @@ func _process(delta):
 		last_frame_snap_to = snap_to
 			
 func _on_universe_meshes_made_2():
+	pieces_ready = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	rotosnaps = len(pieces)
+	print(rotosnaps)
 	max_rotosnaps = rotosnaps
 	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
+	recam = true
+	#h_sensitivity = og_sens
 	#print(rotosnaps)
 	var ang = (2*PI)/rotosnaps
 	for r in rotosnaps:
@@ -260,6 +266,8 @@ func _on_i_am_here(idx, ang):
 	piecelocs[ang] = idx
 	
 func _on_take_me_home(idx):
+	if piece_rotation:
+		wheel_moving = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	for p in pieces:
 		if p.idx == idx:
@@ -269,6 +277,8 @@ func _on_take_me_home(idx):
 			piece_in_space = false
 
 func _on_universe_piece_placed_2(cidx):
+	if piece_rotation:
+		wheel_moving = true
 	disable_click = true
 	piece_in_space = false
 	snaps = []
@@ -293,3 +303,78 @@ func _on_universe_piece_placed_2(cidx):
 				p.circle_idx -= 1
 			#p.rearrange_offset = p.circle_idx - cidx
 			p.arrange(true)
+
+func _resetti_spaghetti():
+	piece_in_space = false
+	pieces_ready = false
+	puzzle_done = false
+	piecelocs = {}
+	snaps = []
+	piece_rotation = global.rotation
+	h_sensitivity = 0.003 * 180.0/self.get_viewport().get_visible_rect().size.x
+	
+func toggle_wheel(direction := 'down'):
+	if wheel_moving:
+		if direction == 'down':
+			camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.1)
+			wheel.position.y = lerp(wheel.position.y, 5.636, 0.1)
+			if is_equal_approx(camera_3d.position.y, 1.5) and is_equal_approx(wheel.position.y, 5.636):
+				camera_3d.position.y = 1.5
+				wheel.position.y = 5.636
+				wheel_moving = false
+		else:
+			camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.1)
+			wheelmesh.rotation.z = 0.0
+			wheel.position.y = lerp(wheel.position.y, 12.0, 0.1)
+			if is_equal_approx(camera_3d.position.y, 0.0) and is_equal_approx(wheel.position.y, 12.0):
+				camera_3d.position.y = 0.0
+				wheel.position.y = 12.0
+				wheel_moving = false
+
+func _on_picked_you(idx):
+	if piece_rotation:
+		wheel_moving = true
+
+func _on_start_puzzle_button_up():
+	pass
+#	pieces_ready = true
+#	var pieces = get_tree().get_nodes_in_group('pieces')
+#	rotosnaps = len(pieces)
+#	print(rotosnaps)
+#	max_rotosnaps = rotosnaps
+#	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
+#	recam = true
+#	#h_sensitivity = og_sens
+#	#print(rotosnaps)
+#	var ang = (2*PI)/rotosnaps
+#	for r in rotosnaps:
+#		snaps.append(ang*(r))
+#	for p in pieces:
+#		p.reparent(self, false)
+#		p.i_am_here.connect(_on_i_am_here)
+#		p.take_me_home.connect(_on_take_me_home)
+#		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
+#		p.arrange()
+
+func _on_universe_ufo_done_2():
+	pieces_ready = true
+	var pieces = get_tree().get_nodes_in_group('pieces')
+	rotosnaps = len(pieces)
+	print(rotosnaps)
+	max_rotosnaps = rotosnaps
+	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
+	recam = true
+	#h_sensitivity = og_sens
+	#print(rotosnaps)
+	var ang = (2*PI)/rotosnaps
+	for r in rotosnaps:
+		snaps.append(ang*(r))
+	for p in pieces:
+		p.reparent(self, false)
+		p.i_am_here.connect(_on_i_am_here)
+		p.take_me_home.connect(_on_take_me_home)
+		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
+		p.arrange()
+
+func _on_generate_button_up():
+	_resetti_spaghetti()

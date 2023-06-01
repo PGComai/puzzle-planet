@@ -62,7 +62,11 @@ atmo_fresnel_max={
 "type": "float",
 "value": 0.553
 }
-atmo_color={
+atmo_daylight={
 "type": "color",
-"value": Color(0.898039, 0.0823529, 0.164706, 1)
+"value": Color(0.831373, 0.6, 0.352941, 1)
+}
+atmo_sunset={
+"type": "color",
+"value": Color(0.505882, 0.811765, 1, 1)
 }
