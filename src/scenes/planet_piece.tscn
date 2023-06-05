@@ -1,19 +1,24 @@
-[gd_scene load_steps=19 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=21 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
+resource_local_to_scene = true
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
-roughness = 0.78
+roughness = 0.79
+emission = Color(0.813096, 0.883004, 0.71694, 1)
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_4ibd5"]
+resource_local_to_scene = true
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iyjmg"]
+resource_local_to_scene = true
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 roughness = 0.94
+emission = Color(0.813096, 0.883004, 0.71694, 1)
 texture_filter = 0
 grow_amount = -0.001
 point_size = 2.6
@@ -38,6 +43,21 @@ albedo_color = Color(0.788235, 0.164706, 0.160784, 1)
 material = SubResource("StandardMaterial3D_15kp0")
 radius = 0.05
 height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ofrj5"]
+resource_local_to_scene = true
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+roughness = 0.04
+emission = Color(0.813096, 0.883004, 0.71694, 1)
+rim = 0.28
+rim_tint = 0.0
+clearcoat = 0.0
+anisotropy = -1.0
+texture_filter = 0
+texture_repeat = false
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_knalo"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2fggi"]
 
@@ -95,6 +115,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0)
 visible = false
 mesh = SubResource("SphereMesh_sox24")
 skeleton = NodePath("../..")
+
+[node name="water" type="MeshInstance3D" parent="themesh"]
+material_overlay = SubResource("StandardMaterial3D_ofrj5")
+mesh = SubResource("ArrayMesh_knalo")
 
 [node name="upward" type="Node3D" parent="."]
 visible = false

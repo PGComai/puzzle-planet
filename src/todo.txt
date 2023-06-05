@@ -1,8 +1,7 @@
-- menu/gui
 - rock strata in crust
 - fix glancing light specular in water
-- fix bug from fast rotation and selection
-- some pieces dont show up in rotowindow
+- show ufo dropping off pieces in carousel
+- nicer rotating wheel
 
 maybe:
 	- slant screen divider for one-handed ease

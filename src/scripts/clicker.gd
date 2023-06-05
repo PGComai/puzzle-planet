@@ -15,5 +15,5 @@ func _process(delta):
 func _on_browser_click(speed):
 	pitch_scale = speed
 	play()
-	Input.vibrate_handheld(5)
+	Input.vibrate_handheld(4)
 	

@@ -10,6 +10,7 @@ signal spin_piece(rot)
 signal ufo_abducting2(piece)
 signal ufo_abduction_done2
 signal ufo_reset
+signal piece_added
 
 @export var h_sensitivity = 0.005
 @export var v_sensitivity = 0.005
@@ -58,6 +59,9 @@ var ready_for_nmm := false
 
 var global
 
+var last_rot_h_tick := 0.0
+var last_rot_v_tick := 0.0
+
 func _ready():
 	global = get_node('/root/Global')
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
@@ -105,6 +109,7 @@ func _unhandled_input(event):
 			drag = false
 			if limit_pull > 0.0 and abs($h/v.rotation.x) > (15*PI)/32:
 				#print('fling')
+				Input.vibrate_handheld(8)
 				fling = true
 				
 func _process(delta):
@@ -171,6 +176,15 @@ func _process(delta):
 		rot_v = clamp(rot_v, v_min, PI/2)
 	else:
 		rot_v = clamp(rot_v, v_min, v_max)
+		
+#	var rot_h_tick = fmod(abs(rot_h), PI/4.0)
+#	var rot_v_tick = fmod(abs(rot_v), PI/4.0)
+#	if (rot_h_tick >= PI/8.0 and last_rot_h_tick < PI/8.0) or (rot_h_tick <= PI/8.0 and last_rot_h_tick > PI/8.0):
+#		Input.vibrate_handheld(3)
+#	elif (rot_v_tick >= PI/8.0 and last_rot_v_tick < PI/8.0) or (rot_v_tick <= PI/8.0 and last_rot_v_tick > PI/8.0):
+#		Input.vibrate_handheld(3)
+#	last_rot_h_tick = rot_h_tick
+#	last_rot_v_tick = rot_v_tick
 
 	$h.rotation.y = rot_h
 	$h/v.rotation.x = rot_v
@@ -204,6 +218,10 @@ func _on_mesh_maker_piece_placed(cidx):
 	emit_signal("piece_placed2", cidx)
 
 func _on_generate_button_up():
+	var ufo = get_tree().get_first_node_in_group('ufo')
+	ufo.reparent(self, false)
+	ufo.in_browser = false
+	ufo.browser_drop_off_begin = false
 	emit_signal("ufo_reset")
 	shadow_light._on = false
 	sun._on = true
@@ -256,3 +274,11 @@ func _on_ufo_ufo_abducting(piece, speed):
 
 func _on_ufo_ufo_abduction_done():
 	emit_signal('ufo_abduction_done2')
+
+func _on_ufo_ufo_take_me_home():
+	var ufo = get_tree().get_first_node_in_group('ufo')
+	ufo.reparent(self, false)
+
+func _on_pieces_child_entered_tree(node):
+	if node.get_parent() == pieces:
+		emit_signal("piece_added")

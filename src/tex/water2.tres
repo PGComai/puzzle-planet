@@ -1,11 +1,14 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://da5xafhj1wk4i"]
 
 [resource]
+resource_local_to_scene = true
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 roughness = 0.04
+emission = Color(0.813096, 0.883004, 0.71694, 1)
 rim = 0.28
 rim_tint = 0.0
 clearcoat = 0.0
 anisotropy = -1.0
 texture_filter = 0
+texture_repeat = false

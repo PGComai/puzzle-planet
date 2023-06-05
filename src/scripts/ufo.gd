@@ -3,6 +3,8 @@ extends Node3D
 signal ufo_done
 signal ufo_abducting(piece, speed)
 signal ufo_abduction_done
+signal spinny_time
+signal ufo_take_me_home
 
 @export var journey_speed_curve: Curve
 
@@ -20,11 +22,19 @@ var journey_lerp_multiplier := 0.0
 var beam_timer := 0.0
 var beam_done := false
 var abduct_signal_sent := false
+var in_browser := false
+var browser_drop_off_begin := false
+var browser_drop_off_end := false
+var drop_off_cam_dist: float
+var drop_off_cam_pos: Vector3
+var drop_off_enter_circle_checkpoint := false
+var drop_off_exit_circle_checkpoint := false
+var start_drop_off_pos: Vector3
 @onready var tractor_beam = $meshes/tractor_beam
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	visible = false
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -46,13 +56,48 @@ func _process(delta):
 				position = Vector3(1.0, 5.0, 0.1)
 				checkpoint_last = true
 				lerp_multiplier = 1.0
+				visible = false
 		else:
 			emit_signal('ufo_done')
 			showtime = false
 			journey = false
 			checkpoint_1 = false
 			checkpoint_last = false
-			visible = false
+			#visible = false
+	elif in_browser:
+		if browser_drop_off_begin:
+			position = Vector3(0.0, 12.0, 0.0)
+			browser_drop_off_begin = false
+			drop_off_enter_circle_checkpoint = false
+			drop_off_exit_circle_checkpoint = false
+			start_drop_off_pos = -drop_off_cam_pos.limit_length(drop_off_cam_pos.length() - 1.3) + Vector3(0.0, 0.2, 0.0)
+			visible = true
+		elif !browser_drop_off_end:
+			_drop_off()
+		else:
+			position = lerp(position, Vector3(0.0, 12.0, 0.0), 0.1)
+			if position.y > 8.0:
+				emit_signal('ufo_take_me_home')
+				in_browser = false
+				browser_drop_off_begin = false
+				browser_drop_off_end = false
+				drop_off_enter_circle_checkpoint = false
+				drop_off_exit_circle_checkpoint = false
+				visible = false
+
+func _drop_off():
+	if !drop_off_enter_circle_checkpoint:
+		position = lerp(position, start_drop_off_pos, 0.1)
+		var loo = start_drop_off_pos.normalized() * 100.0
+		var look = Vector3(loo.x, -20.0, loo.z)
+		look_at(look, Vector3.UP)
+		if position.is_equal_approx(start_drop_off_pos):
+			drop_off_enter_circle_checkpoint = true
+			emit_signal('spinny_time')
+	elif drop_off_exit_circle_checkpoint:
+		position = lerp(position, Vector3(0.0, 0.2, 0.0), 0.1)
+		if position.is_equal_approx(Vector3(0.0, 0.2, 0.0)):
+			browser_drop_off_end = true
 
 func _run_journey(delta):
 	if next_stop > num_stops - 1:
@@ -105,7 +150,7 @@ func _make_path():
 	for l in list:
 		path.append(record[l])
 	num_stops = len(path)
-	print(path)
+	#print(path)
 
 func _on_universe_ufo_time():
 	showtime = true
@@ -123,5 +168,5 @@ func _on_universe_ufo_reset():
 	journey_lerp_multiplier = 0.0
 	beam_done = false
 	abduct_signal_sent = false
-	position = Vector3(1.0, 5.0, 0.1)
+	position = Vector3(0.1, 5.0, 0.1)
 	tractor_beam.visible = false

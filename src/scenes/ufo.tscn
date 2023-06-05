@@ -59,13 +59,12 @@ radius = 0.122
 height = 0.039
 is_hemisphere = true
 
-[node name="UFO" type="Node3D"]
-visible = false
+[node name="UFO" type="Node3D" groups=["ufo"]]
 script = ExtResource("1_p1dcn")
 journey_speed_curve = SubResource("Curve_1xtc4")
 
 [node name="meshes" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+transform = Transform3D(1.434, 0, 0, 0, -6.26821e-08, -1.434, 0, 1.434, -6.26821e-08, 0, 0, 0)
 
 [node name="hull" type="MeshInstance3D" parent="meshes"]
 mesh = SubResource("SphereMesh_mce1x")

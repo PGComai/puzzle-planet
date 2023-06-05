@@ -10,6 +10,7 @@ signal this_is_my_rotation(rot)
 @onready var zbasis = $zbasis
 @onready var themesh = $themesh
 @onready var walls = $themesh/walls
+@onready var water = $themesh/water
 
 var offset := 1.0
 
@@ -74,15 +75,21 @@ var entered := false
 var being_abducted := false
 var abduction_lerp := 0.0
 var abduction_finished := false
+var drop_off_finished := true
+var drop_off_started := false
+var drop_off_original_dist: float
+var drop_off_original_position: Vector3
 
 var ghostball
 var ghost
 var ghostwalls
+var ghostwater
 var ghostoutline
 var ghostwallsoutline
 var rotowindow
 
 var global
+var water_instance_id
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -91,6 +98,7 @@ func _ready():
 	ghostball = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall')
 	ghost = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost')
 	ghostwalls = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost/GhostWalls')
+	ghostwater = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost/GhostWater')
 	ghostoutline = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/GhostOutline')
 	ghostwallsoutline = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/GhostOutline/GhostWallsOutline')
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
@@ -132,6 +140,7 @@ func _ready():
 		newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 		
 		if !(len(vertex_w) == 0):
+			var watermesh = ArrayMesh.new()
 			surface_array = []
 			surface_array.resize(Mesh.ARRAY_MAX)
 			
@@ -143,7 +152,8 @@ func _ready():
 			surface_array[Mesh.ARRAY_NORMAL] = normal_w
 			surface_array[Mesh.ARRAY_COLOR] = color_w
 			
-			newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+			watermesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+			water.mesh = watermesh
 	
 	#newmesh.regen_normal_maps()
 	newmesh.shadow_mesh = newmesh
@@ -166,8 +176,9 @@ func _ready():
 
 	walls.mesh = wallmesh
 	
-	if ocean:
-		themesh.mesh.surface_set_material(themesh.mesh.get_surface_count()-1, water_material)
+#	if ocean:
+#		water_instance_id = water_material.get_instance_id()
+#		themesh.mesh.surface_set_material(themesh.mesh.get_surface_count()-1, water_material)
 	#if staying:
 	self.position = direction * offset
 	get_parent().get_parent().ufo_abducting2.connect(_on_ufo_abducting2)
@@ -176,6 +187,8 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if !placed:
+		if !drop_off_finished:
+			_dropped_off_animation()
 		if being_abducted:
 			_abducted_animation()
 		if repositioning:
@@ -230,6 +243,7 @@ func arrange(re = false):
 	if !get_parent().is_connected('found_you', _on_found_you):
 		get_parent().found_you.connect(_on_found_you)
 		get_parent().picked_you.connect(_on_picked_you)
+		get_parent().ufo_at_angle.connect(_on_ufo_at_angle)
 	#var basis_offset = self.transform.basis.z.angle_to(direction)
 	#print(basis_offset)
 	var brothers = len(get_tree().get_nodes_in_group('pieces'))
@@ -246,6 +260,7 @@ func arrange(re = false):
 	rot_offset = rot
 	if !re:
 		self.position = newpos
+		drop_off_original_position = newpos
 		self.look_at(Vector3(0.0, self.global_position.y, 0.0))
 		good_global_rot = self.global_rotation
 		good_rot = good_global_rot.y
@@ -277,19 +292,20 @@ func _on_picked_you(_idx):
 		time_to_return = true
 		if global.rotation and idx == _idx:
 			rotowindow.visible = false
-			print('hide roto')
+			#print('hide roto')
 	else:
 		if idx == _idx:
 			if global.rotation:
 				ghost.mesh = themesh.mesh
 				ghostwalls.mesh = walls.mesh
+				ghostwater.mesh = water.mesh
 				ghostoutline.mesh = themesh.mesh
 				ghostwallsoutline.mesh = walls.mesh
 				ghost.rotation = themesh.rotation
 				ghostoutline.rotation = themesh.rotation
 				ghostball.rotation.z = rotation.z
 				rotowindow.visible = true
-				print('show roto')
+				#print('show roto')
 			emit_signal('this_is_my_rotation', self.rotation.z)
 			picked = true
 			in_transit = true
@@ -313,6 +329,12 @@ func _unpicked_animation():
 		in_transit = false
 
 func _abducted_animation():
+	water.material_overlay.emission_enabled = true
+	themesh.material_overlay.emission_enabled = true
+	walls.material_overlay.emission_enabled = true
+	water.material_overlay.emission_energy_multiplier = lerp(water.material_overlay.emission_energy_multiplier, 1.0, abduction_lerp)
+	themesh.material_overlay.emission_energy_multiplier = lerp(themesh.material_overlay.emission_energy_multiplier, 1.0, abduction_lerp)
+	walls.material_overlay.emission_energy_multiplier = lerp(walls.material_overlay.emission_energy_multiplier, 1.0, abduction_lerp)
 	position = lerp(position, position.normalized() * 1.3, abduction_lerp)
 	scale = lerp(scale, Vector3(0.1, 0.1, 0.1), abduction_lerp)
 	if abduction_finished:
@@ -329,3 +351,33 @@ func _on_ufo_abducting2(piece, speed):
 func _on_ufo_abduction_done2():
 	if being_abducted:
 		abduction_finished = true
+
+func _on_ufo_at_angle(ang):
+	if is_equal_approx(ang, angle) and visible == false:
+		visible = true
+		drop_off_finished = false
+
+func _dropped_off_animation():
+	if !drop_off_started:
+		position = position.limit_length(drop_off_original_dist - 1.3) + Vector3(0.0, 0.2, 0.0)
+		scale = Vector3(0.1, 0.1, 0.1)
+		drop_off_started = true
+		water.material_overlay.emission_enabled = true
+		themesh.material_overlay.emission_enabled = true
+		walls.material_overlay.emission_enabled = true
+		water.material_overlay.emission_energy_multiplier = 1.0
+		themesh.material_overlay.emission_energy_multiplier = 1.0
+		walls.material_overlay.emission_energy_multiplier = 1.0
+	else:
+		water.material_overlay.emission_energy_multiplier = lerp(water.material_overlay.emission_energy_multiplier, 0.0, 0.1)
+		themesh.material_overlay.emission_energy_multiplier = lerp(themesh.material_overlay.emission_energy_multiplier, 0.0, 0.1)
+		walls.material_overlay.emission_energy_multiplier = lerp(walls.material_overlay.emission_energy_multiplier, 0.0, 0.1)
+		position = lerp(position, drop_off_original_position, 0.1)
+		scale = lerp(scale, Vector3(1.0, 1.0, 1.0), 0.1)
+		if position.is_equal_approx(drop_off_original_position) and scale.is_equal_approx(Vector3(1.0, 1.0, 1.0)):
+			water.material_overlay.emission_enabled = false
+			themesh.material_overlay.emission_enabled = false
+			walls.material_overlay.emission_enabled = false
+			position = drop_off_original_position
+			scale = Vector3(1.0, 1.0, 1.0)
+			drop_off_finished = true

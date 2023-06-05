@@ -4,6 +4,7 @@ signal found_you(idx)
 signal picked_you(idx)
 signal wheel_rot(rot)
 signal click(speed)
+signal ufo_at_angle(angle)
 
 @onready var orbit = $Orbit
 @onready var camrot = $camrot
@@ -14,6 +15,7 @@ signal click(speed)
 @onready var wheelmesh = $camrot/Camera3D/wheel/wheelmesh
 @onready var audio_stream_player = $AudioStreamPlayer
 @onready var ghost = $"../../../../../../../RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost"
+@onready var ufo_orbit = $UFO_orbit
 
 var global
 var piece_rotation := false
@@ -78,6 +80,8 @@ var rotating := false
 var pieces_ready := false
 
 var wheel_moving := false
+var ufo_come_drop_off := false
+var wheel_up := true
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -90,59 +94,61 @@ func _ready():
 	og_sens = h_sensitivity
 
 func _unhandled_input(event):
-	if event is InputEventScreenDrag:
-		disable_click = false
-		if !holding and !holding_top:
-			first_touch = (event.position.y / sub_viewport_container.size.y)
-			if first_touch >= 0.9:
-				first_touch_too_low = true
-			else:
-				first_touch_too_low = false
-		if event.position.y > 0.0:
-			holding_top = false
-			holding = true
-			drag = true
-			if !rotating:
-				dx = event.relative.x * h_sensitivity
-			else:
-				dx = event.relative.x * og_sens
-			dy = event.relative.y * v_sensitivity
-			if abs(dx) > abs(dy):
-				dy = 0.0
-			elif abs(dx) <= abs(dy):
-				dx = 0.0
-		else:
-			holding_top = true
-			holding = false
-			drag = false
-	if event is InputEventScreenTouch:
-		if event.pressed == false:
+	if pieces_ready:
+		if event is InputEventScreenDrag:
+			disable_click = false
 			if !holding and !holding_top:
-				if event.position.y > 0.0:
-					# this is where we pick a piece
+				first_touch = (event.position.y / sub_viewport_container.size.y)
+				if first_touch >= 0.9:
+					first_touch_too_low = true
+				else:
+					first_touch_too_low = false
+			if event.position.y > 0.0:
+				holding_top = false
+				holding = true
+				drag = true
+				if !rotating:
+					dx = event.relative.x * h_sensitivity
+				else:
+					dx = event.relative.x * og_sens
+				dy = event.relative.y * v_sensitivity
+				if abs(dx) > abs(dy):
+					dy = 0.0
+				elif abs(dx) <= abs(dy):
+					dx = 0.0
+			else:
+				holding_top = true
+				holding = false
+				drag = false
+		if event is InputEventScreenTouch:
+			if event.pressed == false:
+				if !holding and !holding_top:
+					if event.position.y > 0.0:
+						# this is where we pick a piece
+						if piecelocs.has(front_piece):
+							piece_in_space = true
+							emit_signal("picked_you", piecelocs[front_piece])
+							stay_at_angle = front_piece
+				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space and !first_touch_too_low:
 					if piecelocs.has(front_piece):
 						piece_in_space = true
 						emit_signal("picked_you", piecelocs[front_piece])
 						stay_at_angle = front_piece
-			elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space and !first_touch_too_low:
-				if piecelocs.has(front_piece):
-					piece_in_space = true
-					emit_signal("picked_you", piecelocs[front_piece])
-					stay_at_angle = front_piece
-			elif dy_final > 0.01 and abs(dx_final) < 0.02 and piece_in_space and first_touch > 0.0:
-				if piecelocs.has(front_piece):
-					emit_signal("picked_you", piecelocs[front_piece])
-					stay_at_angle = front_piece
-			holding_top = false
-			holding = false
-			pick = false
-		elif event.pressed == true:
-			pick = true
+				elif dy_final > 0.01 and abs(dx_final) < 0.02 and piece_in_space and first_touch > 0.0:
+					if piecelocs.has(front_piece):
+						emit_signal("picked_you", piecelocs[front_piece])
+						stay_at_angle = front_piece
+				holding_top = false
+				holding = false
+				pick = false
+			elif event.pressed == true:
+				pick = true
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if puzzle_done:
-		pass
+		if !wheel_up:
+			toggle_wheel('up')
 	elif !pieces_ready:
 		pass
 	else:
@@ -239,25 +245,25 @@ func _process(delta):
 		
 		last_frame_snap_to = snap_to
 			
-func _on_universe_meshes_made_2():
-	pieces_ready = true
-	var pieces = get_tree().get_nodes_in_group('pieces')
-	rotosnaps = len(pieces)
-	print(rotosnaps)
-	max_rotosnaps = rotosnaps
-	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
-	recam = true
-	#h_sensitivity = og_sens
-	#print(rotosnaps)
-	var ang = (2*PI)/rotosnaps
-	for r in rotosnaps:
-		snaps.append(ang*(r))
-	for p in pieces:
-		p.reparent(self, false)
-		p.i_am_here.connect(_on_i_am_here)
-		p.take_me_home.connect(_on_take_me_home)
-		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
-		p.arrange()
+#func _on_universe_meshes_made_2():
+#	pieces_ready = true
+#	var pieces = get_tree().get_nodes_in_group('pieces')
+#	rotosnaps = len(pieces)
+#	print(rotosnaps)
+#	max_rotosnaps = rotosnaps
+#	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
+#	recam = true
+#	#h_sensitivity = og_sens
+#	#print(rotosnaps)
+#	var ang = (2*PI)/rotosnaps
+#	for r in rotosnaps:
+#		snaps.append(ang*(r))
+#	for p in pieces:
+#		p.reparent(self, false)
+#		p.i_am_here.connect(_on_i_am_here)
+#		p.take_me_home.connect(_on_take_me_home)
+#		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
+#		p.arrange()
 
 func _on_this_is_my_rotation(rot):
 	wheelmesh.rotation.z = rot
@@ -288,10 +294,10 @@ func _on_universe_piece_placed_2(cidx):
 		puzzle_done = true
 		print('done')
 	else:
-		print(piecelocs)
+		#print(piecelocs)
 		piecelocs = {}
 		h_sensitivity = og_sens * (float(max_rotosnaps)/float(rotosnaps))
-		print(float(max_rotosnaps)/float(rotosnaps))
+		#print(float(max_rotosnaps)/float(rotosnaps))
 		cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
 		recam = true
 		#print(rotosnaps)
@@ -305,13 +311,24 @@ func _on_universe_piece_placed_2(cidx):
 			p.arrange(true)
 
 func _resetti_spaghetti():
+	ufo_come_drop_off = false
+	ufo_orbit.spin = false
+	ufo_orbit.past_halfway = false
+	ufo_orbit.rotation = Vector3.ZERO
+	rot_h = 0.0
+	camrot.rotation = Vector3.ZERO
 	piece_in_space = false
 	pieces_ready = false
 	puzzle_done = false
 	piecelocs = {}
 	snaps = []
+	snap_to = 0.0
 	piece_rotation = global.rotation
 	h_sensitivity = 0.003 * 180.0/self.get_viewport().get_visible_rect().size.x
+	camera_3d.position.y = 0.0
+	wheel.position.y = 12.0
+	wheel_moving = false
+	wheel_up = true
 	
 func toggle_wheel(direction := 'down'):
 	if wheel_moving:
@@ -322,6 +339,7 @@ func toggle_wheel(direction := 'down'):
 				camera_3d.position.y = 1.5
 				wheel.position.y = 5.636
 				wheel_moving = false
+				wheel_up = false
 		else:
 			camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.1)
 			wheelmesh.rotation.z = 0.0
@@ -330,8 +348,12 @@ func toggle_wheel(direction := 'down'):
 				camera_3d.position.y = 0.0
 				wheel.position.y = 12.0
 				wheel_moving = false
+				wheel_up = true
 
 func _on_picked_you(idx):
+	dx = 0.0
+	dx_final = 0.0
+	dx_acc = []
 	if piece_rotation:
 		wheel_moving = true
 
@@ -357,16 +379,18 @@ func _on_start_puzzle_button_up():
 #		p.arrange()
 
 func _on_universe_ufo_done_2():
-	pieces_ready = true
+	#pieces_ready = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	rotosnaps = len(pieces)
-	print(rotosnaps)
+	h_sensitivity *= 15.0/float(rotosnaps)
+	#print(rotosnaps)
 	max_rotosnaps = rotosnaps
 	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
-	recam = true
+	#recam = true
+	camera_3d.position.z = cam_dist
+	var ang = (2*PI)/rotosnaps
 	#h_sensitivity = og_sens
 	#print(rotosnaps)
-	var ang = (2*PI)/rotosnaps
 	for r in rotosnaps:
 		snaps.append(ang*(r))
 	for p in pieces:
@@ -374,7 +398,39 @@ func _on_universe_ufo_done_2():
 		p.i_am_here.connect(_on_i_am_here)
 		p.take_me_home.connect(_on_take_me_home)
 		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
+		p.drop_off_original_dist = cam_dist
+		p.visible = false
 		p.arrange()
+	ufo_come_drop_off = true
+	var ufo = get_tree().get_first_node_in_group('ufo')
+	ufo.reparent(ufo_orbit, false)
+	if !ufo.is_connected('ufo_take_me_home', _on_ufo_take_me_home):
+		ufo.ufo_take_me_home.connect(_on_ufo_take_me_home)
+	ufo.in_browser = true
+	ufo.browser_drop_off_begin = true
+	ufo.drop_off_cam_dist = cam_dist
+	ufo.drop_off_cam_pos = camera_3d.position
+	ufo_orbit._connect_to_UFO()
 
 func _on_generate_button_up():
 	_resetti_spaghetti()
+
+func _on_ufo_take_me_home():
+	var pieces = get_tree().get_nodes_in_group('pieces')
+	for p in pieces:
+		p.visible = true
+
+func _on_ufo_orbit_at_angle(angle):
+	# figure out how to get this to send one signal to each piece
+	if angle < 0.0:
+		angle = (PI - abs(angle)) + PI
+	angle += PI
+	if angle >= 2.0*PI:
+		angle -= 2.0*PI
+	var ufo_snap_to = snappedf(angle, 2*PI/rotosnaps)
+	#print(ufo_snap_to)
+	emit_signal("ufo_at_angle", ufo_snap_to)
+
+
+func _on_ufo_orbit_drop_off_done():
+	pieces_ready = true

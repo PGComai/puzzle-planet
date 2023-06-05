@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=29 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
 [ext_resource type="PackedScene" uid="uid://ls26k2ueeeb3" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
@@ -6,9 +6,11 @@
 [ext_resource type="Script" path="res://scripts/popup.gd" id="4_esiwd"]
 [ext_resource type="Theme" uid="uid://h80aogkghxi5" path="res://tex/optionbox.tres" id="5_kb0sw"]
 [ext_resource type="Script" path="res://scripts/newplanet.gd" id="6_ql4kd"]
+[ext_resource type="StyleBox" uid="uid://dd6v7dxm3exou" path="res://tex/NewPlanetPanelBox.tres" id="6_qwkga"]
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
 [ext_resource type="Script" path="res://scripts/RotoWindow.gd" id="8_827gc"]
 [ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
+[ext_resource type="Script" path="res://scenes/PlanetProgress.gd" id="10_qmupj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4svtt"]
 bg_color = Color(0, 0, 0, 1)
@@ -43,6 +45,8 @@ vertex_color_is_srgb = true
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_tvchn"]
 
+[sub_resource type="ArrayMesh" id="ArrayMesh_04n6r"]
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_huv87"]
 shading_mode = 0
 albedo_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
@@ -65,6 +69,18 @@ expand_margin_left = 5.0
 expand_margin_top = 5.0
 expand_margin_right = 5.0
 expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_omgwe"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.219501, 0.219501, 0.219501, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.287295, 0.287295, 0.287295, 1)
 
 [node name="UX" type="Control"]
 layout_mode = 3
@@ -183,16 +199,18 @@ item_3/id = 3
 script = ExtResource("4_esiwd")
 
 [node name="PopupPanel" type="PopupPanel" parent="."]
+canvas_item_default_texture_filter = 0
 position = Vector2i(5, 65)
 size = Vector2i(170, 250)
 theme = ExtResource("5_kb0sw")
+theme_override_styles/panel = ExtResource("6_qwkga")
 script = ExtResource("6_ql4kd")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel"]
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 166.0
-offset_bottom = 246.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 164.0
+offset_bottom = 244.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
 layout_mode = 2
@@ -337,6 +355,12 @@ material_overlay = SubResource("StandardMaterial3D_d8abq")
 cast_shadow = 0
 mesh = SubResource("ArrayMesh_tvchn")
 
+[node name="GhostWater" type="MeshInstance3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost"]
+layers = 1024
+material_overlay = SubResource("StandardMaterial3D_d8abq")
+cast_shadow = 0
+mesh = SubResource("ArrayMesh_04n6r")
+
 [node name="GhostOutline" type="MeshInstance3D" parent="RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall"]
 transform = Transform3D(1.15, 0, 0, 0, 1.15, 0, 0, 0, 1.15, 0, 0, 0.644827)
 layers = 1024
@@ -383,7 +407,38 @@ Puzzle
 "
 script = ExtResource("9_7ob1j")
 
+[node name="ProgressPanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -3.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_omgwe")
+
+[node name="MarginContainer" type="MarginContainer" parent="ProgressPanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="PlanetProgress" type="ProgressBar" parent="ProgressPanelContainer/MarginContainer"]
+texture_filter = 1
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("1_kqae3")
+rounded = true
+script = ExtResource("10_qmupj")
+
+[node name="ProgressFullTimer" type="Timer" parent="ProgressPanelContainer/MarginContainer/PlanetProgress"]
+one_shot = true
+
 [connection signal="meshes_made2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_meshes_made_2"]
+[connection signal="piece_added" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_universe_piece_added"]
 [connection signal="piece_placed2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_piece_placed_2"]
 [connection signal="ready_to_start2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="StartPuzzle" method="_on_universe_ready_to_start_2"]
 [connection signal="ufo_done2" from="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_universe_ufo_done_2"]
@@ -399,7 +454,10 @@ script = ExtResource("9_7ob1j")
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_generate_button_up"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="PopupPanel" method="_on_generate_button_up"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
+[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_generate_button_up"]
 [connection signal="button_up" from="PopupPanel/VBoxContainer/Cancel" to="PopupPanel" method="_on_cancel_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_start_puzzle_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_start_puzzle_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="StartPuzzle" method="_on_button_up"]
+[connection signal="button_up" from="StartPuzzle" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_start_puzzle_button_up"]
+[connection signal="timeout" from="ProgressPanelContainer/MarginContainer/PlanetProgress/ProgressFullTimer" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_progress_full_timer_timeout"]
