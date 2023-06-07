@@ -32,8 +32,11 @@ var drop_off_exit_circle_checkpoint := false
 var start_drop_off_pos: Vector3
 @onready var tractor_beam = $meshes/tractor_beam
 
+var global
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	global = get_node('/root/Global')
 	visible = false
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -47,7 +50,8 @@ func _process(delta):
 				position = Vector3(0.1, 1.3, 0.1)
 				checkpoint_1 = true
 				lerp_multiplier = 1.0
-				Input.vibrate_handheld(3)
+				if global.vibration:
+					Input.vibrate_handheld(5)
 		elif !journey:
 			_run_journey(delta)
 		elif !checkpoint_last:
@@ -119,7 +123,8 @@ func _run_journey(delta):
 				position = target
 				next_stop += 1
 				lerp_multiplier = 1.0
-				Input.vibrate_handheld(5)
+				if global.vibration:
+					Input.vibrate_handheld(5)
 				beam_done = false
 				abduct_signal_sent = false
 

@@ -1,5 +1,6 @@
-[gd_scene load_steps=29 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=31 format=3 uid="uid://djo67ptd1f4hw"]
 
+[ext_resource type="Script" path="res://scenes/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
 [ext_resource type="PackedScene" uid="uid://ls26k2ueeeb3" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
 [ext_resource type="PackedScene" uid="uid://dh4yuxiqdo80d" path="res://scenes/browser.tscn" id="3_j5u16"]
@@ -11,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/RotoWindow.gd" id="8_827gc"]
 [ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
 [ext_resource type="Script" path="res://scenes/PlanetProgress.gd" id="10_qmupj"]
+[ext_resource type="Script" path="res://scenes/SettingsPopup.gd" id="10_t8qcq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4svtt"]
 bg_color = Color(0, 0, 0, 1)
@@ -83,6 +85,7 @@ border_width_bottom = 2
 border_color = Color(0.287295, 0.287295, 0.287295, 1)
 
 [node name="UX" type="Control"]
+texture_filter = 1
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -92,6 +95,7 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 1
+script = ExtResource("1_f5jjs")
 metadata/_edit_horizontal_guides_ = []
 
 [node name="MainBG" type="PanelContainer" parent="."]
@@ -163,7 +167,7 @@ anchor_bottom = 0.5
 offset_left = -15.0
 offset_top = 140.0
 offset_right = 15.0
-offset_bottom = 148.0
+offset_bottom = 152.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_kqae3")
@@ -182,10 +186,11 @@ text = "MENU"
 
 [node name="PopupMenu" type="PopupMenu" parent="MenuButton"]
 transparent_bg = true
-position = Vector2i(5, 200)
-size = Vector2i(170, 112)
+position = Vector2i(3, 200)
+size = Vector2i(174, 116)
 theme_override_constants/v_separation = 10
 theme_override_font_sizes/font_size = 16
+theme_override_styles/panel = ExtResource("6_qwkga")
 theme_override_styles/separator = SubResource("StyleBoxEmpty_kjmdu")
 item_count = 4
 item_0/text = "New Planet"
@@ -198,31 +203,33 @@ item_3/text = "Back"
 item_3/id = 3
 script = ExtResource("4_esiwd")
 
-[node name="PopupPanel" type="PopupPanel" parent="."]
+[node name="NewPlanetPopup" type="PopupPanel" parent="."]
 canvas_item_default_texture_filter = 0
-position = Vector2i(5, 65)
-size = Vector2i(170, 250)
+position = Vector2i(3, 65)
+size = Vector2i(174, 250)
 theme = ExtResource("5_kb0sw")
 theme_override_styles/panel = ExtResource("6_qwkga")
 script = ExtResource("6_ql4kd")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="NewPlanetPopup"]
 offset_left = 6.0
 offset_top = 6.0
-offset_right = 164.0
+offset_right = 168.0
 offset_bottom = 244.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="PlanetTypeLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer"]
+[node name="PlanetTypeLabel" type="Label" parent="NewPlanetPopup/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 2
 text = "Planet type: "
 autowrap_mode = 2
 
-[node name="OptionButton" type="OptionButton" parent="PopupPanel/VBoxContainer/HBoxContainer"]
+[node name="OptionButton" type="OptionButton" parent="NewPlanetPopup/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_font_sizes/font_size = 8
@@ -239,20 +246,20 @@ popup/item_3/id = 3
 popup/item_4/text = "Saturn"
 popup/item_4/id = 4
 
-[node name="HSeparator" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="PctFillLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer2"]
+[node name="PctFillLabel" type="Label" parent="NewPlanetPopup/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
 size_flags_horizontal = 2
 text = "Starting Pieces:"
 autowrap_mode = 2
 
-[node name="Pct" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer2"]
+[node name="Pct" type="Label" parent="NewPlanetPopup/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_fonts/font = ExtResource("7_wkm7n")
@@ -261,11 +268,11 @@ text = "15/30"
 horizontal_alignment = 2
 autowrap_mode = 2
 
-[node name="HSeparator2" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
 visible = false
 layout_mode = 2
 
-[node name="PctFillSlider" type="HSlider" parent="PopupPanel/VBoxContainer"]
+[node name="PctFillSlider" type="HSlider" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 min_value = 1.0
 max_value = 75.0
@@ -274,40 +281,173 @@ rounded = true
 tick_count = 13
 ticks_on_borders = true
 
-[node name="HSeparator5" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+[node name="HSeparator5" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
-[node name="HSeparator4" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+[node name="HSeparator4" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="PopupPanel/VBoxContainer"]
+[node name="HBoxContainer3" type="HBoxContainer" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="PctFillLabel" type="Label" parent="PopupPanel/VBoxContainer/HBoxContainer3"]
+[node name="PctFillLabel" type="Label" parent="NewPlanetPopup/VBoxContainer/HBoxContainer3"]
 layout_mode = 2
 size_flags_horizontal = 2
 text = "Piece Rotation:"
 autowrap_mode = 2
 
-[node name="CheckButton" type="CheckButton" parent="PopupPanel/VBoxContainer/HBoxContainer3"]
+[node name="CheckButton" type="CheckButton" parent="NewPlanetPopup/VBoxContainer/HBoxContainer3"]
 layout_mode = 2
 size_flags_horizontal = 6
 
-[node name="Generate" type="Button" parent="PopupPanel/VBoxContainer"]
+[node name="Generate" type="Button" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 10
 text = "Generate"
 
-[node name="HSeparator3" type="HSeparator" parent="PopupPanel/VBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
-[node name="Cancel" type="Button" parent="PopupPanel/VBoxContainer"]
+[node name="Cancel" type="Button" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 8
 text = "Cancel"
+
+[node name="SettingsPopup" type="PopupPanel" parent="."]
+canvas_item_default_texture_filter = 0
+position = Vector2i(3, 65)
+size = Vector2i(174, 250)
+theme = ExtResource("5_kb0sw")
+theme_override_styles/panel = ExtResource("6_qwkga")
+script = ExtResource("10_t8qcq")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPopup"]
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 168.0
+offset_bottom = 244.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SettingsHeader" type="Label" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 16
+text = "Settings"
+horizontal_alignment = 1
+
+[node name="UpperHSep" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="InvisHSep" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
+
+[node name="GraphicsLabel" type="Label" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Graphics"
+horizontal_alignment = 1
+
+[node name="GraphicsHBox" type="HBoxContainer" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="Label" type="Label" parent="SettingsPopup/VBoxContainer/GraphicsHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "Fast"
+horizontal_alignment = 1
+
+[node name="GraphicsCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/GraphicsHBox"]
+layout_mode = 2
+button_pressed = true
+
+[node name="Label2" type="Label" parent="SettingsPopup/VBoxContainer/GraphicsHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "Fancy"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="SoundHBox" type="HBoxContainer" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="SoundLabel" type="Label" parent="SettingsPopup/VBoxContainer/SoundHBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "Sound"
+
+[node name="SoundCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/SoundHBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+button_pressed = true
+
+[node name="HSeparator2" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="VibrateHBox" type="HBoxContainer" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="VibrateLabel" type="Label" parent="SettingsPopup/VBoxContainer/VibrateHBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Vibration"
+
+[node name="VibrateCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/VibrateHBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+button_pressed = true
+
+[node name="Close" type="Button" parent="SettingsPopup/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+text = "Close"
+
+[node name="HowToPlayPopup" type="PopupPanel" parent="."]
+canvas_item_default_texture_filter = 0
+position = Vector2i(3, 65)
+size = Vector2i(174, 250)
+theme = ExtResource("5_kb0sw")
+theme_override_styles/panel = ExtResource("6_qwkga")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HowToPlayPopup"]
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 168.0
+offset_bottom = 244.0
+follow_focus = true
+vertical_scroll_mode = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HowToPlayPopup/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ColorRect" type="ColorRect" parent="HowToPlayPopup/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(162, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ColorRect2" type="ColorRect" parent="HowToPlayPopup/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(162, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ColorRect3" type="ColorRect" parent="HowToPlayPopup/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(162, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="RotoWindow" type="PanelContainer" parent="."]
 layout_mode = 2
@@ -446,16 +586,21 @@ one_shot = true
 [connection signal="wheel_rot" from="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" to="RotoWindow" method="_on_browser_wheel_rot"]
 [connection signal="pressed" from="MenuButton" to="MenuButton/PopupMenu" method="_on_menu_button_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="MenuButton/PopupMenu" method="_on_id_pressed"]
-[connection signal="id_pressed" from="MenuButton/PopupMenu" to="PopupPanel" method="_on_popup_menu_id_pressed"]
-[connection signal="item_selected" from="PopupPanel/VBoxContainer/HBoxContainer/OptionButton" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_option_button_item_selected"]
-[connection signal="value_changed" from="PopupPanel/VBoxContainer/PctFillSlider" to="PopupPanel" method="_on_pct_fill_slider_value_changed"]
-[connection signal="toggled" from="PopupPanel/VBoxContainer/HBoxContainer3/CheckButton" to="PopupPanel" method="_on_check_button_toggled"]
-[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_generate_button_up"]
-[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_generate_button_up"]
-[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="PopupPanel" method="_on_generate_button_up"]
-[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
-[connection signal="button_up" from="PopupPanel/VBoxContainer/Generate" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_generate_button_up"]
-[connection signal="button_up" from="PopupPanel/VBoxContainer/Cancel" to="PopupPanel" method="_on_cancel_button_up"]
+[connection signal="id_pressed" from="MenuButton/PopupMenu" to="NewPlanetPopup" method="_on_popup_menu_id_pressed"]
+[connection signal="id_pressed" from="MenuButton/PopupMenu" to="SettingsPopup" method="_on_popup_menu_id_pressed"]
+[connection signal="item_selected" from="NewPlanetPopup/VBoxContainer/HBoxContainer/OptionButton" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_option_button_item_selected"]
+[connection signal="value_changed" from="NewPlanetPopup/VBoxContainer/PctFillSlider" to="NewPlanetPopup" method="_on_pct_fill_slider_value_changed"]
+[connection signal="toggled" from="NewPlanetPopup/VBoxContainer/HBoxContainer3/CheckButton" to="NewPlanetPopup" method="_on_check_button_toggled"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="NewPlanetPopup" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Cancel" to="NewPlanetPopup" method="_on_cancel_button_up"]
+[connection signal="toggled" from="SettingsPopup/VBoxContainer/GraphicsHBox/GraphicsCheckButton" to="." method="_on_graphics_check_button_toggled"]
+[connection signal="toggled" from="SettingsPopup/VBoxContainer/SoundHBox/SoundCheckButton" to="." method="_on_sound_check_button_toggled"]
+[connection signal="toggled" from="SettingsPopup/VBoxContainer/VibrateHBox/VibrateCheckButton" to="." method="_on_vibrate_check_button_toggled"]
+[connection signal="button_up" from="SettingsPopup/VBoxContainer/Close" to="SettingsPopup" method="_on_close_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_start_puzzle_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_start_puzzle_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="StartPuzzle" method="_on_button_up"]

@@ -1,7 +1,13 @@
 - rock strata in crust
 - fix glancing light specular in water
-- show ufo dropping off pieces in carousel
+- polish ufo dropping off pieces in carousel
 - nicer rotating wheel
+- earth desert should be more likely near equator
+- adjust ufo height per planet
+- implement fast graphics option
+- add automatic puzzle saving
+- add config file saving for settings like graphics, sound, vibrate
 
 maybe:
 	- slant screen divider for one-handed ease
+	- reduce opacity and transparency

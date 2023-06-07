@@ -3,7 +3,8 @@
 [ext_resource type="FastNoiseLite" uid="uid://c76dp5dgybrgf" path="res://tex/mars_mantle_crusty_noise.tres" id="1_wcmij"]
 
 [sub_resource type="Gradient" id="Gradient_5to4h"]
-colors = PackedColorArray(0.502719, 0.502719, 0.502718, 1, 1, 1, 1, 1)
+interpolation_mode = 2
+colors = PackedColorArray(0.677567, 0.677567, 0.677566, 1, 1, 1, 1, 1)
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_dwx4a"]
 noise_type = 4
@@ -115,7 +116,7 @@ constant = Color(0.064185, 0.00215346, 0.00430516, 1)
 constant = Color(0.135617, 0.135617, 0.135617, 1)
 
 [sub_resource type="VisualShaderNodeColorConstant" id="VisualShaderNodeColorConstant_5lega"]
-constant = Color(0.534984, 0.240001, 0.120218, 1)
+constant = Color(0.369191, 0.153489, 0.0691669, 1)
 
 [sub_resource type="VisualShaderNodeCompare" id="VisualShaderNodeCompare_kmwob"]
 default_input_values = [0, Quaternion(0, 0, 0, 0), 1, Quaternion(0, 0, 0, 0), 2, 1e-05]
@@ -154,7 +155,7 @@ void fragment() {
 
 
 // ColorConstant:6
-	vec4 n_out6p0 = vec4(0.534984, 0.240001, 0.120218, 1.000000);
+	vec4 n_out6p0 = vec4(0.369191, 0.153489, 0.069167, 1.000000);
 
 
 // Input:12
@@ -235,7 +236,7 @@ void fragment() {
 
 }
 "
-graph_offset = Vector2(-887.698, -396.88)
+graph_offset = Vector2(-592.289, -348.449)
 nodes/fragment/0/position = Vector2(1660, 160)
 nodes/fragment/2/node = SubResource("VisualShaderNodeTexture_vdrqo")
 nodes/fragment/2/position = Vector2(-1280, 20)

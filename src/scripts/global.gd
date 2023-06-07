@@ -4,6 +4,9 @@ var generate_type := 1
 var pieces_at_start := 15
 var total_pieces := 30
 var rotation := false
+var graphics_fancy := false
+var sound := true
+var vibration := true
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

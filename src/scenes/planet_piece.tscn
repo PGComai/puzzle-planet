@@ -94,12 +94,13 @@ height = 0.1
 script = ExtResource("1_jrwu8")
 
 [node name="themesh" type="MeshInstance3D" parent="."]
+layers = 9
 material_overlay = SubResource("StandardMaterial3D_nx1bn")
 mesh = SubResource("ArrayMesh_4ibd5")
 script = ExtResource("2_neaqm")
 
 [node name="walls" type="MeshInstance3D" parent="themesh"]
-layers = 33
+layers = 41
 material_overlay = SubResource("StandardMaterial3D_iyjmg")
 mesh = SubResource("ArrayMesh_ker4h")
 skeleton = NodePath("../..")
