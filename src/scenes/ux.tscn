@@ -205,8 +205,8 @@ script = ExtResource("4_esiwd")
 
 [node name="NewPlanetPopup" type="PopupPanel" parent="."]
 canvas_item_default_texture_filter = 0
-position = Vector2i(3, 65)
-size = Vector2i(174, 250)
+position = Vector2i(3, 37)
+size = Vector2i(174, 280)
 theme = ExtResource("5_kb0sw")
 theme_override_styles/panel = ExtResource("6_qwkga")
 script = ExtResource("6_ql4kd")
@@ -215,9 +215,24 @@ script = ExtResource("6_ql4kd")
 offset_left = 6.0
 offset_top = 6.0
 offset_right = 168.0
-offset_bottom = 244.0
+offset_bottom = 274.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+
+[node name="NewPlanetHeader" type="Label" parent="NewPlanetPopup/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 16
+text = "New Planet"
+horizontal_alignment = 1
+
+[node name="UpperHSep" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="InvisHSep" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
@@ -318,7 +333,7 @@ text = "Cancel"
 
 [node name="SettingsPopup" type="PopupPanel" parent="."]
 canvas_item_default_texture_filter = 0
-position = Vector2i(3, 65)
+position = Vector2i(3, 67)
 size = Vector2i(174, 250)
 theme = ExtResource("5_kb0sw")
 theme_override_styles/panel = ExtResource("6_qwkga")
@@ -350,7 +365,6 @@ theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 [node name="GraphicsLabel" type="Label" parent="SettingsPopup/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 0
 text = "Graphics"
 horizontal_alignment = 1
 
@@ -384,12 +398,12 @@ layout_mode = 2
 [node name="SoundLabel" type="Label" parent="SettingsPopup/VBoxContainer/SoundHBox"]
 layout_mode = 2
 size_flags_horizontal = 0
-size_flags_vertical = 0
 text = "Sound"
 
 [node name="SoundCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/SoundHBox"]
 layout_mode = 2
 size_flags_horizontal = 10
+size_flags_vertical = 4
 button_pressed = true
 
 [node name="HSeparator2" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
@@ -401,12 +415,12 @@ layout_mode = 2
 [node name="VibrateLabel" type="Label" parent="SettingsPopup/VBoxContainer/VibrateHBox"]
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 0
 text = "Vibration"
 
 [node name="VibrateCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/VibrateHBox"]
 layout_mode = 2
 size_flags_horizontal = 10
+size_flags_vertical = 4
 button_pressed = true
 
 [node name="Close" type="Button" parent="SettingsPopup/VBoxContainer"]

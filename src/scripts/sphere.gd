@@ -399,6 +399,7 @@ func _set_parameters():
 		snow_random_low = 0.7
 		snow_random_high = 0.8
 		max_terrain_height_unclamped = 1.34
+		global.planet_height_for_ufo = 0.0
 		min_terrain_height_unclamped = 0.65
 		max_terrain_height = 1.3
 		min_terrain_height = 0.8
@@ -464,6 +465,7 @@ func _set_parameters():
 		max_terrain_height_unclamped = 1.01
 		min_terrain_height_unclamped = 0.2
 		max_terrain_height = 1.13
+		global.planet_height_for_ufo = 0.0
 		min_terrain_height = 1.02
 		clamp_terrain = true
 		invert_height = true
@@ -572,6 +574,7 @@ func _set_parameters():
 		snow_random_low = 0.85
 		snow_random_high = 0.95
 		max_terrain_height_unclamped = 1.1
+		global.planet_height_for_ufo = 0.0
 		min_terrain_height_unclamped = 0.882
 		max_terrain_height = 1.092
 		min_terrain_height = 0.43
@@ -626,6 +629,7 @@ func _set_parameters():
 		max_terrain_height_unclamped = 1.124
 		min_terrain_height_unclamped = 1.059
 		max_terrain_height = 1.292
+		global.planet_height_for_ufo = 0.1
 		min_terrain_height = 0.903
 		clamp_terrain = true
 		invert_height = false
@@ -681,6 +685,7 @@ func _set_parameters():
 		snow_random_low = 0.85
 		snow_random_high = 0.95
 		max_terrain_height_unclamped = 1.067
+		global.planet_height_for_ufo = 0.05
 		min_terrain_height_unclamped = 1.016
 		max_terrain_height = 1.292
 		min_terrain_height = 0.903
@@ -1145,278 +1150,6 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 	return [wall_triangles, wall_tri_normals, wall_tri_colors,
 		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
 
-func tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array,
-		thickness: float, water = true):
-	var wall_triangles = PackedVector3Array()
-	var wall_tri_colors = PackedColorArray()
-	var wall_tri_normals = PackedVector3Array()
-	var border_triangles = PackedVector3Array()
-	var border_tri_normals = PackedVector3Array()
-	var border_tri_colors = PackedColorArray()
-	var water_triangles = PackedVector3Array()
-	var water_tri_normals = PackedVector3Array()
-	var water_tri_colors = PackedColorArray()
-	var cutwater_triangles = PackedVector3Array()
-	var cutwater_tri_normals = PackedVector3Array()
-	var cutwater_tri_colors = PackedColorArray()
-	
-	var land_colors = [land_color, land_color_2, land_color_3]
-	
-	#     v0--1--v0p-5--v0p2---v0p3
-	#     |     /|     /|     /|\
-	#     |    / |    / |    / | \
-	#     |   2  |   6  |   /  |  vp
-	#     |  3   4  7   8  /   |  /
-	#     | /    | /    | /    | /
-	#     |/     |/     |/     |/
-	#     v1-----v1p----v1p2---v1p3
-	
-	#     v0--1--v0p-5--v0p2
-	#     |     /|     /|\     
-	#     |    / |    / | \   
-	#     |   2  |   6  |  \ v0p3
-	#     |  3   4  7   8  /  | 
-	#     | /    | /    | /   | 
-	#     |/     |/     |/    | 
-	#     v1-----v1p----v1p2  |
-	#                       \ |
-	#                        \|
-	#                        ...
-	
-	#     v0--1--v0p-5--v0p2---v0p3
-	#     |     /|     /|     / \
-	#     |    / |    / |    /   \
-	#     |   2  |   6  |   /     vp
-	#     |  3   4  7   8  /    /
-	#     | /    | /    | /    /
-	#     |/     |/     |/    /
-	#     v1-----v1p----v1p2
-	
-	for b in len(ring_array)-1:
-		var v0 = ring_array[b]
-		var v1 = ring_array[b+1]
-		var v0p = mm(ring_array[b]*thickness)
-		var v0pw = v0p.normalized()*water_offset
-		var v0pw_depth = v0p.length_squared() - v0pw.length_squared()
-		#edges_for_particles.append(v0p)
-		var v1p = mm(ring_array[b+1]*thickness)
-		var v1pw = v1p.normalized()*water_offset
-		var v1pw_depth = v1p.length_squared() - v1pw.length_squared()
-		#edges_for_particles.append(v1p)
-		
-		var vp = mm(og_verts[og_idx]*thickness)
-		var vpw = vp.normalized()*water_offset
-		var vpw_depth = vp.length_squared() - vpw.length_squared()
-		
-		var v0p_color = color_vary(v0p, land_colors).lerp(low_land_color, clamp(remap(v0p.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var v1p_color = color_vary(v1p, land_colors).lerp(low_land_color, clamp(remap(v1p.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var depth_start = 0.001
-		var depth_end = 0.05
-		var v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		var v1pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		
-		if v0p.length() < sand_threshold and ocean:
-			v0p_color = sand_color
-		elif asin(abs(v0p.normalized().y)) > snow_start and snow:
-			v0p_color = land_snow_color
-		if v1p.length() < sand_threshold and ocean:
-			v1p_color = sand_color
-		elif asin(abs(v1p.normalized().y)) > snow_start and snow:
-			v1p_color = land_snow_color
-		
-		## PIECE WALLS BEGIN ## -----------------------------
-		
-		_triangle(v0, v0p, v1, wall_triangles)
-		
-		_tricolor(low_crust_color, crust_color, low_crust_color, wall_tri_colors)
-		
-		var n = Plane(v0, v0p, v1).normal
-		_triangle(n, n, n, wall_tri_normals)
-		
-		###
-		
-		_triangle(v1, v0p, v1p, wall_triangles)
-		
-		_tricolor(low_crust_color, crust_color, crust_color, wall_tri_colors)
-		
-		n = Plane(v1, v0p, v1p).normal
-		_triangle(n, n, n, wall_tri_normals)
-		
-		_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1p.limit_length(water_offset), cutwater_triangles)
-		
-		var c1 = v0pw_color.lerp(Color('black'), clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		var c3 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		_tricolor(c1, v0pw_color, c3, cutwater_tri_colors)
-		
-		n = Plane(v0p,v0pw,v1p).normal
-		_triangle(n, n, n, cutwater_tri_normals)
-		
-		###
-		
-		_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
-		
-		c1 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		_tricolor(c1, v0pw_color, v1pw_color, cutwater_tri_colors)
-		
-		n = Plane(v1p,v0pw,v1pw).normal
-		_triangle(n, n, n, cutwater_tri_normals)
-		
-		## PIECE WALLS END ## -----------------------------
-		
-		var v0p2 = mm(v0p.move_toward(vp, v0p.distance_to(vp)/3).normalized()*thickness)
-		var v0p2w = v0p2.normalized()*water_offset
-		var v0p2w_depth = v0p2.length_squared() - v0p2w.length_squared()
-		var v1p2 = mm(v1p.move_toward(vp, v1p.distance_to(vp)/3).normalized()*thickness)
-		var v1p2w = v1p2.normalized()*water_offset
-		var v1p2w_depth = v1p2.length_squared() - v1p2w.length_squared()
-		
-		var v0p2_color = color_vary(v0p2, land_colors).lerp(low_land_color, clamp(remap(v0p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var v1p2_color = color_vary(v1p2, land_colors).lerp(low_land_color, clamp(remap(v1p2.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		
-		if v0p2.length() < sand_threshold and ocean:
-			v0p2_color = sand_color
-		elif asin(abs(v0p2.normalized().y)) > snow_start and snow:
-			v0p2_color = land_snow_color
-		if v1p2.length() < sand_threshold and ocean:
-			v1p2_color = sand_color
-		elif asin(abs(v1p2.normalized().y)) > snow_start and snow:
-			v1p2_color = land_snow_color
-		
-		var v0p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		var v1p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		
-		## PIECE TOP BEGIN ## -----------------------------
-		
-		_triangle(v0p,v0p2,v1p,border_triangles)
-		
-		_tricolor(v0p_color,v0p2_color,v1p_color,border_tri_colors)
-		
-		n = Plane(v0p,v0p2,v1p).normal
-		_triangle(n,n,n,border_tri_normals)
-		
-		_triangle(v0pw, v0p2w, v1pw, water_triangles)
-		
-		_tricolor(v0pw_color, v0p2w_color, v1pw_color, water_tri_colors)
-		
-		n = Plane(v0pw,v0p2w,v1pw).normal
-		_triangle(v0pw.normalized(), v0p2w.normalized(), v1pw.normalized(), water_tri_normals)
-		
-		###
-		
-		_triangle(v1p,v0p2,v1p2,border_triangles)
-		
-		_tricolor(v1p_color,v0p2_color,v1p2_color,border_tri_colors)
-		
-		n = Plane(v1p,v0p2,v1p2).normal
-		_triangle(n,n,n,border_tri_normals)
-		
-		_triangle(v1pw, v0p2w, v1p2w, water_triangles)
-		
-		_tricolor(v1pw_color, v0p2w_color, v1p2w_color, water_tri_colors)
-		
-		n = Plane(v1pw,v0p2w,v1p2w).normal
-		_triangle(v1pw.normalized(), v0p2w.normalized(), v1p2w.normalized(), water_tri_normals)
-		
-		#3
-		
-		var v0p3 = mm(v0p2.move_toward(vp, v0p2.distance_to(vp)/3).normalized()*thickness)
-		var v0p3w = v0p3.normalized()*water_offset
-		var v0p3w_depth = v0p3.length_squared() - v0p3w.length_squared()
-		var v1p3 = mm(v1p2.move_toward(vp, v1p2.distance_to(vp)/3).normalized()*thickness)
-		var v1p3w = v1p3.normalized()*water_offset
-		var v1p3w_depth = v1p3.length_squared() - v1p3w.length_squared()
-		
-		var v0p3_color = color_vary(v0p3, land_colors).lerp(low_land_color, clamp(remap(v0p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var v1p3_color = color_vary(v1p3, land_colors).lerp(low_land_color, clamp(remap(v1p3.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		
-		if v0p3.length() < sand_threshold and ocean:
-			v0p3_color = sand_color
-		elif asin(abs(v0p3.normalized().y)) > snow_start and snow:
-			v0p3_color = land_snow_color
-		if v1p3.length() < sand_threshold and ocean:
-			v1p3_color = sand_color
-		elif asin(abs(v1p3.normalized().y)) > snow_start and snow:
-			v1p3_color = land_snow_color
-		
-		var v0p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		var v1p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		
-		###
-		
-		_triangle(v0p2,v0p3,v1p2,border_triangles)
-		
-		_tricolor(v0p2_color,v0p3_color,v1p2_color,border_tri_colors)
-		
-		n = Plane(v0p2,v0p3,v1p2).normal
-		_triangle(n,n,n,border_tri_normals)
-		
-		_triangle(v0p2w, v0p3w, v1p2w, water_triangles)
-		
-		_tricolor(v0p2w_color, v0p3w_color, v1p2w_color, water_tri_colors)
-
-		n = Plane(v0p2w,v0p3w,v1p2w).normal
-		_triangle(v0p2w.normalized(), v0p3w.normalized(), v1p2w.normalized(), water_tri_normals)
-		
-		###
-		
-		_triangle(v1p2,v0p3,v1p3,border_triangles)
-
-		_tricolor(v1p2_color,v0p3_color,v1p3_color,border_tri_colors)
-
-		n = Plane(v1p2,v0p3,v1p3).normal
-		_triangle(n,n,n,border_tri_normals)
-		
-		_triangle(v1p2w, v0p3w, v1p3w, water_triangles)
-		
-		_tricolor(v1p2w_color, v0p3w_color, v1p3w_color, water_tri_colors)
-
-		n = Plane(v1p2w,v0p3w,v1p3w).normal
-		_triangle(v1p2w.normalized(), v0p3w.normalized(), v1p3w.normalized(), water_tri_normals)
-		
-		#vp
-		
-		var vp_color = color_vary(vp, land_colors).lerp(low_land_color, clamp(remap(vp.length_squared(), low_land_bottom_threshold, pow(max_terrain_height, 2.0), 1.0, 0.0), 0.0, 1.0))
-		var vpw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-vpw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		
-		if vp.length() < sand_threshold and ocean:
-			vp_color = sand_color
-		elif asin(abs(vp.normalized().y)) > snow_start and snow:
-			vp_color = land_snow_color
-		
-		###
-		
-		_triangle(v0p3,vp,v1p3,border_triangles)
-		
-		_tricolor(v0p3_color,vp_color,v1p3_color,border_tri_colors)
-		
-		n = Plane(v0p3,vp,v1p3).normal
-		_triangle(n,n,n,border_tri_normals)
-		
-		_triangle(v0p3w, vpw, v1p3w, water_triangles)
-		
-		_tricolor(v0p3w_color, vpw_color, v1p3w_color, water_tri_colors)
-
-		n = Plane(v0p3w,vpw,v1p3w).normal
-		_triangle(v0p3w.normalized(), vpw.normalized(), v1p3w.normalized(), water_tri_normals)
-		
-		## PIECE TOP END ## -----------------------------
-		
-		## PIECE BOTTOM BEGIN ## -----------------------------
-		
-		_triangle(v1,og_verts[og_idx],v0,border_triangles)
-		
-		_tricolor(low_crust_color,low_crust_color,low_crust_color,border_tri_colors)
-		
-		n = Plane(v0,og_verts[og_idx],v1).normal
-		_triangle(n,n,n,border_tri_normals)
-		
-		## PIECE BOTTOM END ## -----------------------------
-	
-	return [wall_triangles, wall_tri_normals, wall_tri_colors,
-		border_triangles, border_tri_normals, border_tri_colors,
-		water_triangles, water_tri_normals, water_tri_colors,
-		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
-		
 func _triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array):
 	arr.append(p1)
 	arr.append(p2)

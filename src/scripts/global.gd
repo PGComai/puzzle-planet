@@ -7,6 +7,7 @@ var rotation := false
 var graphics_fancy := false
 var sound := true
 var vibration := true
+var planet_height_for_ufo: float
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

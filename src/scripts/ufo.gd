@@ -30,6 +30,7 @@ var drop_off_cam_pos: Vector3
 var drop_off_enter_circle_checkpoint := false
 var drop_off_exit_circle_checkpoint := false
 var start_drop_off_pos: Vector3
+var planet_hover_height := 1.3
 @onready var tractor_beam = $meshes/tractor_beam
 
 var global
@@ -43,11 +44,11 @@ func _ready():
 func _process(delta):
 	if showtime:
 		lerp_multiplier += delta
-		look_at(Vector3.ZERO, Vector3.UP)
+		
 		if !checkpoint_1:
-			position = position.slerp(Vector3(0.1, 1.3, 0.1), 0.1 * lerp_multiplier)
-			if position.is_equal_approx(Vector3(0.1, 1.3, 0.1)):
-				position = Vector3(0.1, 1.3, 0.1)
+			position = position.slerp(Vector3(0.1, (planet_hover_height + global.planet_height_for_ufo), 0.1), 0.1 * lerp_multiplier)
+			if position.is_equal_approx(Vector3(0.1, (planet_hover_height + global.planet_height_for_ufo), 0.1)):
+				position = Vector3(0.1, (planet_hover_height + global.planet_height_for_ufo), 0.1)
 				checkpoint_1 = true
 				lerp_multiplier = 1.0
 				if global.vibration:
@@ -68,6 +69,7 @@ func _process(delta):
 			checkpoint_1 = false
 			checkpoint_last = false
 			#visible = false
+		look_at(Vector3.ZERO, Vector3.UP)
 	elif in_browser:
 		if browser_drop_off_begin:
 			position = Vector3(0.0, 12.0, 0.0)
@@ -110,7 +112,7 @@ func _run_journey(delta):
 		next_stop = 0
 	else:
 		#print(journey_speed_curve.sample_baked(journey_lerp_multiplier))
-		var target = locs[path[next_stop]].normalized() * 1.3
+		var target = locs[path[next_stop]].normalized() * (planet_hover_height + global.planet_height_for_ufo)
 		position = position.slerp(target, journey_speed_curve.sample_baked(journey_lerp_multiplier))
 		if position.is_equal_approx(target):
 			if !abduct_signal_sent:
