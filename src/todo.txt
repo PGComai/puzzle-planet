@@ -7,9 +7,10 @@
 - add automatic puzzle saving
 - add config file saving for settings like graphics, sound, vibrate
 - stop generating ocean vertices for planets with no ocean
+- optimize lighting code
 
 - IOS --
-- stop using mouse to emulate touch
+
 
 GLITCHES:
 - piece shadow appears and lines up but actual piece never goes in and carousel is stuck

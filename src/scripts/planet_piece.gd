@@ -12,7 +12,6 @@ signal this_is_my_rotation(rot)
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
 @onready var particle_points = $themesh/particle_points
-@onready var gpu_particles_3d = $themesh/GPUParticles3D
 
 var offset := 1.0
 

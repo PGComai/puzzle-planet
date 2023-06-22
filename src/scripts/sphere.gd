@@ -111,7 +111,7 @@ signal ufo_ready(dict)
 @onready var where = $where
 @onready var sun = $"../Sun"
 @onready var space = $"../Space"
-@onready var sun_2 = $"../Sun2"
+#@onready var sun_2 = $"../Sun2"
 #@onready var atmo = $"../Atmo"
 #@onready var atmo_2 = $"../Atmo2"
 @onready var mantle = $"../Mantle"
@@ -299,7 +299,7 @@ func _place_piece():
 	fit_timer = 0.0
 	shadow_light._on = false
 	sun._on = true
-	sun_2._on = true
+	#sun_2._on = true
 	space._on = false
 	rotowindow.visible = false
 	audio_stream_player.pitch_scale = randfn(0.9, 0.03)
@@ -1648,14 +1648,14 @@ func _on_ready_for_launch(_idx):
 			shadow_light._on = true
 			space._on = true
 			sun._on = false
-			sun_2._on = false
+			#sun_2._on = false
 			looking = true
 			
 func _on_piece_take_me_home(_idx):
 	shadow_light._on = false
 	space._on = false
 	sun._on = true
-	sun_2._on = true
+	#sun_2._on = true
 	looking = false
 
 func _on_universe_spin_piece(rot):

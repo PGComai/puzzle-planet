@@ -24,7 +24,7 @@ signal atmo_resize(size)
 @onready var new_mesh_maker = preload("res://scenes/mesh_maker.tscn")
 @onready var browser = $"../../../../MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser"
 @onready var sun = $Sun
-@onready var sun_2 = $Sun2
+#@onready var sun_2 = $Sun2
 @onready var space = $Space
 @onready var shadow_light = $h/v/Camera3D/ShadowLight
 @onready var rotowindow = $"../../../../../../RotoWindow"
@@ -236,7 +236,7 @@ func _on_generate_button_up():
 	emit_signal("ufo_reset")
 	shadow_light._on = false
 	sun._on = true
-	sun_2._on = true
+	#sun_2._on = true
 	space._on = false
 	rotowindow.visible = false
 	mesh_maker.queue_free()

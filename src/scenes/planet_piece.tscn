@@ -1,8 +1,7 @@
-[gd_scene load_steps=24 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=22 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
-[ext_resource type="Shader" path="res://tex/piece_placed_particles.gdshader" id="3_24aex"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 resource_local_to_scene = true
@@ -59,9 +58,6 @@ texture_filter = 0
 texture_repeat = false
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_knalo"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_b7i8u"]
-shader = ExtResource("3_24aex")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_r2ohu"]
 
@@ -126,10 +122,6 @@ skeleton = NodePath("../..")
 [node name="water" type="MeshInstance3D" parent="themesh"]
 material_overlay = SubResource("StandardMaterial3D_ofrj5")
 mesh = SubResource("ArrayMesh_knalo")
-
-[node name="GPUParticles3D" type="GPUParticles3D" parent="themesh"]
-visible = false
-process_material = SubResource("ShaderMaterial_b7i8u")
 
 [node name="particle_points" type="MeshInstance3D" parent="themesh"]
 mesh = SubResource("ArrayMesh_r2ohu")
