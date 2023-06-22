@@ -3,7 +3,6 @@
 [sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_cjttm"]
 parameter_name = "atmo_daylight"
 qualifier = 1
-default_value_enabled = true
 default_value = Color(0.686275, 0.780392, 0.933333, 1)
 
 [sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_3ftdu"]
@@ -53,7 +52,6 @@ qualifier = 1
 [sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_86lhg"]
 parameter_name = "atmo_sunset"
 qualifier = 1
-default_value_enabled = true
 default_value = Color(0.899758, 0.0822244, 0.166245, 1)
 
 [sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_lbspn"]
@@ -77,8 +75,8 @@ operator = 2
 code = "shader_type spatial;
 render_mode shadows_disabled, ambient_light_disabled;
 
-global uniform vec4 atmo_daylight : source_color = vec4(0.686275, 0.780392, 0.933333, 1.000000);
-global uniform vec4 atmo_sunset : source_color = vec4(0.899758, 0.082224, 0.166245, 1.000000);
+global uniform vec4 atmo_daylight : source_color;
+global uniform vec4 atmo_sunset : source_color;
 global uniform float atmo_fresnel_power;
 global uniform float atmo_fresnel_max;
 
@@ -197,6 +195,7 @@ void light() {
 
 }
 "
+graph_offset = Vector2(-709.741, -383.183)
 flags/shadows_disabled = true
 flags/ambient_light_disabled = true
 nodes/vertex/0/position = Vector2(700, 140)
@@ -214,7 +213,7 @@ nodes/light/25/position = Vector2(-100, 640)
 nodes/light/26/node = SubResource("VisualShaderNodeFresnel_kectp")
 nodes/light/26/position = Vector2(-760, 660)
 nodes/light/27/node = SubResource("VisualShaderNodeInput_vo1nx")
-nodes/light/27/position = Vector2(-2460, 160)
+nodes/light/27/position = Vector2(-2860, 140)
 nodes/light/28/node = SubResource("VisualShaderNodeInput_m4jqh")
 nodes/light/28/position = Vector2(-460, -600)
 nodes/light/29/node = SubResource("VisualShaderNodeDotProduct_hyvwh")

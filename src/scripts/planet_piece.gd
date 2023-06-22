@@ -11,6 +11,8 @@ signal this_is_my_rotation(rot)
 @onready var themesh = $themesh
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
+@onready var particle_points = $themesh/particle_points
+@onready var gpu_particles_3d = $themesh/GPUParticles3D
 
 var offset := 1.0
 
@@ -175,6 +177,23 @@ func _ready():
 	wallmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 
 	walls.mesh = wallmesh
+	
+	var particlemesh = ArrayMesh.new()
+	
+#	surface_array = []
+#	surface_array.resize(Mesh.ARRAY_MAX)
+	
+	temparr = Array(particle_edges)
+	temparr = temparr.map(func(v): return v - direction)
+	var tempnormals = temparr.map(func(v): return v.normalized())
+	particle_edges = PackedVector3Array(temparr)
+	var particle_normals = PackedVector3Array(tempnormals)
+#	surface_array[Mesh.ARRAY_VERTEX] = particle_edges
+#	surface_array[Mesh.ARRAY_NORMAL] = particle_normals
+#
+#	particlemesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, surface_array)
+#
+#	particle_points.mesh = particlemesh
 	
 #	if ocean:
 #		water_instance_id = water_material.get_instance_id()

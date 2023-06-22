@@ -1,5 +1,4 @@
 - rock strata in crust
-- fix glancing light specular in water
 - polish ufo dropping off pieces in carousel
 - nicer rotating wheel
 - earth desert should be more likely near equator
@@ -7,6 +6,11 @@
 - implement fast graphics option
 - add automatic puzzle saving
 - add config file saving for settings like graphics, sound, vibrate
+- stop generating ocean vertices for planets with no ocean
+
+GLITCHES:
+- piece shadow appears and lines up but actual piece never goes in and carousel is stuck
+- crash/freeze when interrupting moon building process with new planet
 
 maybe:
 	- slant screen divider for one-handed ease

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bl3lkohjch2lh"
+path="res://.godot/imported/brick audio one - one.ogg-1de3f5d02b1f2e301e5f09f31dde07a2.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/brick audio one - one.ogg"
+dest_files=["res://.godot/imported/brick audio one - one.ogg-1de3f5d02b1f2e301e5f09f31dde07a2.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

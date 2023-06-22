@@ -11,6 +11,7 @@ signal ufo_abducting2(piece)
 signal ufo_abduction_done2
 signal ufo_reset
 signal piece_added
+signal atmo_resize(size)
 
 @export var h_sensitivity = 0.005
 @export var v_sensitivity = 0.005
@@ -192,10 +193,12 @@ func _process(delta):
 func _atmo_change():
 	if global.generate_type == 1:
 		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
 	elif global.generate_type == 2:
 		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 3.2)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('d4995a'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
 	elif global.generate_type == 3:
@@ -204,12 +207,20 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('black'))
 	elif global.generate_type == 4:
 		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
 	elif global.generate_type == 5:
 		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.3)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
+	elif global.generate_type == 6 or global.generate_type == 7:
+		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.3)
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7a9cae'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7a9cae'))
+		
 
 func _on_mesh_maker_meshes_made():
 	emit_signal("meshes_made2")

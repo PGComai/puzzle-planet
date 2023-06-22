@@ -14,10 +14,8 @@ func _process(delta):
 func _on_graphics_check_button_toggled(button_pressed):
 	global.graphics_fancy = button_pressed
 
-
 func _on_sound_check_button_toggled(button_pressed):
 	global.sound = button_pressed
-
 
 func _on_vibrate_check_button_toggled(button_pressed):
 	global.vibration = button_pressed

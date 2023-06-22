@@ -17,7 +17,9 @@ signal ufo_ready(dict)
 @export var crust_thickness := 1.1
 @export var vertex_merge_threshold := 0.168
 @export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
-@export_enum('custom', 'earth', 'mars', 'moon', 'jupiter', 'saturn') var planet_style := 1
+@export_enum('custom', 'earth', 'mars', 'moon', 'jupiter', 'saturn', 'uranus', 'neptune') var planet_style := 1
+@export var piece_place_lerp_curve: Curve
+@export var piece_place_vibrate_curve: Curve
 @export var test_noise: FastNoiseLite
 @export var height_noise_frequency: float = 1.5
 @export var height_noise_type: FastNoiseLite.NoiseType
@@ -57,9 +59,11 @@ signal ufo_ready(dict)
 @export var h_band_snap := 0.01
 @export var h_band_wiggle := 0.1
 @export var craters_to_storms := false
+@export var storm_flatness := 4.0
 @export_category('Colors')
-@export var storm_color_1: Color
-@export var storm_color_2: Color
+@export var manual_storm_color := false
+@export var storm_color: Color
+@export var storm_color_curve: Curve
 @export var color_test := Color('Black')
 @export var low_crust_color := Color('3f3227')
 @export var crust_color := Color('3f3227')
@@ -121,6 +125,11 @@ signal ufo_ready(dict)
 @onready var mantle_jupiter_material = preload("res://tex/mantle_jupiter_material.tres")
 @onready var rings = $"../Rings"
 @onready var mantle_saturn_material = preload("res://tex/mantle_saturn_material.tres")
+@onready var audio_stream_player = $"../AudioStreamPlayer"
+@onready var mantle_uranus_material = preload("res://tex/mantle_uranus_material.tres")
+@onready var neptune_storm_curve = preload("res://tex/neptune_storm_curve.tres")
+@onready var neptune_storm_color_curve = preload("res://tex/neptune_storm_color_curve.tres")
+
 #@onready var atmo_material = preload("res://tex/atmosphere_material.tres")
 #@onready var atmo_2_material = preload("res://tex/atmosphere_inner_material.tres")
 #@onready var atmo_earth_material = preload("res://tex/atmosphere_outer_earth_material.tres")
@@ -130,6 +139,7 @@ var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
 var lava_lamp_color_jupiter = Color('64788f')
 var lava_lamp_color_saturn = Color('8b79b3')
+var lava_lamp_color_uranus = Color('92a2ab')
 
 var noise3d = FastNoiseLite.new()
 var colornoise = FastNoiseLite.new()
@@ -165,8 +175,13 @@ var build_planet := true
 var parameters_set := false
 var ufo_locations := {}
 
+var piece_place_lerp_progression := 0.0
+var piece_place_vibration := false
+var piece_place_lerp_brick_audio_one := preload("res://tex/brick_audio_one_lerp_curve.tres")
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	piece_place_lerp_curve = piece_place_lerp_brick_audio_one
 	treesnap = Vector3(treestep, treestep, treestep)
 	global = get_node('/root/Global')
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
@@ -244,12 +259,26 @@ func _process(delta):
 				current_piece.remove_from_group('pieces')
 				placed_signal = true
 				placed_counting = true
-			current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, 0.1)
+			if global.sound:
+				piece_place_lerp_progression = audio_stream_player.get_playback_position() / 2.2
+				if !audio_stream_player.playing:
+					piece_place_lerp_progression += delta / 2.2
+			else: ## this section needs work
+				piece_place_lerp_progression += delta / 2.2
+			piece_place_lerp_progression = clamp(piece_place_lerp_progression, 0.0, 1.0)
+			if global.vibration and is_equal_approx(piece_place_lerp_progression, 1.0) and !piece_place_vibration:
+				Input.vibrate_handheld(5.0)
+				piece_place_vibration = true
+				print('placed vibration')
+			current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, piece_place_lerp_curve.sample_baked(piece_place_lerp_progression))
+			#piece_place_lerp_progression += delta / 2.5
+			print(piece_place_lerp_progression)
 			if current_piece.global_position.is_equal_approx(current_piece.direction):
 				current_piece.global_position = current_piece.direction
 				print('fitted')
 				fit = false
 				placed_signal = false
+				piece_place_vibration = false
 		if placed_counting:
 			placed_timer += delta
 			if placed_timer > 0.2:
@@ -273,6 +302,11 @@ func _place_piece():
 	sun_2._on = true
 	space._on = false
 	rotowindow.visible = false
+	audio_stream_player.pitch_scale = randfn(0.9, 0.03)
+	if global.sound:
+		audio_stream_player.play()
+	piece_place_lerp_progression = 0.0
+	piece_place_vibration = false
 	print('hide roto from sphere')
 
 func _generate_mesh(userdata = null):
@@ -414,12 +448,6 @@ func _set_parameters():
 #		atmo_2.mesh.radius = 1.26
 #		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 		mantle.mesh.material = mantle_earth_material
-#		atmo.mesh.material = atmo_earth_material
-#		atmo_2.mesh.material = atmo_2_earth_material
-#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
-#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('afc7ee'))
-#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
-#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e5152a'))
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -492,10 +520,6 @@ func _set_parameters():
 #		atmo_2.mesh.radius = 1.26
 #		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 		mantle.mesh.material = mantle_mars_material
-#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
-#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('f3cfac'))
-#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
-#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('a3dbff'))
 		lava_lamp.light_color = lava_lamp_color_mars
 		lava_lamp.visible = true
 		h_bands = false
@@ -652,11 +676,8 @@ func _set_parameters():
 		h_band_snap = 0.001
 		h_band_wiggle = 0.1
 		craters_to_storms = true
-#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
-#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
-#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
-#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 		rings.visible = false
+		storm_flatness = 4.0
 	elif planet_style == 5:
 		# saturn
 		noise3d.noise_type = 1
@@ -715,6 +736,121 @@ func _set_parameters():
 #		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 #		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 		rings.visible = true
+	elif planet_style == 6:
+		# uranus
+		noise3d.noise_type = 1
+		noise3d.frequency = 0.678
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('8b94a0')
+		land_color = Color('7a9cae')
+		land_color_threshold = 1.1
+		land_color_2 = Color('739faa')
+		land_color_threshold = 0.9
+		land_color_3 = Color('709cbd')
+		ocean = false
+		snow_random_low = 0.85
+		snow_random_high = 0.95
+		max_terrain_height_unclamped = 1.032
+		global.planet_height_for_ufo = 0.05
+		min_terrain_height_unclamped = 1.004
+		max_terrain_height = 1.292
+		min_terrain_height = 0.903
+		clamp_terrain = false
+		invert_height = false
+		snow = false
+		craters = false
+		num_craters = 1
+		crater_size_multiplier = 2.0
+		crater_height_multiplier = 1.5
+		crater_height_curve = jupiter_storm_curve
+		mantle.mesh.material = mantle_uranus_material
+#		atmo.visible = true
+#		atmo_2.visible = true
+#		atmo.mesh.radius = 1.23
+#		atmo.mesh.height = atmo.mesh.radius * 2.0
+#		atmo_2.mesh.radius = 1.23
+#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
+		lava_lamp.light_color = lava_lamp_color_uranus
+		lava_lamp.visible = true
+		h_bands = true
+		h_band_snap = 0.001
+		h_band_wiggle = 0.01
+		craters_to_storms = false
+#		atmo.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+#		atmo_2.mesh.material.set_shader_parameter('Scattered_Color',Color('c5a37f'))
+#		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+#		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
+		rings.visible = false
+	elif planet_style == 7:
+		# neptune
+		noise3d.noise_type = 1
+		noise3d.frequency = 0.678
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('8b94a0')
+		land_color = Color('3b587e')
+		land_color_threshold = 1.1
+		land_color_2 = Color('476ab5')
+		land_color_threshold = 0.9
+		land_color_3 = Color('6995c1')
+		ocean = false
+		snow_random_low = 0.85
+		snow_random_high = 0.95
+		max_terrain_height_unclamped = 1.032
+		global.planet_height_for_ufo = 0.05
+		min_terrain_height_unclamped = 1.004
+		max_terrain_height = 1.292
+		min_terrain_height = 0.903
+		clamp_terrain = false
+		invert_height = false
+		snow = false
+		craters = true
+		num_craters = 1
+		crater_size_multiplier = 3.751
+		crater_height_multiplier = 1.566
+		crater_height_curve = neptune_storm_curve
+		mantle.mesh.material = mantle_uranus_material
+#		atmo.visible = true
+#		atmo_2.visible = true
+#		atmo.mesh.radius = 1.23
+#		atmo.mesh.height = atmo.mesh.radius * 2.0
+#		atmo_2.mesh.radius = 1.23
+#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
+		lava_lamp.light_color = lava_lamp_color_uranus
+		lava_lamp.visible = true
+		h_bands = true
+		h_band_snap = 0.001
+		h_band_wiggle = 0.2
+		craters_to_storms = true
+		rings.visible = false
+		manual_storm_color = true
+		storm_color_curve = neptune_storm_color_curve
+		storm_color = Color('385478')
 	parameters_set = true
 
 func snap_to_existing(vec: Vector3, vectree: Dictionary):
@@ -756,13 +892,14 @@ func snap_to_existing(vec: Vector3, vectree: Dictionary):
 					tv_down_l, tv_down_l_f, tv_down_l_b, tv_down_r, tv_down_r_f, tv_down_r_b,
 					tv_down_f, tv_down_b,
 					tv_left_f, tv_left_b, tv_right_f, tv_right_b]:
-			if found: break
+			
 			if vectree.has(shift):
 				for pt in vectree[shift]:
 					if vec.distance_squared_to(pt) < max_distance_between_vecs:
 						vec = pt
 						found = true
 						break
+			if found: break
 		if !found:
 			vectree[tree_vec].append(vec)
 	return vec
@@ -827,6 +964,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		newpiece.color = border_tri_colors
 		newpiece.ocean = ocean
 		if ocean:
+			# dont need to generate ocean stuff if no ocean
 			newpiece.vertex_w = water_triangles
 			newpiece.normal_w = water_tri_normals
 			newpiece.color_w = water_tri_colors
@@ -850,7 +988,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		if global.rotation:
 			var randrot = randf_range(0.0, 2*PI)
 			newpiece.random_rotation_offset = randrot
-		#newpiece.particle_edges = edges_for_particles
+		newpiece.particle_edges = NEW_tess_result[6]
 		newpiece.offset = piece_offset
 		# checking who stays
 		if pieces_stayed < pieces_at_start:
@@ -1009,6 +1147,7 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 	var cutwater_triangles = PackedVector3Array()
 	var cutwater_tri_normals = PackedVector3Array()
 	var cutwater_tri_colors = PackedColorArray()
+	var edges_for_particles = PackedVector3Array()
 
 	for b in len(ring_array)-1:
 		var v0 = ring_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
@@ -1018,11 +1157,21 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 		var v0p = mm(v0*thickness)
 		var v0pw = v0p.normalized()*water_offset
 		var v0pw_depth = v0p.length_squared() - v0pw.length_squared()
-		#edges_for_particles.append(v0p)
 		var v1p = mm(v1*thickness)
 		var v1pw = v1p.normalized()*water_offset
 		var v1pw_depth = v1p.length_squared() - v1pw.length_squared()
-		#edges_for_particles.append(v1p)
+		if !ocean:
+			edges_for_particles.append(v0p)
+			edges_for_particles.append(v1p)
+		else:
+			if v0p.length_squared() < v0pw.length_squared():
+				edges_for_particles.append(v0pw)
+			else:
+				edges_for_particles.append(v0p)
+			if v1p.length_squared() < v1pw.length_squared():
+				edges_for_particles.append(v1pw)
+			else:
+				edges_for_particles.append(v1p)
 		
 		var vp = mm(og_verts[og_idx]*thickness)
 		var vpw = vp.normalized()*water_offset
@@ -1148,7 +1297,7 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 		## PIECE BOTTOM END ## -----------------------------
 	
 	return [wall_triangles, wall_tri_normals, wall_tri_colors,
-		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors]
+		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors, edges_for_particles]
 
 func _triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array):
 	arr.append(p1)
@@ -1402,7 +1551,7 @@ func mm(vec: Vector3):
 					var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
 					var vecproj = spl.project(vec).normalized()
 					var vdist = vecproj.distance_squared_to(cr[0])
-					var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, 4.0)
+					var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
 					var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
 					my_craters.append(dist_mapped*vdist_mapped)
 			for mycr_i in len(my_craters):
@@ -1440,6 +1589,8 @@ func color_vary(vec: Vector3, colors: Array):
 		#print(vlen)
 		var maxlen = max_terrain_height_unclamped
 		var minlen = min_terrain_height_unclamped
+		if manual_storm_color:
+			vlen = clamp(vlen, min_terrain_height_unclamped, max_terrain_height_unclamped)
 		var halfway = ((max_terrain_height_unclamped - min_terrain_height_unclamped) / 2.0) + min_terrain_height_unclamped
 		if vlen > halfway:
 			#print('bigger')
@@ -1451,6 +1602,23 @@ func color_vary(vec: Vector3, colors: Array):
 			# smaller half
 			var tint_val = remap(vlen, minlen, halfway, 0.0, 1.0)
 			return_color = colors[2].lerp(colors[1], tint_val)
+		if craters and craters_to_storms and manual_storm_color:
+			var my_craters = []
+			for cr in crater_array:
+				var dist = vec.normalized().distance_squared_to(cr[0])
+				var crsize = 0.01 * crater_size_multiplier
+				if dist <= cr[1] * crsize:
+					var sideways = cr[0].cross(Vector3.UP).normalized()
+					var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
+					var vecproj = spl.project(vec).normalized()
+					var vdist = vecproj.distance_squared_to(cr[0])
+					var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
+					var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+					my_craters.append(pow(1.0 - clamp(dist_mapped*vdist_mapped, 0.0, 1.0), 2.0))
+			for mycr_i in len(my_craters):
+				pass
+				return_color = lerp(return_color, storm_color, storm_color_curve.sample_baked(my_craters[mycr_i]))
+				#newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
 	return return_color
 	
 func _piece_fit(delta):
