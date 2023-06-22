@@ -242,9 +242,9 @@ func _process(delta):
 		if !thread.is_alive() and !thread.is_started():
 			thread.start(Callable(self, "_generate_mesh"))
 		if !thread.is_alive() and thread.is_started():
-			print('wtf')
+			#print('wtf')
 			thread.wait_to_finish()
-			print('done')
+			#print('done')
 			build_planet = false
 			emit_signal("ready_to_start")
 			emit_signal('ufo_ready', ufo_locations)
@@ -272,7 +272,7 @@ func _process(delta):
 				print('placed vibration')
 			current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, piece_place_lerp_curve.sample_baked(piece_place_lerp_progression))
 			#piece_place_lerp_progression += delta / 2.5
-			print(piece_place_lerp_progression)
+			#print(piece_place_lerp_progression)
 			if current_piece.global_position.is_equal_approx(current_piece.direction):
 				current_piece.global_position = current_piece.direction
 				print('fitted')
@@ -307,7 +307,7 @@ func _place_piece():
 		audio_stream_player.play()
 	piece_place_lerp_progression = 0.0
 	piece_place_vibration = false
-	print('hide roto from sphere')
+	#print('hide roto from sphere')
 
 func _generate_mesh(userdata = null):
 	var verts := PackedVector3Array()
@@ -327,21 +327,21 @@ func _generate_mesh(userdata = null):
 		
 		for v in len(verts):
 			if verts[v].angle_to(Vector3.UP) < PI/32:
-				print(v)
-				print('angle to UP is:')
-				print(verts[v].angle_to(Vector3.UP))
+				#print(v)
+				#print('angle to UP is:')
+				#print(verts[v].angle_to(Vector3.UP))
 				var x = Vector3.UP.cross(verts[v]).normalized()
 				verts[v] = verts[v].rotated(x, PI/32)
-				print('new angle to UP is:')
-				print(verts[v].angle_to(Vector3.UP))
+				#print('new angle to UP is:')
+				#print(verts[v].angle_to(Vector3.UP))
 			if verts[v].angle_to(Vector3.DOWN) < PI/32:
-				print(v)
-				print('angle to DOWN is:')
-				print(verts[v].angle_to(Vector3.DOWN))
+				#print(v)
+				#print('angle to DOWN is:')
+				#print(verts[v].angle_to(Vector3.DOWN))
 				var x = Vector3.DOWN.cross(verts[v]).normalized()
 				verts[v] = verts[v].rotated(x, PI/32)
-				print('new angle to DOWN is:')
-				print(verts[v].angle_to(Vector3.DOWN))
+				#print('new angle to DOWN is:')
+				#print(verts[v].angle_to(Vector3.DOWN))
 		
 		var delaunay_triangle_centers: Dictionary
 		delaunay_triangle_centers = NEW_delaunay(verts, true)

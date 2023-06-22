@@ -90,6 +90,7 @@ func _ready():
 	camera_3d.position.z = cam_dist
 	h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
+	print(self.get_viewport().get_visible_rect().size.x)
 	#h_sensitivity *= global.pieces_at_start/15.0
 	og_sens = h_sensitivity
 

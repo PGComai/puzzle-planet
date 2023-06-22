@@ -364,7 +364,7 @@ func _abducted_animation():
 func _on_ufo_abducting2(piece, speed):
 	if piece == idx:
 		abduction_lerp = speed
-		print(piece)
+		#print(piece)
 		being_abducted = true
 
 func _on_ufo_abduction_done2():

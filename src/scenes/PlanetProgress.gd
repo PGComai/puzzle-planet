@@ -16,7 +16,7 @@ func _process(delta):
 func _on_universe_piece_added():
 	pieces_made_so_far += 1
 	value = ((float(pieces_made_so_far) / float(global.total_pieces)) * 100.0)
-	print(pieces_made_so_far)
+	#print(pieces_made_so_far)
 	if pieces_made_so_far == global.total_pieces:
 		progress_full_timer.start()
 
