@@ -169,7 +169,7 @@ var correct_rotation := false
 
 var rotowindow
 
-var thread
+var thread: Thread
 
 var build_planet := true
 var parameters_set := false
@@ -243,8 +243,9 @@ func _process(delta):
 			thread.start(Callable(self, "_generate_mesh"))
 		if !thread.is_alive() and thread.is_started():
 			#print('wtf')
-			thread.wait_to_finish()
+			result = thread.wait_to_finish()
 			#print('done')
+		if result:
 			build_planet = false
 			emit_signal("ready_to_start")
 			emit_signal('ufo_ready', ufo_locations)
@@ -259,63 +260,60 @@ func _process(delta):
 				current_piece.remove_from_group('pieces')
 				placed_signal = true
 				placed_counting = true
-			if global.sound:
-				piece_place_lerp_progression = audio_stream_player.get_playback_position() / 2.2
-				if !audio_stream_player.playing:
-					piece_place_lerp_progression += delta / 2.2
-			else: ## this section needs work
-				piece_place_lerp_progression += delta / 2.2
-			piece_place_lerp_progression = clamp(piece_place_lerp_progression, 0.0, 1.0)
-			if global.vibration and is_equal_approx(piece_place_lerp_progression, 1.0) and !piece_place_vibration:
-				Input.vibrate_handheld(5.0)
-				piece_place_vibration = true
-				print('placed vibration')
-			current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, piece_place_lerp_curve.sample_baked(piece_place_lerp_progression))
-			#piece_place_lerp_progression += delta / 2.5
-			#print(piece_place_lerp_progression)
-			if current_piece.global_position.is_equal_approx(current_piece.direction):
-				current_piece.global_position = current_piece.direction
-				print('fitted')
 				fit = false
-				placed_signal = false
-				piece_place_vibration = false
+#			if global.sound:
+#				piece_place_lerp_progression = audio_stream_player.get_playback_position() / 2.2
+#				if !audio_stream_player.playing:
+#					piece_place_lerp_progression += delta / 2.2
+#			else: ## this section needs work
+#				piece_place_lerp_progression += delta / 2.2
+#			piece_place_lerp_progression = clamp(piece_place_lerp_progression, 0.0, 1.0)
+#			if global.vibration and is_equal_approx(piece_place_lerp_progression, 1.0) and !piece_place_vibration:
+#				Input.vibrate_handheld(5)
+#				piece_place_vibration = true
+#				print('placed vibration')
+#			current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, piece_place_lerp_curve.sample_baked(piece_place_lerp_progression))
+#			#piece_place_lerp_progression += delta / 2.5
+#			#print(piece_place_lerp_progression)
+#			if current_piece.global_position.is_equal_approx(current_piece.direction):
+#				current_piece.global_position = current_piece.direction
+#				print('fitted')
+#				fit = false
+#				placed_signal = false
+#				piece_place_vibration = false
 		if placed_counting:
 			placed_timer += delta
 			if placed_timer > 0.2:
 				emit_signal("piece_placed", current_piece.circle_idx)
+				placed_signal = false
 				placed_counting = false
 				placed_timer = 0.0
 		
 
 func _place_piece():
 	current_piece.reparent(pieces, false)
-	current_piece.placed = true
 	current_piece.position = Vector3.ZERO
 	current_piece.rotation = Vector3.ZERO
 	current_piece_mesh.rotation = Vector3.ZERO
 	current_piece.global_position = piece_target.global_position
+	current_piece.placed = true
 	fit = true
 	looking = false
 	fit_timer = 0.0
 	shadow_light._on = false
 	sun._on = true
-	#sun_2._on = true
 	space._on = false
 	rotowindow.visible = false
-	audio_stream_player.pitch_scale = randfn(0.9, 0.03)
-	if global.sound:
-		audio_stream_player.play()
-	piece_place_lerp_progression = 0.0
-	piece_place_vibration = false
+#	audio_stream_player.pitch_scale = randfn(0.9, 0.03)
+#	if global.sound:
+#		audio_stream_player.play()
+#	piece_place_lerp_progression = 0.0
+#	piece_place_vibration = false
 	#print('hide roto from sphere')
 
 func _generate_mesh(userdata = null):
 	var verts := PackedVector3Array()
-	var borderverts := PackedVector3Array()
-	var colors := PackedColorArray()
-	var vb_dict := Dictionary()
 	var vi_to_borders := Dictionary()
-	var recursed_borders := Dictionary()
 	
 	if mesh_source == 1:
 		### MAKE PUZZLE PIECE LOCATIONS ###
@@ -325,38 +323,20 @@ func _generate_mesh(userdata = null):
 		for x in generations:
 			verts = shift_points(verts,0,1)
 		
+		### CHECK FOR POINTS TOO CLOSE TO POLES ###
 		for v in len(verts):
 			if verts[v].angle_to(Vector3.UP) < PI/32:
-				#print(v)
-				#print('angle to UP is:')
-				#print(verts[v].angle_to(Vector3.UP))
 				var x = Vector3.UP.cross(verts[v]).normalized()
 				verts[v] = verts[v].rotated(x, PI/32)
-				#print('new angle to UP is:')
-				#print(verts[v].angle_to(Vector3.UP))
 			if verts[v].angle_to(Vector3.DOWN) < PI/32:
-				#print(v)
-				#print('angle to DOWN is:')
-				#print(verts[v].angle_to(Vector3.DOWN))
 				var x = Vector3.DOWN.cross(verts[v]).normalized()
 				verts[v] = verts[v].rotated(x, PI/32)
-				#print('new angle to DOWN is:')
-				#print(verts[v].angle_to(Vector3.DOWN))
 		
 		var delaunay_triangle_centers: Dictionary
 		delaunay_triangle_centers = NEW_delaunay(verts, true)
 		var my_delaunay_points = NEW_verts_to_dpoints(verts, delaunay_triangle_centers)
-		
 		vi_to_borders = make_border_array(verts, my_delaunay_points)
 		
-		## NEW STUFF
-		
-		#recursed_borders = vi_to_borders.duplicate()
-		var used_border_vecs = PackedVector3Array()
-#		for r in sub_triangle_recursion+1:
-#			recursed_borders = NEW_fill_border_halfways(recursed_borders.duplicate(), verts, used_border_vecs)
-		
-		var circle_idx = 0
 		var l = len(verts)
 		
 		if snow_random_high > snow_random_low:
@@ -369,11 +349,10 @@ func _generate_mesh(userdata = null):
 		craterize()
 		
 		var vectree = {}
-		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, used_border_vecs, vectree)
+		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, vectree)
+	return true
 
 func _set_parameters():
-#	atmo.mesh.material = atmo_material
-#	atmo_2.mesh.material = atmo_2_material
 	if planet_style == 0:
 		pass
 		#test_noise.frequency = height_noise_frequency
@@ -922,12 +901,12 @@ func craterize():
 #			impact = impact.normalized()
 		crater_array.append([impact, strength])
 
-func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array, vectree: Dictionary):
+func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, vectree: Dictionary):
 	var pieces_stayed := 0
 	var circle_idx := 0
 	var newborders = vbdict.duplicate()
 	for r in sub_triangle_recursion+1:
-		newborders = NEW_fill_border_halfways(newborders.duplicate(), og_verts, used_border_vecs, vectree)
+		newborders = NEW_fill_border_halfways(newborders.duplicate(), og_verts, vectree)
 	for bak in vbdict.keys():
 		var border_triangles = PackedVector3Array()
 		var border_tri_normals = PackedVector3Array()
@@ -939,10 +918,9 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		var arrays = [border_triangles, border_tri_normals, border_tri_colors,
 			water_triangles, water_tri_normals, water_tri_colors]
 		var new_border_array = newborders[bak]
-		var NEW_tess_result = NEW_tesselate(og_verts, bak, new_border_array, crust_thickness, used_border_vecs, vectree)
+		var NEW_tess_result = NEW_tesselate(og_verts, bak, new_border_array, crust_thickness, vectree)
 		var border_array = vbdict[bak]
 		var on = true
-		var used_vecs = PackedVector3Array()
 		for b in len(border_array)-1:
 			var v0 = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
 			var v1 = border_array[b+1].snapped(Vector3(vsnap, vsnap, vsnap))
@@ -950,7 +928,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 			v0 = snap_to_existing(v0, vectree)
 			v1 = snap_to_existing(v1, vectree)
 			vp = snap_to_existing(vp, vectree)
-			_sub_triangle(v0,vp,v1, arrays, used_vecs, used_border_vecs, vectree)
+			_sub_triangle(v0,vp,v1, arrays, vectree)
 			
 		var dxu = og_verts[bak].cross(Vector3.UP)
 		var up = dxu.rotated(og_verts[bak].normalized(), -PI/2)
@@ -974,9 +952,6 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		newpiece.direction = og_verts[bak]
 		newpiece.lat = og_verts[bak].angle_to(Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized()) * sign(og_verts[bak].y)
 		newpiece.lon = Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized().angle_to(Vector3.FORWARD) * sign(og_verts[bak].x)
-#		print(newpiece.lat)
-#		print(newpiece.lon)
-#		print('..')
 		newpiece.rotation_saver = Quaternion(og_verts[bak], Vector3.BACK)
 		puzzle_fits[bak] = og_verts[bak]
 		newpiece.idx = bak
@@ -990,6 +965,10 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 			newpiece.random_rotation_offset = randrot
 		newpiece.particle_edges = NEW_tess_result[6]
 		newpiece.offset = piece_offset
+		if planet_style == 1 or planet_style == 2 or planet_style == 3:
+			newpiece.sound_type = 0
+		else:
+			newpiece.sound_type = 1
 		# checking who stays
 		if pieces_stayed < pieces_at_start:
 			newpiece.remove_from_group('pieces')
@@ -1003,8 +982,6 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		pieces.call_deferred('add_child', newpiece)
 
 func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
-			used_vecs: PackedVector3Array,
-			used_border_vecs: PackedVector3Array,
 			vectree: Dictionary,
 			recursion := 0,
 			shade_min := 0,
@@ -1012,7 +989,6 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 #	[border_triangles, border_tri_normals, border_tri_colors,            0, 1, 2
 #		water_triangles, water_tri_normals, water_tri_colors]            3, 4, 5
 	if recursion > sub_triangle_recursion:
-		# i think this is where we need to apply color, height, etc to vertices
 		
 		p1 = snap_to_existing(p1, vectree)
 		p2 = snap_to_existing(p2, vectree)
@@ -1120,13 +1096,13 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			p23 = snap_to_existing(p23, vectree)
 			p31 = snap_to_existing(p31, vectree)
 			
-			_sub_triangle(p1, p12, p31, arrays, used_vecs, used_border_vecs, vectree, recursion)
+			_sub_triangle(p1, p12, p31, arrays, vectree, recursion)
 			
-			_sub_triangle(p12, p2, p23, arrays, used_vecs, used_border_vecs, vectree, recursion)
+			_sub_triangle(p12, p2, p23, arrays, vectree, recursion)
 			
-			_sub_triangle(p31, p23, p3, arrays, used_vecs, used_border_vecs, vectree, recursion)
+			_sub_triangle(p31, p23, p3, arrays, vectree, recursion)
 			
-			_sub_triangle(p12, p23, p31, arrays, used_vecs, used_border_vecs, vectree, recursion)
+			_sub_triangle(p12, p23, p31, arrays, vectree, recursion)
 
 func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: ArrayMesh):
 	var surface_array = []
@@ -1138,7 +1114,6 @@ func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: 
 	msh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 
 func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array, thickness: float,
-		used_border_vecs: PackedVector3Array,
 		vectree: Dictionary,
 		water = true):
 	var wall_triangles = PackedVector3Array()
@@ -1358,7 +1333,7 @@ func make_border_array(og_verts: PackedVector3Array, delaunay_points: Dictionary
 		result[v] = border_array
 	return result
 
-func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, used_border_vecs: PackedVector3Array, vectree: Dictionary):
+func NEW_fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, vectree: Dictionary):
 	for vi in vbdict.keys():
 		var border_array = vbdict[vi]
 		var new_border_array = PackedVector3Array()
@@ -1488,9 +1463,6 @@ func NEW_delaunay(points: PackedVector3Array, return_tris := false):
 						good_triangles.append([p,p3,p2])
 						if !tris.has(plarr2) and !tris.has(plarr):
 							tris[plarr2] = plc
-						
-#	print(len(centers))
-#	print(len(tris))
 	return tris
 
 func array_of_points(arr: PackedVector3Array):
@@ -1518,13 +1490,8 @@ func mm(vec: Vector3):
 		offset = noise3d.get_noise_3dv(vec)
 	else:
 		offset = noise3d.get_noise_3dv(Vector3(vec.x * h_band_wiggle, vec.y, vec.z * h_band_wiggle)) * 2.0
-	#print(offset)
 	if invert_height:
 		offset = 1.0 - offset
-#	if ocean:
-#		offset = clamp(remap(offset, -1.0, 1.0, 0.9, max_terrain_height_unclamped), 0.97, max_terrain_height)
-#	else:
-	#print(offset)
 	var newvec = vec * remap(offset, -1.0, 1.0, min_terrain_height_unclamped, max_terrain_height_unclamped)
 	if clamp_terrain:
 		newvec = newvec.limit_length(max_terrain_height)
@@ -1556,11 +1523,13 @@ func mm(vec: Vector3):
 					my_craters.append(dist_mapped*vdist_mapped)
 			for mycr_i in len(my_craters):
 				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
-	return newvec#.normalized() * snapped(newvec.length(), h_band_snap)
+	return newvec
 
 func color_vary(vec: Vector3, colors: Array):
 	var return_color: Color
 	if !h_bands:
+		# rocky planet
+		# color depends on colornoise
 		var nval = colornoise.get_noise_3dv(vec)
 		var nval2 = colornoise2.get_noise_3dv(vec)
 		if planet_style == 3:
@@ -1632,7 +1601,6 @@ func _piece_fit(delta):
 			fit_timer += delta
 	else:
 		fit_timer = 0.0
-	#where.position = current_piece.direction
 	
 func _on_ready_for_launch(_idx):
 	var _pieces = get_tree().get_nodes_in_group('pieces')

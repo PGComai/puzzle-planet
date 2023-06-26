@@ -1,7 +1,15 @@
-[gd_scene load_steps=22 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=27 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
+[ext_resource type="AudioStream" uid="uid://cpgjx21snc68b" path="res://audio/ufo-dropoff-one.ogg" id="3_ley4f"]
+[ext_resource type="Script" path="res://scripts/DropOffSound.gd" id="4_wo60a"]
+[ext_resource type="AudioStream" uid="uid://bm4qud3f67gve" path="res://audio/heavy-rock-drop-2.ogg" id="5_gn45x"]
+[ext_resource type="AudioStream" uid="uid://dxtfgon063axy" path="res://audio/heavy-gas-drop.ogg" id="6_0oypa"]
+
+[sub_resource type="Curve" id="Curve_wdrif"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.737864, 0.104294), 0.0, 0.0, 0, 0, Vector2(0.807443, 0.00613499), 0.0, 0.0, 0, 0, Vector2(0.839806, 0.257669), 0.0, 0.0, 0, 0]
+point_count = 4
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 resource_local_to_scene = true
@@ -94,6 +102,7 @@ height = 0.1
 
 [node name="planet_piece" type="Node3D" groups=["pieces"]]
 script = ExtResource("1_jrwu8")
+placement_curve = SubResource("Curve_wdrif")
 
 [node name="themesh" type="MeshInstance3D" parent="."]
 layers = 9
@@ -152,3 +161,28 @@ skeleton = NodePath("../..")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 visible = false
 mesh = SubResource("SphereMesh_gl2kt")
+
+[node name="DropOffSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_ley4f")
+volume_db = -1.586
+unit_size = 2.23
+max_db = 1.0
+pitch_scale = 0.6
+max_polyphony = 3
+script = ExtResource("4_wo60a")
+
+[node name="PieceDropRock" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("5_gn45x")
+volume_db = 16.262
+unit_size = 2.23
+max_db = 1.0
+pitch_scale = 0.8
+
+[node name="PieceDropGas" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("6_0oypa")
+volume_db = 4.163
+unit_size = 2.23
+max_db = 1.0
+pitch_scale = 0.8
+
+[connection signal="drop_off_sound" from="." to="DropOffSound" method="_on_planet_piece_drop_off_sound"]

@@ -24,7 +24,6 @@ signal atmo_resize(size)
 @onready var new_mesh_maker = preload("res://scenes/mesh_maker.tscn")
 @onready var browser = $"../../../../MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser"
 @onready var sun = $Sun
-#@onready var sun_2 = $Sun2
 @onready var space = $Space
 @onready var shadow_light = $h/v/Camera3D/ShadowLight
 @onready var rotowindow = $"../../../../../../RotoWindow"
@@ -67,8 +66,8 @@ func _ready():
 	global = get_node('/root/Global')
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	h = sub_viewport.size.y
-	h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
-	v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
+	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
+	#v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
 	RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
 	generate_type = global.generate_type
@@ -246,9 +245,6 @@ func _on_generate_button_up():
 		n.queue_free()
 	if global.generate_type != generate_type:
 		_atmo_change()
-#	for n in get_tree().get_nodes_in_group('atmospheres'):
-#		if n.is_inside_tree():
-#			n.queue_free()
 	
 	var nmm = new_mesh_maker.instantiate()
 	nmm.connect('meshes_made', _on_mesh_maker_meshes_made)

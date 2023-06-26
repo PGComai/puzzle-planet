@@ -1,7 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://cs8eh4rcoct8l"]
+[gd_scene load_steps=16 format=3 uid="uid://cs8eh4rcoct8l"]
 
 [ext_resource type="Shader" uid="uid://dsh1pu8mere1v" path="res://scenes/ufobeam.tres" id="1_ixbkh"]
 [ext_resource type="Script" path="res://scripts/ufo.gd" id="1_p1dcn"]
+[ext_resource type="AudioStream" uid="uid://0d6605jf7c2e" path="res://audio/ufo-abduct-one.ogg" id="3_ing0b"]
+[ext_resource type="Script" path="res://scripts/AbductionSound.gd" id="4_u3y8s"]
 
 [sub_resource type="Curve" id="Curve_1xtc4"]
 _data = [Vector2(0, 0.1), 0.0, 1.362, 0, 0, Vector2(1, 0.619632), 0.0, 0.0, 0, 0]
@@ -84,3 +86,14 @@ skeleton = NodePath("../..")
 [node name="beamhole" type="MeshInstance3D" parent="meshes"]
 transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 0, -0.0151495, 6.62207e-10)
 mesh = SubResource("SphereMesh_b4413")
+
+[node name="AbductionSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_ing0b")
+volume_db = -1.147
+unit_size = 2.23
+max_db = 1.0
+pitch_scale = 0.8
+max_polyphony = 3
+script = ExtResource("4_u3y8s")
+
+[connection signal="ufo_abducting" from="." to="AbductionSound" method="_on_ufo_ufo_abducting"]

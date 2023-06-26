@@ -4,7 +4,7 @@ signal found_you(idx)
 signal picked_you(idx)
 signal wheel_rot(rot)
 signal click(speed)
-signal ufo_at_angle(angle)
+signal ufo_at_angle(angle, pos)
 
 @onready var orbit = $Orbit
 @onready var camrot = $camrot
@@ -325,7 +325,7 @@ func _resetti_spaghetti():
 	snaps = []
 	snap_to = 0.0
 	piece_rotation = global.rotation
-	h_sensitivity = 0.003 * 180.0/self.get_viewport().get_visible_rect().size.x
+	h_sensitivity = og_sens
 	camera_3d.position.y = 0.0
 	wheel.position.y = 12.0
 	wheel_moving = false
@@ -394,6 +394,7 @@ func _on_universe_ufo_done_2():
 	#print(rotosnaps)
 	for r in rotosnaps:
 		snaps.append(ang*(r))
+	print(snaps)
 	for p in pieces:
 		p.reparent(self, false)
 		p.i_am_here.connect(_on_i_am_here)
@@ -421,16 +422,14 @@ func _on_ufo_take_me_home():
 	for p in pieces:
 		p.visible = true
 
-func _on_ufo_orbit_at_angle(angle):
-	# figure out how to get this to send one signal to each piece
+func _on_ufo_orbit_at_angle(angle, pos):
 	if angle < 0.0:
 		angle = (PI - abs(angle)) + PI
 	angle += PI
 	if angle >= 2.0*PI:
 		angle -= 2.0*PI
 	var ufo_snap_to = snappedf(angle, 2*PI/rotosnaps)
-	#print(ufo_snap_to)
-	emit_signal("ufo_at_angle", ufo_snap_to)
+	emit_signal("ufo_at_angle", ufo_snap_to, pos)
 
 
 func _on_ufo_orbit_drop_off_done():

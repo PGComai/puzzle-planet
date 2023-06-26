@@ -16,6 +16,7 @@ GLITCHES:
 - piece shadow appears and lines up but actual piece never goes in and carousel is stuck
 - crash/freeze when interrupting moon building process with new planet
 - rendered planet without one chunk of ocean on IOS
+- crashes if another planet requested while generating planet
 
 maybe:
 	- slant screen divider for one-handed ease

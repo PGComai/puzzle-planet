@@ -4,6 +4,9 @@ signal i_am_here(idx, ang)
 signal ready_for_launch(idx)
 signal take_me_home(idx)
 signal this_is_my_rotation(rot)
+signal drop_off_sound
+
+@export var placement_curve: Curve
 
 @onready var upward = $upward
 @onready var inward = $inward
@@ -12,6 +15,8 @@ signal this_is_my_rotation(rot)
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
 @onready var particle_points = $themesh/particle_points
+@onready var piece_drop_rock = $PieceDropRock
+@onready var piece_drop_gas = $PieceDropGas
 
 var offset := 1.0
 
@@ -80,6 +85,7 @@ var drop_off_finished := true
 var drop_off_started := false
 var drop_off_original_dist: float
 var drop_off_original_position: Vector3
+var drop_off_start_pos: Vector3
 
 var ghostball
 var ghost
@@ -91,6 +97,11 @@ var rotowindow
 
 var global
 var water_instance_id
+var placement_finished := false
+var sound_type := 0
+var sound_playing := false
+var placement_lerp_1 := 0.0
+var placement_lerp_2 := 0.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -174,30 +185,9 @@ func _ready():
 	surface_array[Mesh.ARRAY_COLOR] = wall_color
 	
 	wallmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
-
+	
 	walls.mesh = wallmesh
 	
-	var particlemesh = ArrayMesh.new()
-	
-#	surface_array = []
-#	surface_array.resize(Mesh.ARRAY_MAX)
-	
-	temparr = Array(particle_edges)
-	temparr = temparr.map(func(v): return v - direction)
-	var tempnormals = temparr.map(func(v): return v.normalized())
-	particle_edges = PackedVector3Array(temparr)
-	var particle_normals = PackedVector3Array(tempnormals)
-#	surface_array[Mesh.ARRAY_VERTEX] = particle_edges
-#	surface_array[Mesh.ARRAY_NORMAL] = particle_normals
-#
-#	particlemesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, surface_array)
-#
-#	particle_points.mesh = particlemesh
-	
-#	if ocean:
-#		water_instance_id = water_material.get_instance_id()
-#		themesh.mesh.surface_set_material(themesh.mesh.get_surface_count()-1, water_material)
-	#if staying:
 	self.position = direction * offset
 	get_parent().get_parent().ufo_abducting2.connect(_on_ufo_abducting2)
 	get_parent().get_parent().ufo_abduction_done2.connect(_on_ufo_abduction_done2)
@@ -254,6 +244,27 @@ func _process(delta):
 				position.y = 20.0
 				in_transit = true
 				back_from_space = false
+	else:
+		if !placement_finished:
+			_placement()
+
+func _placement():
+	var dist = global_position.distance_to(direction)
+	print(dist)
+	if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 0:
+		piece_drop_rock.pitch_scale = 0.8 + randfn(0.0, 0.05)
+		piece_drop_rock.play()
+		sound_playing = true
+	if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 1:
+		piece_drop_gas.pitch_scale = 0.8 + randfn(0.0, 0.05)
+		piece_drop_gas.play()
+		sound_playing = true
+	placement_lerp_1 = lerp(placement_lerp_1, 1.0, 0.03)
+	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
+	global_position = lerp(global_position, direction, placement_lerp_2)
+	if global_position.is_equal_approx(direction):
+		global_position = direction
+		placement_finished = true
 
 func arrange(re = false):
 	if !re:
@@ -370,10 +381,12 @@ func _on_ufo_abduction_done2():
 	if being_abducted:
 		abduction_finished = true
 
-func _on_ufo_at_angle(ang):
+func _on_ufo_at_angle(ang, pos):
 	if is_equal_approx(ang, angle) and visible == false:
+		drop_off_start_pos = pos
 		visible = true
 		drop_off_finished = false
+		emit_signal("drop_off_sound")
 
 func _dropped_off_animation():
 	if !drop_off_started:

@@ -1,6 +1,6 @@
 extends Node3D
 
-signal at_angle(angle)
+signal at_angle(angle, pos)
 signal drop_off_done
 
 @export var spinny_curve: Curve
@@ -34,7 +34,7 @@ func _spin():
 	var ang = ufo_starting_pos.signed_angle_to(Vector3(ufo.global_position.x, 0.0 ,ufo.global_position.z), Vector3.UP)
 	var scaled_ang = remap(abs(ang), 0.0, PI, 0.0, 1.0)
 	rotate(Vector3.UP, PI/180.0 * spinny_curve.sample_baked(scaled_ang))
-	emit_signal("at_angle", ang)
+	emit_signal("at_angle", ang, ufo.position)
 	if ang < 0.0:
 		past_halfway = true
 	if past_halfway and ang > 0.0:
