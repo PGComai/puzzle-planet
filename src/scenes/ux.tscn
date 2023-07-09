@@ -430,6 +430,10 @@ size_flags_horizontal = 10
 size_flags_vertical = 4
 button_pressed = true
 
+[node name="HSeparator3" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+visible = false
+layout_mode = 2
+
 [node name="Close" type="Button" parent="SettingsPopup/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 10

@@ -1,13 +1,16 @@
 - rock strata in crust
 - polish ufo dropping off pieces in carousel
 - nicer rotating wheel
-- earth desert should be more likely near equator
 - adjust ufo height per planet
 - implement fast graphics option
 - add automatic puzzle saving
 - add config file saving for settings like graphics, sound, vibrate
 - stop generating ocean vertices for planets with no ocean
 - optimize lighting code
+- optimize snap_to_existing function
+- add mountains
+- add olympus mons
+- fix earth desert weirdness
 
 - IOS --
 

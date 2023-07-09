@@ -60,10 +60,14 @@ signal ufo_ready(dict)
 @export var h_band_wiggle := 0.1
 @export var craters_to_storms := false
 @export var storm_flatness := 4.0
+@export var craters_to_mountains := false
+@export var mountain_shift_curve: Curve
 @export_category('Colors')
 @export var manual_storm_color := false
 @export var storm_color: Color
 @export var storm_color_curve: Curve
+@export var mountain_color: Color
+@export var mountain_color_curve: Curve
 @export var color_test := Color('Black')
 @export var low_crust_color := Color('3f3227')
 @export var crust_color := Color('3f3227')
@@ -111,9 +115,6 @@ signal ufo_ready(dict)
 @onready var where = $where
 @onready var sun = $"../Sun"
 @onready var space = $"../Space"
-#@onready var sun_2 = $"../Sun2"
-#@onready var atmo = $"../Atmo"
-#@onready var atmo_2 = $"../Atmo2"
 @onready var mantle = $"../Mantle"
 @onready var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
 @onready var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
@@ -129,11 +130,9 @@ signal ufo_ready(dict)
 @onready var mantle_uranus_material = preload("res://tex/mantle_uranus_material.tres")
 @onready var neptune_storm_curve = preload("res://tex/neptune_storm_curve.tres")
 @onready var neptune_storm_color_curve = preload("res://tex/neptune_storm_color_curve.tres")
-
-#@onready var atmo_material = preload("res://tex/atmosphere_material.tres")
-#@onready var atmo_2_material = preload("res://tex/atmosphere_inner_material.tres")
-#@onready var atmo_earth_material = preload("res://tex/atmosphere_outer_earth_material.tres")
-#@onready var atmo_2_earth_material = preload("res://tex/atmosphere_inner_earth_material.tres")
+@onready var earth_mountain_curve = preload("res://tex/earth_mountain_curve.tres")
+@onready var earth_mountain_shift_curve = preload("res://tex/earth_mountain_shift_curve.tres")
+@onready var earth_mountain_color_curve = preload("res://tex/earth_mountain_color_curve.tres")
 
 var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
@@ -144,6 +143,8 @@ var lava_lamp_color_uranus = Color('92a2ab')
 var noise3d = FastNoiseLite.new()
 var colornoise = FastNoiseLite.new()
 var colornoise2 = FastNoiseLite.new()
+var mountain_noise = FastNoiseLite.new()
+var general_noise_soft = FastNoiseLite.new()
 var saver = ResourceSaver
 var loader = ResourceLoader
 var load_failed: bool = false
@@ -191,6 +192,14 @@ func _ready():
 		planet_style = global.generate_type
 		pieces_at_start = global.pieces_at_start
 	randomize()
+	mountain_noise.seed = randi_range(0, 100000)
+	general_noise_soft.seed = randi_range(0, 100000)
+	mountain_noise.noise_type = 4
+	mountain_noise.frequency = 5.0
+	mountain_noise.fractal_weighted_strength = 0
+	general_noise_soft.noise_type = 4
+	general_noise_soft.frequency = 0.1
+	general_noise_soft.fractal_weighted_strength = 1
 	colornoise.noise_type = 4
 	colornoise.frequency = 2.0
 	colornoise.seed = randi_range(0, 100000)
@@ -353,13 +362,20 @@ func _generate_mesh(userdata = null):
 	return true
 
 func _set_parameters():
+	#print('planet style: ', planet_style)
 	if planet_style == 0:
 		pass
 		#test_noise.frequency = height_noise_frequency
 		#noise3d = test_noise
 		#colornoise = test_noise
 	elif planet_style == 1:
-		## override colors to earth style
+		## earth
+		mountain_noise.noise_type = 4
+		mountain_noise.frequency = 5.0
+		mountain_noise.fractal_weighted_strength = 0
+		general_noise_soft.noise_type = 4
+		general_noise_soft.frequency = 0.1
+		general_noise_soft.fractal_weighted_strength = 1
 		colornoise.noise_type = 4
 		colornoise.frequency = 2.0
 		colornoise.domain_warp_enabled = false
@@ -418,14 +434,16 @@ func _set_parameters():
 		min_terrain_height = 0.8
 		clamp_terrain = false
 		invert_height = false
-		craters = false
+		craters = true
+		craters_to_mountains = true
+		crater_height_curve = earth_mountain_curve
+		mountain_shift_curve = earth_mountain_shift_curve
+		mountain_color_curve = earth_mountain_color_curve
+		mountain_color = Color('ab8773')
+		num_craters = 20
+		crater_size_multiplier = 3.0
+		crater_height_multiplier = 1.2
 		snow = true
-#		atmo.visible = true
-#		atmo_2.visible = true
-#		atmo.mesh.radius = 1.26
-#		atmo.mesh.height = atmo.mesh.radius * 2.0
-#		atmo_2.mesh.radius = 1.26
-#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 		mantle.mesh.material = mantle_earth_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
@@ -492,12 +510,6 @@ func _set_parameters():
 		water_color = Color('0541ff')
 		shallow_water_color = Color('2091bf')
 		snow = true
-#		atmo.visible = true
-#		atmo_2.visible = true
-#		atmo.mesh.radius = 1.26
-#		atmo.mesh.height = atmo.mesh.radius * 2.0
-#		atmo_2.mesh.radius = 1.26
-#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 		mantle.mesh.material = mantle_mars_material
 		lava_lamp.light_color = lava_lamp_color_mars
 		lava_lamp.visible = true
@@ -733,7 +745,8 @@ func _set_parameters():
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
-		low_crust_color = Color('8b94a0')
+		#low_crust_color = Color('8b94a0')
+		low_crust_color = Color('3b5253')
 		land_color = Color('7a9cae')
 		land_color_threshold = 1.1
 		land_color_2 = Color('739faa')
@@ -791,7 +804,8 @@ func _set_parameters():
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
-		low_crust_color = Color('8b94a0')
+		#low_crust_color = Color('8b94a0')
+		low_crust_color = Color('3f4965')
 		land_color = Color('3b587e')
 		land_color_threshold = 1.1
 		land_color_2 = Color('476ab5')
@@ -810,16 +824,10 @@ func _set_parameters():
 		snow = false
 		craters = true
 		num_craters = 1
-		crater_size_multiplier = 3.751
+		crater_size_multiplier = 3.2
 		crater_height_multiplier = 1.566
 		crater_height_curve = neptune_storm_curve
 		mantle.mesh.material = mantle_uranus_material
-#		atmo.visible = true
-#		atmo_2.visible = true
-#		atmo.mesh.radius = 1.23
-#		atmo.mesh.height = atmo.mesh.radius * 2.0
-#		atmo_2.mesh.radius = 1.23
-#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 		lava_lamp.light_color = lava_lamp_color_uranus
 		lava_lamp.visible = true
 		h_bands = true
@@ -830,6 +838,7 @@ func _set_parameters():
 		manual_storm_color = true
 		storm_color_curve = neptune_storm_color_curve
 		storm_color = Color('385478')
+		storm_flatness = 16.0
 	parameters_set = true
 
 func snap_to_existing(vec: Vector3, vectree: Dictionary):
@@ -874,7 +883,7 @@ func snap_to_existing(vec: Vector3, vectree: Dictionary):
 			
 			if vectree.has(shift):
 				for pt in vectree[shift]:
-					if vec.distance_squared_to(pt) < max_distance_between_vecs:
+					if vec.distance_squared_to(pt) < max_distance_between_vecs:# or vec.is_equal_approx(pt):
 						vec = pt
 						found = true
 						break
@@ -887,7 +896,7 @@ func craterize():
 	for cr in num_craters:
 		var impact: Vector3
 		var strength: float
-		if !craters_to_storms:
+		if !craters_to_storms and !craters_to_mountains:
 			impact = Vector3(randfn(0.0, 1.0), randfn(0.0, 1.0), randfn(0.0, 1.0)).normalized()
 			strength = randfn(3.0, 1.5)
 		else:
@@ -900,6 +909,9 @@ func craterize():
 #			impact.y += 0.05
 #			impact = impact.normalized()
 		crater_array.append([impact, strength])
+	if craters_to_mountains:
+		for i in 20:
+			crater_array = shift_mountains(crater_array)
 
 func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, vectree: Dictionary):
 	var pieces_stayed := 0
@@ -990,9 +1002,9 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 #		water_triangles, water_tri_normals, water_tri_colors]            3, 4, 5
 	if recursion > sub_triangle_recursion:
 		
-		p1 = snap_to_existing(p1, vectree)
-		p2 = snap_to_existing(p2, vectree)
-		p3 = snap_to_existing(p3, vectree)
+#		p1 = snap_to_existing(p1, vectree)
+#		p2 = snap_to_existing(p2, vectree)
+#		p3 = snap_to_existing(p3, vectree)
 		
 		var p1old = mm(p1)
 		var p2old = mm(p2)
@@ -1017,18 +1029,22 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			p2_color = color_vary(p2old, land_colors)
 			p3_color = color_vary(p3old, land_colors)
 		
+		var p1_lat = asin(abs(p1.normalized().y)) / (PI/2)
+		var p2_lat = asin(abs(p2.normalized().y)) / (PI/2)
+		var p3_lat = asin(abs(p3.normalized().y)) / (PI/2)
+		
 		if p1.length_squared() < pow(sand_threshold, 2) and ocean:
 			p1_color = sand_color
-		elif asin(abs(p1.normalized().y)) / (PI/2) > snow_start and snow:
-			p1_color = land_snow_color
+		elif p1_lat > snow_start and snow:
+			p1_color = p1_color.lerp(land_snow_color, clamp(remap(p1_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
 		if p2.length_squared() < pow(sand_threshold, 2) and ocean:
 			p2_color = sand_color
-		elif asin(abs(p2.normalized().y)) / (PI/2) > snow_start and snow:
-			p2_color = land_snow_color
+		elif p2_lat > snow_start and snow:
+			p2_color = p2_color.lerp(land_snow_color, clamp(remap(p2_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
 		if p3.length_squared() < pow(sand_threshold, 2) and ocean:
 			p3_color = sand_color
-		elif asin(abs(p3.normalized().y)) / (PI/2) > snow_start and snow:
-			p3_color = land_snow_color
+		elif p3_lat > snow_start and snow:
+			p3_color = p3_color.lerp(land_snow_color, clamp(remap(p3_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
 		
 		# water height
 		var p1w = p1.normalized() * water_offset
@@ -1064,7 +1080,7 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		_tricolor(p1_color, p2_color, p3_color, arrays[2])
 		
 		# water triangles
-		if (p1w_depth < 0.04 and p2w_depth < 0.04 and p3w_depth < 0.04):
+		if (p1w_depth < 0.05 and p2w_depth < 0.05 and p3w_depth < 0.05):
 			_triangle(p1w, p2w, p3w, arrays[3])
 			_triangle(p1w.normalized(), p2w.normalized(), p3w.normalized(), arrays[4])
 			_tricolor(p1w_color, p2w_color, p3w_color, arrays[5])
@@ -1154,6 +1170,9 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 		
 		var depth_start = 0.001
 		var depth_end = 0.05
+		var underwater_depth_start = 0.001
+		var underwater_depth_end = 0.03
+		var deep_water_color := Color('000a4a')
 		var v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		var v1pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		var n: Vector3
@@ -1177,20 +1196,28 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 			n = Plane(v1, v0p, v1p).normal
 			_triangle(n, n, n, wall_tri_normals)
 			
-			_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1p.limit_length(water_offset), cutwater_triangles)
+			var wo2 = pow(water_offset, 2.0)
 			
-			var c1 = v0pw_color.lerp(Color('black'), clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-			var c3 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+			if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
+				_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1p.limit_length(water_offset), cutwater_triangles)
+			else:
+				_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.004), v1p.limit_length(water_offset), cutwater_triangles)
+			
+			var c1 = v0pw_color.lerp(deep_water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.1, 1.0))
+			var c3 = v1pw_color.lerp(deep_water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.1, 1.0))
 			_tricolor(c1, v0pw_color, c3, cutwater_tri_colors)
 			
 			n = Plane(v0p,v0pw,v1p).normal
 			_triangle(n, n, n, cutwater_tri_normals)
 			
 			###
+			if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
+				_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
+			else:
+				_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.004), v1pw.lerp(vp, 0.004), cutwater_triangles)
+			#_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
 			
-			_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
-			
-			c1 = v1pw_color.lerp(Color('black'), clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+			c1 = v1pw_color.lerp(deep_water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.0, 1.0))
 			_tricolor(c1, v0pw_color, v1pw_color, cutwater_tri_colors)
 			
 			n = Plane(v1p,v0pw,v1pw).normal
@@ -1200,16 +1227,19 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 			var v1_atmo_thickness = v1.distance_to(v1p)
 			var land_colors = [land_color, land_color_2, land_color_3]
 			
+			# quarter way up
 			var v01 = v0.move_toward(v0p, v0_atmo_thickness * 0.25)
 			var v01_color = color_vary(mm(v0)*0.97, land_colors).lerp(low_crust_color, 0.75)
 			var v11 = v1.move_toward(v1p, v1_atmo_thickness * 0.25)
 			var v11_color = color_vary(mm(v1)*0.97, land_colors).lerp(low_crust_color, 0.75)
 			
+			# halfway up
 			var v02 = v0.move_toward(v0p, v0_atmo_thickness * 0.5)
 			var v02_color = color_vary(mm(v0)*0.98, land_colors).lerp(low_crust_color, 0.5)
 			var v12 = v1.move_toward(v1p, v1_atmo_thickness * 0.5)
 			var v12_color = color_vary(mm(v1)*0.98, land_colors).lerp(low_crust_color, 0.5)
 			
+			# three quarters up
 			var v03 = v0.move_toward(v0p, v0_atmo_thickness * 0.75)
 			var v03_color = color_vary(mm(v0)*0.99, land_colors).lerp(low_crust_color, 0.25)
 			var v13 = v1.move_toward(v1p, v1_atmo_thickness * 0.75)
@@ -1484,6 +1514,16 @@ func shift_points(vecs: PackedVector3Array, gen, max_gen):
 				vecs[y] = vecs[y].rotated((vecs[y].cross(vecs[x]).normalized()), deg_to_rad((-1/((sep + 1)*(sep + 1))))*progress)
 	return vecs
 
+func shift_mountains(mountains: Array):
+	for m1 in len(mountains):
+		for m2 in len(mountains):
+			if m1 != m2:
+				if mountains[m1] == mountains[m2]:
+					mountains[m1] = mountains[m1].rotated((mountains[m2].cross(mountains[m1]).normalized()), PI/32.0)
+				var sep = abs(mountains[m1].angle_to(mountains[m2]))
+				mountains[m2] = mountains[m2].rotated((mountains[m2].cross(mountains[m1]).normalized()), mountain_shift_curve.sample_baked(sep) * 2.0)
+	return mountains
+
 func mm(vec: Vector3):
 	var offset
 	if !h_bands:
@@ -1498,7 +1538,7 @@ func mm(vec: Vector3):
 		if newvec.length_squared() < pow(min_terrain_height, 2.0):
 			newvec = newvec.normalized() * min_terrain_height
 	if craters:
-		if !craters_to_storms:
+		if !craters_to_storms and !craters_to_mountains:
 			var my_craters = []
 			for cr in crater_array:
 				var dist = vec.normalized().distance_squared_to(cr[0])
@@ -1508,7 +1548,7 @@ func mm(vec: Vector3):
 					my_craters.append(dist_mapped)
 			for mycr_i in len(my_craters):
 				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
-		else:
+		elif craters_to_storms:
 			var my_craters = []
 			for cr in crater_array:
 				var dist = vec.normalized().distance_squared_to(cr[0])
@@ -1523,6 +1563,16 @@ func mm(vec: Vector3):
 					my_craters.append(dist_mapped*vdist_mapped)
 			for mycr_i in len(my_craters):
 				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
+		elif craters_to_mountains:
+			var my_craters = []
+			for cr in crater_array:
+				var dist = vec.normalized().distance_squared_to(cr[0])
+				var crsize = 0.01 * crater_size_multiplier
+				if dist <= cr[1] * crsize:
+					var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+					my_craters.append(dist_mapped)
+			for mycr_i in len(my_craters):
+				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier)) * (1.0 + abs(mountain_noise.get_noise_3dv(newvec) * 5.0))
 	return newvec
 
 func color_vary(vec: Vector3, colors: Array):
@@ -1543,6 +1593,10 @@ func color_vary(vec: Vector3, colors: Array):
 			return_color = colors[1].lerp(colors[0], land_color_ease_curve.sample_baked(final_val))
 		elif nval <= 0.5:
 			var final_val = remap(nval, 0.0, 0.5, 0.0, 1.0)
+			if planet_style == 1: ### this needs some fixing
+				var vlat = (asin(abs(vec.normalized().y)) / (PI/2))
+				if vlat > 0.3:
+					colors[2] = colors[2].lerp(colors[0], clamp(remap(vlat, 0.3, 0.37, 0.0, 1.0) - general_noise_soft.get_noise_3dv(vec), 0.0, 1.0))
 			return_color = colors[2].lerp(colors[1], land_color_ease_curve.sample_baked(final_val))
 		if planet_style == 3:
 			if nval2 > 0.5:
@@ -1551,6 +1605,20 @@ func color_vary(vec: Vector3, colors: Array):
 			elif nval2 <= 0.5:
 				var tint_val = remap(nval2, 0.0, 0.5, 0.0, 1.0)
 				return_color = return_color.lerp(tint_color_3.lerp(tint_color_2, tint_val), 0.07)
+		if craters and craters_to_mountains:
+			var my_craters = []
+			for cr in crater_array:
+				var dist = vec.normalized().distance_squared_to(cr[0])
+				var crsize = 0.01 * crater_size_multiplier
+				if dist <= cr[1] * crsize:
+					var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+					my_craters.append(dist_mapped)
+			for mycr_i in len(my_craters):
+				pass
+				return_color = lerp(return_color, mountain_color, clamp(clamp(mountain_color_curve.sample_baked(my_craters[mycr_i]), 0.0, 0.6) * clamp(abs(mountain_noise.get_noise_3dv(vec) * 10.0), 0.5, 1.0), 0.0, 1.0))
+				var vl = vec.length()
+				return_color = lerp(return_color, land_snow_color, clamp(remap(vl, 1.05, 1.1, 0.0, 1.0), 0.0, mountain_color_curve.sample_baked(my_craters[mycr_i]) * abs(mountain_noise.get_noise_3dv(vec) * 10.0)))
+				#newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
 	else:
 		# gas giant
 		# color depends on cloud height

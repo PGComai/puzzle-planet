@@ -7,6 +7,7 @@ signal this_is_my_rotation(rot)
 signal drop_off_sound
 
 @export var placement_curve: Curve
+@export var grand_piano: Array[AudioStreamOggVorbis]
 
 @onready var upward = $upward
 @onready var inward = $inward
@@ -14,9 +15,10 @@ signal drop_off_sound
 @onready var themesh = $themesh
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
-@onready var particle_points = $themesh/particle_points
+@onready var wall_effect = $themesh/wall_effect
 @onready var piece_drop_rock = $PieceDropRock
 @onready var piece_drop_gas = $PieceDropGas
+@onready var note_player = $NotePlayer
 
 var offset := 1.0
 
@@ -102,6 +104,7 @@ var sound_type := 0
 var sound_playing := false
 var placement_lerp_1 := 0.0
 var placement_lerp_2 := 0.0
+var note_set := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -116,13 +119,8 @@ func _ready():
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
 	upward.position = upright_vec * 0.7
 	inward.position = direction.normalized() * -0.7
-	#zbasis.position = self.transform.basis.z * -0.7
 	zbasis_offset_ax = direction.normalized().cross(self.transform.basis.z).normalized()
 	zbasis_offset = direction.normalized().signed_angle_to(self.transform.basis.z, zbasis_offset_ax)
-#	if !staying:
-##		themesh.transform.basis.z = direction.normalized()
-##		themesh.transform.basis = themesh.transform.basis.orthonormalized()
-#		themesh.rotate(zbasis_offset_ax, zbasis_offset)
 	var newmesh = ArrayMesh.new()
 	
 	var surface_array = []
@@ -245,26 +243,35 @@ func _process(delta):
 				in_transit = true
 				back_from_space = false
 	else:
+		if !note_set:
+			note_player.stream = grand_piano[global.pieces_placed_so_far[0]]
+			note_set = true
 		if !placement_finished:
 			_placement()
 
 func _placement():
 	var dist = global_position.distance_to(direction)
 	print(dist)
-	if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 0:
-		piece_drop_rock.pitch_scale = 0.8 + randfn(0.0, 0.05)
-		piece_drop_rock.play()
-		sound_playing = true
-	if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 1:
-		piece_drop_gas.pitch_scale = 0.8 + randfn(0.0, 0.05)
-		piece_drop_gas.play()
-		sound_playing = true
+	if global.sound:
+#		if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 0:
+#			piece_drop_rock.pitch_scale = 0.8 + randfn(0.0, 0.05)
+#			piece_drop_rock.play()
+#			sound_playing = true
+#		if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 1:
+#			piece_drop_gas.pitch_scale = 0.8 + randfn(0.0, 0.05)
+#			piece_drop_gas.play()
+#			sound_playing = true
+		if placement_lerp_1 > 0.8 and !sound_playing:
+			note_player.play()
+			sound_playing = true
 	placement_lerp_1 = lerp(placement_lerp_1, 1.0, 0.03)
 	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
 	global_position = lerp(global_position, direction, placement_lerp_2)
 	if global_position.is_equal_approx(direction):
 		global_position = direction
 		placement_finished = true
+		global.pieces_placed_so_far[0] += 1
+		print(global.pieces_placed_so_far)
 
 func arrange(re = false):
 	if !re:

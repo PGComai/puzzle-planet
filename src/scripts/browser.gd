@@ -183,7 +183,7 @@ func _process(delta):
 		#dx_final = clamp(dx_final, -0.05, 0.05)
 		#print(dx_final)
 		if piece_in_space:
-			if piece_rotation:
+			if global.rotation:
 				rotating = true
 				toggle_wheel('down')
 				wheelmesh.rotation.z += dx_final
@@ -194,7 +194,7 @@ func _process(delta):
 			camrot.rotation.y = rot_h
 		else:
 			rotating = false
-			if piece_rotation:
+			if global.rotation:
 				toggle_wheel('up')
 			rot_h -= dx_final
 		if rot_h < 0.0:
@@ -273,7 +273,7 @@ func _on_i_am_here(idx, ang):
 	piecelocs[ang] = idx
 	
 func _on_take_me_home(idx):
-	if piece_rotation:
+	if global.rotation:
 		wheel_moving = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	for p in pieces:
@@ -284,7 +284,7 @@ func _on_take_me_home(idx):
 			piece_in_space = false
 
 func _on_universe_piece_placed_2(cidx):
-	if piece_rotation:
+	if global.rotation:
 		wheel_moving = true
 	disable_click = true
 	piece_in_space = false
@@ -355,7 +355,7 @@ func _on_picked_you(idx):
 	dx = 0.0
 	dx_final = 0.0
 	dx_acc = []
-	if piece_rotation:
+	if global.rotation:
 		wheel_moving = true
 
 func _on_start_puzzle_button_up():

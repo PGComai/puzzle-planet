@@ -16,7 +16,7 @@ texture = SubResource("GradientTexture2D_b55u0")
 
 [resource]
 code = "shader_type spatial;
-render_mode cull_disabled, unshaded;
+render_mode blend_mix, depth_draw_opaque, cull_disabled, diffuse_lambert, specular_schlick_ggx, unshaded;
 
 uniform sampler2D tex_frg_3;
 

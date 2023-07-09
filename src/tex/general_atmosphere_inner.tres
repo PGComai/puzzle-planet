@@ -81,7 +81,7 @@ default_input_values = [2, true, 3, 3.5]
 
 [resource]
 code = "shader_type spatial;
-render_mode cull_front, shadows_disabled, ambient_light_disabled;
+render_mode blend_mix, depth_draw_opaque, cull_front, diffuse_lambert, specular_schlick_ggx, shadows_disabled, ambient_light_disabled;
 
 global uniform vec4 atmo_daylight : source_color;
 global uniform vec4 atmo_sunset : source_color;

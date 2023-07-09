@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://mrbekr48lsmh"
+path="res://.godot/imported/gp4.ogg-ed61f6f5ef377c27a0d15cfa9cc24fdc.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/grand piano/gp4.ogg"
+dest_files=["res://.godot/imported/gp4.ogg-ed61f6f5ef377c27a0d15cfa9cc24fdc.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -8,6 +8,7 @@ extends PopupPanel
 
 var global
 var total_pieces := 30
+var queue_rotation_flag := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -35,12 +36,13 @@ func _on_pct_fill_slider_value_changed(value):
 	global.pieces_at_start = value
 
 func _on_check_button_toggled(button_pressed):
-	global.rotation = button_pressed
+	queue_rotation_flag = button_pressed
 
 func _on_generate_button_up():
 	self.visible = false
 	generate.disabled = true
-	rot_button.set_pressed_no_signal(global.rotation)
+	global.rotation = queue_rotation_flag
+	rot_button.set_pressed_no_signal(queue_rotation_flag)
 	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
 	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
 	pct_fill_slider.max_value = global.total_pieces - 10

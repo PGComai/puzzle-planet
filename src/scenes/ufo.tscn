@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://cs8eh4rcoct8l"]
+[gd_scene load_steps=18 format=3 uid="uid://cs8eh4rcoct8l"]
 
 [ext_resource type="Shader" uid="uid://dsh1pu8mere1v" path="res://scenes/ufobeam.tres" id="1_ixbkh"]
 [ext_resource type="Script" path="res://scripts/ufo.gd" id="1_p1dcn"]
@@ -9,9 +9,21 @@
 _data = [Vector2(0, 0.1), 0.0, 1.362, 0, 0, Vector2(1, 0.619632), 0.0, 0.0, 0, 0]
 point_count = 2
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_in0pr"]
+noise_type = 2
+frequency = 0.005
+cellular_jitter = 1.097
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ne5sx"]
+seamless = true
+as_normal_map = true
+noise = SubResource("FastNoiseLite_in0pr")
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u3e1k"]
 albedo_color = Color(0.513726, 0.454902, 0.541176, 1)
 roughness = 0.18
+normal_enabled = true
+normal_texture = SubResource("NoiseTexture2D_ne5sx")
 
 [sub_resource type="SphereMesh" id="SphereMesh_mce1x"]
 material = SubResource("StandardMaterial3D_u3e1k")

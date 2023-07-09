@@ -5,11 +5,9 @@ var global
 func _ready():
 	global = get_node('/root/Global')
 
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
-
 
 func _on_graphics_check_button_toggled(button_pressed):
 	global.graphics_fancy = button_pressed

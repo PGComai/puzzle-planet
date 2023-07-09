@@ -73,7 +73,7 @@ operator = 2
 
 [resource]
 code = "shader_type spatial;
-render_mode shadows_disabled, ambient_light_disabled;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx, shadows_disabled, ambient_light_disabled;
 
 global uniform vec4 atmo_daylight : source_color;
 global uniform vec4 atmo_sunset : source_color;

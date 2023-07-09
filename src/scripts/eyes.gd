@@ -28,6 +28,7 @@ signal atmo_resize(size)
 @onready var shadow_light = $h/v/Camera3D/ShadowLight
 @onready var rotowindow = $"../../../../../../RotoWindow"
 @onready var atmosphere = $Atmosphere
+@onready var error_sound = $ErrorSound
 
 var rot_h = 0.0
 var rot_v = 0.0
@@ -109,7 +110,10 @@ func _unhandled_input(event):
 			drag = false
 			if limit_pull > 0.0 and abs($h/v.rotation.x) > (15*PI)/32:
 				#print('fling')
-				Input.vibrate_handheld(8)
+				if global.vibration:
+					Input.vibrate_handheld(8)
+				if global.sound:
+					error_sound.play()
 				fling = true
 				
 func _process(delta):

@@ -1,11 +1,43 @@
-[gd_scene load_steps=27 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=59 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
+[ext_resource type="AudioStream" uid="uid://drlk8c2onk7in" path="res://audio/grand piano/gp2.ogg" id="3_ajhps"]
 [ext_resource type="AudioStream" uid="uid://cpgjx21snc68b" path="res://audio/ufo-dropoff-one.ogg" id="3_ley4f"]
+[ext_resource type="AudioStream" uid="uid://bpy1r4fjerbgy" path="res://audio/grand piano/gp3.ogg" id="4_u0gyw"]
 [ext_resource type="Script" path="res://scripts/DropOffSound.gd" id="4_wo60a"]
 [ext_resource type="AudioStream" uid="uid://bm4qud3f67gve" path="res://audio/heavy-rock-drop-2.ogg" id="5_gn45x"]
+[ext_resource type="AudioStream" uid="uid://mrbekr48lsmh" path="res://audio/grand piano/gp4.ogg" id="5_t57mp"]
 [ext_resource type="AudioStream" uid="uid://dxtfgon063axy" path="res://audio/heavy-gas-drop.ogg" id="6_0oypa"]
+[ext_resource type="AudioStream" uid="uid://dxa0xlbtkff05" path="res://audio/grand piano/gp5.ogg" id="6_touyp"]
+[ext_resource type="AudioStream" uid="uid://bbens8iasj3qb" path="res://audio/grand piano/gp1.ogg" id="7_4m878"]
+[ext_resource type="AudioStream" uid="uid://wjxebg52av2f" path="res://audio/grand piano/gp6.ogg" id="7_rfem6"]
+[ext_resource type="AudioStream" uid="uid://e37rb7fe7ipq" path="res://audio/grand piano/gp7.ogg" id="8_pmamu"]
+[ext_resource type="AudioStream" uid="uid://bqjc03ixf3sg2" path="res://audio/grand piano/gp8.ogg" id="9_0vpi8"]
+[ext_resource type="AudioStream" uid="uid://c8dueqk1oolrh" path="res://audio/grand piano/gp9.ogg" id="10_nus2a"]
+[ext_resource type="AudioStream" uid="uid://cjnw5na785y5t" path="res://audio/grand piano/gp10.ogg" id="11_bkoa8"]
+[ext_resource type="AudioStream" uid="uid://b6yrhema2idwm" path="res://audio/grand piano/gp11.ogg" id="12_5o8h2"]
+[ext_resource type="AudioStream" uid="uid://ds64oklpqyf6o" path="res://audio/grand piano/gp12.ogg" id="13_fnh2c"]
+[ext_resource type="AudioStream" uid="uid://pdu7l8o5y7bb" path="res://audio/grand piano/gp13.ogg" id="14_qe5l6"]
+[ext_resource type="AudioStream" uid="uid://by88o0rj3sl3i" path="res://audio/grand piano/gp14.ogg" id="15_5htb0"]
+[ext_resource type="AudioStream" uid="uid://djp7ggrkr110e" path="res://audio/grand piano/gp15.ogg" id="16_tw8bk"]
+[ext_resource type="AudioStream" uid="uid://musjylpujtw" path="res://audio/grand piano/gp16.ogg" id="17_crbap"]
+[ext_resource type="AudioStream" uid="uid://c3tnefq6kj286" path="res://audio/grand piano/gp17.ogg" id="18_phs1r"]
+[ext_resource type="AudioStream" uid="uid://bu2qhfmyqlry3" path="res://audio/grand piano/gp18.ogg" id="19_5t0hb"]
+[ext_resource type="AudioStream" uid="uid://cpxcjomt1dudy" path="res://audio/grand piano/gp19.ogg" id="20_gh2fu"]
+[ext_resource type="AudioStream" uid="uid://bcm6qfi7kfey2" path="res://audio/grand piano/gp20.ogg" id="21_7ytk7"]
+[ext_resource type="AudioStream" uid="uid://bpqkfyvntbi1k" path="res://audio/grand piano/gp21.ogg" id="22_2rx0e"]
+[ext_resource type="AudioStream" uid="uid://bary31mievfh2" path="res://audio/grand piano/gp22.ogg" id="23_bcs5a"]
+[ext_resource type="AudioStream" uid="uid://dir1tw7pte5lv" path="res://audio/grand piano/gp23.ogg" id="24_sg83o"]
+[ext_resource type="AudioStream" uid="uid://chirkjwx6dc1y" path="res://audio/grand piano/gp24.ogg" id="25_snn0t"]
+[ext_resource type="AudioStream" uid="uid://dnx6cumugcgea" path="res://audio/grand piano/gp25.ogg" id="26_aopt7"]
+[ext_resource type="AudioStream" uid="uid://cy5j0d5l8ogfu" path="res://audio/grand piano/gp26.ogg" id="27_m8nm8"]
+[ext_resource type="AudioStream" uid="uid://cks2r8jgmmmig" path="res://audio/grand piano/gp27.ogg" id="28_m28ti"]
+[ext_resource type="AudioStream" uid="uid://ca5vj45m6puih" path="res://audio/grand piano/gp28.ogg" id="29_cyv20"]
+[ext_resource type="AudioStream" uid="uid://dxt8cb42mbaei" path="res://audio/grand piano/gp29.ogg" id="30_r4jud"]
+[ext_resource type="AudioStream" uid="uid://g25geuwtll5k" path="res://audio/grand piano/gp30.ogg" id="31_tsp7g"]
+[ext_resource type="AudioStream" uid="uid://b58kaaxmni1ex" path="res://audio/grand piano/gp31.ogg" id="32_mkfkr"]
+[ext_resource type="AudioStream" uid="uid://byqq3xxahgpde" path="res://audio/grand piano/gp32.ogg" id="33_dpoea"]
 
 [sub_resource type="Curve" id="Curve_wdrif"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.737864, 0.104294), 0.0, 0.0, 0, 0, Vector2(0.807443, 0.00613499), 0.0, 0.0, 0, 0, Vector2(0.839806, 0.257669), 0.0, 0.0, 0, 0]
@@ -103,6 +135,7 @@ height = 0.1
 [node name="planet_piece" type="Node3D" groups=["pieces"]]
 script = ExtResource("1_jrwu8")
 placement_curve = SubResource("Curve_wdrif")
+grand_piano = Array[AudioStreamOggVorbis]([ExtResource("7_4m878"), ExtResource("3_ajhps"), ExtResource("4_u0gyw"), ExtResource("5_t57mp"), ExtResource("6_touyp"), ExtResource("7_rfem6"), ExtResource("8_pmamu"), ExtResource("9_0vpi8"), ExtResource("10_nus2a"), ExtResource("11_bkoa8"), ExtResource("12_5o8h2"), ExtResource("13_fnh2c"), ExtResource("14_qe5l6"), ExtResource("15_5htb0"), ExtResource("16_tw8bk"), ExtResource("17_crbap"), ExtResource("18_phs1r"), ExtResource("19_5t0hb"), ExtResource("20_gh2fu"), ExtResource("21_7ytk7"), ExtResource("22_2rx0e"), ExtResource("23_bcs5a"), ExtResource("24_sg83o"), ExtResource("25_snn0t"), ExtResource("26_aopt7"), ExtResource("27_m8nm8"), ExtResource("28_m28ti"), ExtResource("29_cyv20"), ExtResource("30_r4jud"), ExtResource("31_tsp7g"), ExtResource("32_mkfkr"), ExtResource("33_dpoea")])
 
 [node name="themesh" type="MeshInstance3D" parent="."]
 layers = 9
@@ -132,7 +165,7 @@ skeleton = NodePath("../..")
 material_overlay = SubResource("StandardMaterial3D_ofrj5")
 mesh = SubResource("ArrayMesh_knalo")
 
-[node name="particle_points" type="MeshInstance3D" parent="themesh"]
+[node name="wall_effect" type="MeshInstance3D" parent="themesh"]
 mesh = SubResource("ArrayMesh_r2ohu")
 
 [node name="upward" type="Node3D" parent="."]
@@ -173,16 +206,22 @@ script = ExtResource("4_wo60a")
 
 [node name="PieceDropRock" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("5_gn45x")
-volume_db = 16.262
+volume_db = 2.447
 unit_size = 2.23
 max_db = 1.0
 pitch_scale = 0.8
 
 [node name="PieceDropGas" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("6_0oypa")
-volume_db = 4.163
+volume_db = -6.769
 unit_size = 2.23
 max_db = 1.0
 pitch_scale = 0.8
+
+[node name="NotePlayer" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("7_4m878")
+volume_db = -28.0
+unit_size = 2.23
+max_db = 1.0
 
 [connection signal="drop_off_sound" from="." to="DropOffSound" method="_on_planet_piece_drop_off_sound"]

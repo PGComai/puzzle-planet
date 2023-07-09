@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c3tnefq6kj286"
+path="res://.godot/imported/gp17.ogg-fcd972098bf114fc0d8e029b28d3faed.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/grand piano/gp17.ogg"
+dest_files=["res://.godot/imported/gp17.ogg-fcd972098bf114fc0d8e029b28d3faed.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
