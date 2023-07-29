@@ -244,7 +244,7 @@ func _process(delta):
 				back_from_space = false
 	else:
 		if !note_set:
-			note_player.stream = grand_piano[global.pieces_placed_so_far[0]]
+			note_player.stream = grand_piano[grand_piano.size() - global.pieces_placed_so_far[1] + global.pieces_placed_so_far[0]]
 			note_set = true
 		if !placement_finished:
 			_placement()
@@ -253,21 +253,15 @@ func _placement():
 	var dist = global_position.distance_to(direction)
 	print(dist)
 	if global.sound:
-#		if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 0:
-#			piece_drop_rock.pitch_scale = 0.8 + randfn(0.0, 0.05)
-#			piece_drop_rock.play()
-#			sound_playing = true
-#		if placement_lerp_1 > 0.4 and !sound_playing and sound_type == 1:
-#			piece_drop_gas.pitch_scale = 0.8 + randfn(0.0, 0.05)
-#			piece_drop_gas.play()
-#			sound_playing = true
-		if placement_lerp_1 > 0.8 and !sound_playing:
+		if placement_lerp_1 > 0.92 and !sound_playing:
 			note_player.play()
 			sound_playing = true
 	placement_lerp_1 = lerp(placement_lerp_1, 1.0, 0.03)
 	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
 	global_position = lerp(global_position, direction, placement_lerp_2)
 	if global_position.is_equal_approx(direction):
+#		if global.sound:
+#			note_player.play()
 		global_position = direction
 		placement_finished = true
 		global.pieces_placed_so_far[0] += 1

@@ -40,8 +40,8 @@
 [ext_resource type="AudioStream" uid="uid://byqq3xxahgpde" path="res://audio/grand piano/gp32.ogg" id="33_dpoea"]
 
 [sub_resource type="Curve" id="Curve_wdrif"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.737864, 0.104294), 0.0, 0.0, 0, 0, Vector2(0.807443, 0.00613499), 0.0, 0.0, 0, 0, Vector2(0.839806, 0.257669), 0.0, 0.0, 0, 0]
-point_count = 4
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.739696, 0.145907), 0.267847, 0.267847, 0, 0, Vector2(0.789588, 0), 0.0, 0.0, 0, 0, Vector2(0.893709, 0), 0.0, 0.0, 0, 0, Vector2(0.91974, 0.195729), 0.440153, 0.0, 0, 0, Vector2(1, 1), 36.2599, 0.0, 0, 0]
+point_count = 6
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 resource_local_to_scene = true
@@ -223,5 +223,6 @@ stream = ExtResource("7_4m878")
 volume_db = -28.0
 unit_size = 2.23
 max_db = 1.0
+max_polyphony = 2
 
 [connection signal="drop_off_sound" from="." to="DropOffSound" method="_on_planet_piece_drop_off_sound"]

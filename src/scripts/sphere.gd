@@ -880,7 +880,6 @@ func snap_to_existing(vec: Vector3, vectree: Dictionary):
 					tv_down_l, tv_down_l_f, tv_down_l_b, tv_down_r, tv_down_r_f, tv_down_r_b,
 					tv_down_f, tv_down_b,
 					tv_left_f, tv_left_b, tv_right_f, tv_right_b]:
-			
 			if vectree.has(shift):
 				for pt in vectree[shift]:
 					if vec.distance_squared_to(pt) < max_distance_between_vecs:# or vec.is_equal_approx(pt):
