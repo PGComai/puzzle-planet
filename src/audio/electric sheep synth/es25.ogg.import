@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bbslasof8tcdc"
+path="res://.godot/imported/es25.ogg-4896178d0cccb03640683ec5435719cd.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/electric sheep synth/es25.ogg"
+dest_files=["res://.godot/imported/es25.ogg-4896178d0cccb03640683ec5435719cd.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

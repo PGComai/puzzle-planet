@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bu5xk8s4rp7t5"
+path="res://.godot/imported/im11.ogg-2750db4b4a33352c23f764b9ac74eaec.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/ice mallets/im11.ogg"
+dest_files=["res://.godot/imported/im11.ogg-2750db4b4a33352c23f764b9ac74eaec.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

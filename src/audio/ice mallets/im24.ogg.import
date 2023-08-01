@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dyr8bkta3cyy4"
+path="res://.godot/imported/im24.ogg-22c34516d9d3cd26cb173682fc1332ee.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/ice mallets/im24.ogg"
+dest_files=["res://.godot/imported/im24.ogg-22c34516d9d3cd26cb173682fc1332ee.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

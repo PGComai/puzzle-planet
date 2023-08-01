@@ -194,31 +194,31 @@ func _process(delta):
 	$h/v.rotation.x = rot_v
 	
 func _atmo_change():
-	if global.generate_type == 1:
+	if global.generate_type == 3:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
-	elif global.generate_type == 2:
+	elif global.generate_type == 5:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 3.2)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('d4995a'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
-	elif global.generate_type == 3:
+	elif global.generate_type == 4 or global.generate_type == 1:
 		atmosphere.visible = false
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('black'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('black'))
-	elif global.generate_type == 4:
+	elif global.generate_type == 6:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.0)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
-	elif global.generate_type == 5:
+	elif global.generate_type == 7:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.3)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
-	elif global.generate_type == 6 or global.generate_type == 7:
+	elif global.generate_type == 8 or global.generate_type == 9:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.3)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7a9cae'))
@@ -263,6 +263,8 @@ func _on_generate_button_up():
 	#print(error)
 
 func _on_option_button_item_selected(index):
+	if index == 1 or index == 9:
+		index = 2
 	global.generate_type = index + 1
 
 func _on_browser_wheel_rot(rot):

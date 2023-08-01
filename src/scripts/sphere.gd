@@ -17,7 +17,7 @@ signal ufo_ready(dict)
 @export var crust_thickness := 1.1
 @export var vertex_merge_threshold := 0.168
 @export_range(1.0, 5.0, 2.0) var sub_triangle_recursion := 3
-@export_enum('custom', 'earth', 'mars', 'moon', 'jupiter', 'saturn', 'uranus', 'neptune') var planet_style := 1
+@export_enum('custom', 'mercury', 'venus', 'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto') var planet_style := 3
 @export var piece_place_lerp_curve: Curve
 @export var piece_place_vibrate_curve: Curve
 @export var test_noise: FastNoiseLite
@@ -133,6 +133,8 @@ signal ufo_ready(dict)
 @onready var earth_mountain_curve = preload("res://tex/earth_mountain_curve.tres")
 @onready var earth_mountain_shift_curve = preload("res://tex/earth_mountain_shift_curve.tres")
 @onready var earth_mountain_color_curve = preload("res://tex/earth_mountain_color_curve.tres")
+@onready var mercury_crater_curve = preload("res://tex/mercury_crater_curve.tres")
+@onready var mercury_land_color_curve = preload("res://tex/mercury_land_color_curve.tres")
 
 var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
@@ -369,6 +371,98 @@ func _set_parameters():
 		#noise3d = test_noise
 		#colornoise = test_noise
 	elif planet_style == 1:
+		# mercury
+		colornoise.noise_type = 4
+		colornoise.frequency = 1.0
+		colornoise.domain_warp_enabled = false
+		colornoise.domain_warp_amplitude = 30
+		colornoise.domain_warp_fractal_gain = 0.5
+		colornoise.domain_warp_fractal_lacunarity = 6
+		colornoise.domain_warp_fractal_octaves = 5
+		colornoise.domain_warp_fractal_type = 1
+		colornoise.domain_warp_frequency = 0.05
+		colornoise.domain_warp_type = 0
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0.735
+		colornoise2.noise_type = 4
+		colornoise2.frequency = 5.0
+		colornoise2.domain_warp_enabled = false
+		colornoise2.domain_warp_amplitude = 30
+		colornoise2.domain_warp_fractal_gain = 0.5
+		colornoise2.domain_warp_fractal_lacunarity = 6
+		colornoise2.domain_warp_fractal_octaves = 5
+		colornoise2.domain_warp_fractal_type = 1
+		colornoise2.domain_warp_frequency = 0.05
+		colornoise2.domain_warp_type = 0
+		colornoise2.fractal_gain = 0.5
+		colornoise2.fractal_lacunarity = 2
+		colornoise2.fractal_octaves = 5
+		colornoise2.fractal_ping_pong_strength = 2
+		colornoise2.fractal_type = 1
+		colornoise2.fractal_weighted_strength = 0.735
+		noise3d.noise_type = 4
+		noise3d.frequency = 2.731
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('452e27')
+		crust_color = Color('2a2a2a')
+		land_snow_color = Color('dbdbdb')
+		land_color = Color('252525')
+		land_color_threshold = 1.011
+		land_color_2 = Color('6a6a6a')
+		land_color_threshold = 0.962
+		land_color_3 = Color('464646')
+		tint_color = Color('523c54')
+		tint_color_2 = Color('5e3a37')
+		tint_color_3 = Color('4e4428')
+		low_land_color = Color('242424')
+		low_land_bottom_threshold = 0.911
+		low_land_top_threshold = 1.254
+		sand_color = Color('9f876b')
+		water_color = Color('0541ff')
+		shallow_water_color = Color('2091bf')
+		sand_threshold = 1.1
+		water_offset = 1.09
+		ocean = false
+		snow_random_low = 0.85
+		snow_random_high = 0.95
+		max_terrain_height_unclamped = 1.1
+		global.planet_height_for_ufo = 0.0
+		min_terrain_height_unclamped = 0.882
+		max_terrain_height = 1.092
+		min_terrain_height = 0.43
+		clamp_terrain = false
+		invert_height = false
+		snow = false
+		craters = true
+		num_craters = 70
+		crater_size_multiplier = 1.2
+		crater_height_multiplier = 1.5
+		crater_height_curve = mercury_crater_curve
+		land_color_ease_curve = mercury_land_color_curve
+		mantle.mesh.material = mantle_moon_material
+		#lava_lamp.light_color = lava_lamp_color_earth
+		lava_lamp.visible = false
+		h_bands = false
+		craters_to_storms = false
+		rings.visible = false
+	elif planet_style == 3:
 		## earth
 		mountain_noise.noise_type = 4
 		mountain_noise.frequency = 5.0
@@ -450,7 +544,7 @@ func _set_parameters():
 		h_bands = false
 		craters_to_storms = false
 		rings.visible = false
-	elif planet_style == 2:
+	elif planet_style == 5:
 		## mars
 		colornoise.noise_type = 4
 		colornoise.frequency = 1.5
@@ -516,7 +610,7 @@ func _set_parameters():
 		h_bands = false
 		craters_to_storms = false
 		rings.visible = false
-	elif planet_style == 3:
+	elif planet_style == 4:
 		# moon
 		colornoise.noise_type = 4
 		colornoise.frequency = 3.0
@@ -603,18 +697,12 @@ func _set_parameters():
 		crater_height_curve = moon_crater_curve
 		land_color_ease_curve = moon_land_curve
 		mantle.mesh.material = mantle_moon_material
-#		atmo.visible = false
-#		atmo_2.visible = false
-#		atmo.mesh.radius = 1.26
-#		atmo.mesh.height = atmo.mesh.radius * 2.0
-#		atmo_2.mesh.radius = 1.26
-#		atmo_2.mesh.height = atmo_2.mesh.radius * 2.0
 		#lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = false
 		h_bands = false
 		craters_to_storms = false
 		rings.visible = false
-	elif planet_style == 4:
+	elif planet_style == 6:
 		# jupiter
 		noise3d.noise_type = 1
 		noise3d.frequency = 2.928
@@ -669,7 +757,7 @@ func _set_parameters():
 		craters_to_storms = true
 		rings.visible = false
 		storm_flatness = 4.0
-	elif planet_style == 5:
+	elif planet_style == 7:
 		# saturn
 		noise3d.noise_type = 1
 		noise3d.frequency = 1.685
@@ -727,7 +815,7 @@ func _set_parameters():
 #		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 #		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 		rings.visible = true
-	elif planet_style == 6:
+	elif planet_style == 8:
 		# uranus
 		noise3d.noise_type = 1
 		noise3d.frequency = 0.678
@@ -786,7 +874,7 @@ func _set_parameters():
 #		atmo.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 #		atmo_2.mesh.material.set_shader_parameter('sunset_color',Color('e2a277'))
 		rings.visible = false
-	elif planet_style == 7:
+	elif planet_style == 9:
 		# neptune
 		noise3d.noise_type = 1
 		noise3d.frequency = 0.678
@@ -976,7 +1064,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 			newpiece.random_rotation_offset = randrot
 		newpiece.particle_edges = NEW_tess_result[6]
 		newpiece.offset = piece_offset
-		if planet_style == 1 or planet_style == 2 or planet_style == 3:
+		if planet_style < 6:
 			newpiece.sound_type = 0
 		else:
 			newpiece.sound_type = 1
@@ -1581,10 +1669,10 @@ func color_vary(vec: Vector3, colors: Array):
 		# color depends on colornoise
 		var nval = colornoise.get_noise_3dv(vec)
 		var nval2 = colornoise2.get_noise_3dv(vec)
-		if planet_style == 3:
+		if planet_style == 4 or planet_style == 1: # moon or mercury
 			nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 			nval2 = remap(clamp(nval2, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
-		elif planet_style == 1 or planet_style == 2:
+		elif planet_style == 3 or planet_style == 5: # earth or mars
 			nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 		#print(nval)
 		if nval > 0.5:
@@ -1592,12 +1680,12 @@ func color_vary(vec: Vector3, colors: Array):
 			return_color = colors[1].lerp(colors[0], land_color_ease_curve.sample_baked(final_val))
 		elif nval <= 0.5:
 			var final_val = remap(nval, 0.0, 0.5, 0.0, 1.0)
-			if planet_style == 1: ### this needs some fixing
+			if planet_style == 3: # earth ### this needs some fixing
 				var vlat = (asin(abs(vec.normalized().y)) / (PI/2))
 				if vlat > 0.3:
 					colors[2] = colors[2].lerp(colors[0], clamp(remap(vlat, 0.3, 0.37, 0.0, 1.0) - general_noise_soft.get_noise_3dv(vec), 0.0, 1.0))
 			return_color = colors[2].lerp(colors[1], land_color_ease_curve.sample_baked(final_val))
-		if planet_style == 3:
+		if planet_style == 4 or planet_style == 1: # moon or mercury
 			if nval2 > 0.5:
 				var tint_val = remap(nval2, 0.5, 1.0, 0.0, 1.0)
 				return_color = return_color.lerp(tint_color_2.lerp(tint_color, tint_val), 0.07)

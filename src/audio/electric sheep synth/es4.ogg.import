@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dlb237x44mehu"
+path="res://.godot/imported/es4.ogg-299406e0a23fd4e403091e169eff2d36.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/electric sheep synth/es4.ogg"
+dest_files=["res://.godot/imported/es4.ogg-299406e0a23fd4e403091e169eff2d36.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

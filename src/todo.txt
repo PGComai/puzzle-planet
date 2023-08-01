@@ -8,9 +8,9 @@
 - stop generating ocean vertices for planets with no ocean
 - optimize lighting code
 - optimize snap_to_existing function
-- add mountains
 - add olympus mons
 - fix earth desert weirdness
+- gas giants are too close to carousel camera
 
 - IOS --
 
@@ -19,7 +19,7 @@ GLITCHES:
 - piece shadow appears and lines up but actual piece never goes in and carousel is stuck
 - crash/freeze when interrupting moon building process with new planet
 - rendered planet without one chunk of ocean on IOS
-- crashes if another planet requested while generating planet
+- crashes if another planet requested while generating planet (temporarily fixed)
 
 maybe:
 	- slant screen divider for one-handed ease

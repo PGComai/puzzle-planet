@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://ckjdlbqairagu"
+path="res://.godot/imported/sk7.ogg-e0fcf25786d308c0665ac045330b81e5.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/80s signature keyboard/sk7.ogg"
+dest_files=["res://.godot/imported/sk7.ogg-e0fcf25786d308c0665ac045330b81e5.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

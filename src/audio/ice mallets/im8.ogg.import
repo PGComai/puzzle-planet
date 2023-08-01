@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cjx45npvbuxm8"
+path="res://.godot/imported/im8.ogg-032966249df2d80a5f58830929b25b05.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/ice mallets/im8.ogg"
+dest_files=["res://.godot/imported/im8.ogg-032966249df2d80a5f58830929b25b05.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

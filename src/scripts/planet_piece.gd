@@ -8,6 +8,12 @@ signal drop_off_sound
 
 @export var placement_curve: Curve
 @export var grand_piano: Array[AudioStreamOggVorbis]
+@export var sig_keyboard: Array[AudioStreamOggVorbis]
+@export var electric_sheep_synth: Array[AudioStreamOggVorbis]
+@export var ice_mallets: Array[AudioStreamOggVorbis]
+@export var koto: Array[AudioStreamOggVorbis]
+@export var trombones: Array[AudioStreamOggVorbis]
+@export var vibraphone: Array[AudioStreamOggVorbis]
 
 @onready var upward = $upward
 @onready var inward = $inward
@@ -105,10 +111,13 @@ var sound_playing := false
 var placement_lerp_1 := 0.0
 var placement_lerp_2 := 0.0
 var note_set := false
+var note_pool: Array[AudioStreamOggVorbis]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	var note_array = [grand_piano, grand_piano, grand_piano, electric_sheep_synth, sig_keyboard, trombones, ice_mallets, grand_piano, grand_piano, grand_piano]
+	note_pool = note_array[maxi(global.generate_type - 1, 0)]
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	ghostball = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall')
 	ghost = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost')
@@ -244,7 +253,7 @@ func _process(delta):
 				back_from_space = false
 	else:
 		if !note_set:
-			note_player.stream = grand_piano[grand_piano.size() - global.pieces_placed_so_far[1] + global.pieces_placed_so_far[0]]
+			note_player.stream = note_pool[note_pool.size() - global.pieces_placed_so_far[1] + global.pieces_placed_so_far[0]]
 			note_set = true
 		if !placement_finished:
 			_placement()
