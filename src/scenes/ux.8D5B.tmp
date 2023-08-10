@@ -114,7 +114,6 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_eqbvn")
 [node name="SubViewportContainer2" type="SubViewportContainer" parent="MainBG"]
 texture_filter = 1
 layout_mode = 2
-size_flags_vertical = 3
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="MainBG/SubViewportContainer2"]
@@ -131,7 +130,6 @@ render_target_update_mode = 4
 z_index = -1
 texture_filter = 1
 layout_mode = 2
-size_flags_vertical = 3
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="MainBG/SubViewportContainer"]
@@ -141,6 +139,8 @@ size = Vector2i(180, 380)
 render_target_update_mode = 4
 
 [node name="Universe" parent="MainBG/SubViewportContainer/SubViewport" instance=ExtResource("2_jvpmg")]
+h_sensitivity = null
+v_sensitivity = null
 
 [node name="MenuButton" type="Button" parent="."]
 texture_filter = 1

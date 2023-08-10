@@ -22,11 +22,10 @@ signal atmo_resize(size)
 @onready var mesh_maker = $MeshMaker
 @onready var pieces = $Pieces
 @onready var new_mesh_maker = preload("res://scenes/mesh_maker.tscn")
-@onready var browser = $"../../../../MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser"
 @onready var sun = $Sun
 @onready var space = $Space
 @onready var shadow_light = $h/v/Camera3D/ShadowLight
-@onready var rotowindow = $"../../../../../../RotoWindow"
+@onready var roto_window = $"../../../../RotoWindow"
 @onready var atmosphere = $Atmosphere
 @onready var error_sound = $ErrorSound
 
@@ -78,7 +77,7 @@ func _unhandled_input(event):
 		fling = false
 		var touchborder = h# + v_split.split_offset - 15
 		#print(touchborder)
-		if event.position.y < touchborder:
+		if true:#event.position.y < touchborder:
 			dx = event.relative.x * h_sensitivity
 			dy = event.relative.y * v_sensitivity
 			if !drag:
@@ -246,7 +245,7 @@ func _on_generate_button_up():
 	sun._on = true
 	#sun_2._on = true
 	space._on = false
-	rotowindow.visible = false
+	roto_window.visible = false
 	mesh_maker.queue_free()
 	for n in get_tree().get_nodes_in_group('pieces'):
 		n.queue_free()

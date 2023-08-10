@@ -8,13 +8,12 @@ signal ufo_at_angle(angle, pos)
 
 @onready var orbit = $Orbit
 @onready var camrot = $camrot
-@onready var ux = $"../../../../../../.."
 @onready var camera_3d = $camrot/Camera3D
 @onready var sub_viewport_container = $"../.."
 @onready var wheel = $camrot/Camera3D/wheel
 @onready var wheelmesh = $camrot/Camera3D/wheel/wheelmesh
 @onready var audio_stream_player = $AudioStreamPlayer
-@onready var ghost = $"../../../../../../../RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost"
+@onready var ghost = $"../../../../RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost"
 @onready var ufo_orbit = $UFO_orbit
 
 var global
@@ -104,7 +103,7 @@ func _unhandled_input(event):
 					first_touch_too_low = true
 				else:
 					first_touch_too_low = false
-			if event.position.y > 0.0:
+			if true:#event.position.y > 0.0:
 				holding_top = false
 				holding = true
 				drag = true
@@ -124,7 +123,7 @@ func _unhandled_input(event):
 		if event is InputEventScreenTouch:
 			if event.pressed == false:
 				if !holding and !holding_top:
-					if event.position.y > 0.0:
+					if true:#event.position.y > 0.0:
 						# this is where we pick a piece
 						if piecelocs.has(front_piece):
 							piece_in_space = true
