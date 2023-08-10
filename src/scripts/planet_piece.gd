@@ -94,6 +94,7 @@ var drop_off_started := false
 var drop_off_original_dist: float
 var drop_off_original_position: Vector3
 var drop_off_start_pos: Vector3
+var planet_style: int
 
 var ghostball
 var ghost
@@ -173,11 +174,19 @@ func _ready():
 			
 			watermesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 			water.mesh = watermesh
+			if planet_style == 2:
+				water.material_overlay.roughness = 0.6
+			else:
+				water.material_overlay.roughness = 0.04
 	
 	#newmesh.regen_normal_maps()
 	newmesh.shadow_mesh = newmesh
 	
 	themesh.mesh = newmesh
+	if planet_style > 5 and planet_style < 10:
+		themesh.material_overlay.roughness = 0.65
+	else:
+		themesh.material_overlay.roughness = 0.79
 	
 	var wallmesh = ArrayMesh.new()
 	

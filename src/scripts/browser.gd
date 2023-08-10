@@ -245,26 +245,6 @@ func _process(delta):
 			dy = 0.0
 		
 		last_frame_snap_to = snap_to
-			
-#func _on_universe_meshes_made_2():
-#	pieces_ready = true
-#	var pieces = get_tree().get_nodes_in_group('pieces')
-#	rotosnaps = len(pieces)
-#	print(rotosnaps)
-#	max_rotosnaps = rotosnaps
-#	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
-#	recam = true
-#	#h_sensitivity = og_sens
-#	#print(rotosnaps)
-#	var ang = (2*PI)/rotosnaps
-#	for r in rotosnaps:
-#		snaps.append(ang*(r))
-#	for p in pieces:
-#		p.reparent(self, false)
-#		p.i_am_here.connect(_on_i_am_here)
-#		p.take_me_home.connect(_on_take_me_home)
-#		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
-#		p.arrange()
 
 func _on_this_is_my_rotation(rot):
 	wheelmesh.rotation.z = rot
@@ -358,27 +338,6 @@ func _on_picked_you(idx):
 	if global.rotation:
 		wheel_moving = true
 
-func _on_start_puzzle_button_up():
-	pass
-#	pieces_ready = true
-#	var pieces = get_tree().get_nodes_in_group('pieces')
-#	rotosnaps = len(pieces)
-#	print(rotosnaps)
-#	max_rotosnaps = rotosnaps
-#	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
-#	recam = true
-#	#h_sensitivity = og_sens
-#	#print(rotosnaps)
-#	var ang = (2*PI)/rotosnaps
-#	for r in rotosnaps:
-#		snaps.append(ang*(r))
-#	for p in pieces:
-#		p.reparent(self, false)
-#		p.i_am_here.connect(_on_i_am_here)
-#		p.take_me_home.connect(_on_take_me_home)
-#		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
-#		p.arrange()
-
 func _on_universe_ufo_done_2():
 	#pieces_ready = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
@@ -430,7 +389,6 @@ func _on_ufo_orbit_at_angle(angle, pos):
 		angle -= 2.0*PI
 	var ufo_snap_to = snappedf(angle, 2*PI/rotosnaps)
 	emit_signal("ufo_at_angle", ufo_snap_to, pos)
-
 
 func _on_ufo_orbit_drop_off_done():
 	pieces_ready = true

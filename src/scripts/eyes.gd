@@ -199,6 +199,11 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
+	elif global.generate_type == 2:
+		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('b89679'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('b89679'))
 	elif global.generate_type == 5:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 3.2)
@@ -263,7 +268,7 @@ func _on_generate_button_up():
 	#print(error)
 
 func _on_option_button_item_selected(index):
-	if index == 1 or index == 9:
+	if index == 9:
 		index = 2
 	global.generate_type = index + 1
 

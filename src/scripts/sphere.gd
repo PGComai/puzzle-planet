@@ -163,6 +163,10 @@ var snow_start: float
 var max_distance_between_vecs := 0.000016
 var global
 var crater_array := []
+var deep_water_color: Color
+var water_color_2: Color
+var water_color_3: Color
+var venus_color_ease_curve: Curve = preload("res://tex/venus_color_ease_curve.tres")
 
 var treesnap: Vector3
 var treestep := 0.2
@@ -462,6 +466,91 @@ func _set_parameters():
 		h_bands = false
 		craters_to_storms = false
 		rings.visible = false
+	elif planet_style == 2:
+		## venus
+		mountain_noise.noise_type = 4
+		mountain_noise.frequency = 5.0
+		mountain_noise.fractal_weighted_strength = 0
+		general_noise_soft.noise_type = 4
+		general_noise_soft.frequency = 0.1
+		general_noise_soft.fractal_weighted_strength = 1
+		colornoise.noise_type = 4
+		colornoise.frequency = 2.0
+		colornoise.domain_warp_enabled = false
+		colornoise.domain_warp_amplitude = 30
+		colornoise.domain_warp_fractal_gain = 0.5
+		colornoise.domain_warp_fractal_lacunarity = 6
+		colornoise.domain_warp_fractal_octaves = 5
+		colornoise.domain_warp_fractal_type = 1
+		colornoise.domain_warp_frequency = 0.05
+		colornoise.domain_warp_type = 0
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		noise3d.noise_type = 4
+		noise3d.frequency = 1.5
+		noise3d.domain_warp_enabled = false
+		noise3d.domain_warp_amplitude = 30.0
+		noise3d.domain_warp_fractal_gain = 0.5
+		noise3d.domain_warp_fractal_lacunarity = 6.0
+		noise3d.domain_warp_fractal_octaves = 5
+		noise3d.domain_warp_fractal_type = 1
+		noise3d.domain_warp_frequency = 0.05
+		noise3d.domain_warp_type = 0
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('6e2e0c')
+		crust_color = Color('3f3227')
+		land_snow_color = Color('dbdbdb')
+		land_color = Color('ac5c22')
+		land_color_threshold = 0.96
+		land_color_2 = Color('7e4e24')
+		land_color_threshold = 0.94
+		land_color_3 = Color('b35639')
+		low_land_color = Color('5b2716')
+		low_land_bottom_threshold = 0.5
+		low_land_top_threshold = 0.9
+		sand_color = Color('9f876b')
+		water_color = Color('b59e87')
+		water_color_2 = Color('8f6f59')
+		water_color_3 = Color('c2aca0')
+		deep_water_color = Color('853403')
+		shallow_water_color = Color('b59e87')
+		sand_threshold = 1.1
+		water_offset = 1.2
+		ocean = true
+		snow_random_low = 0.7
+		snow_random_high = 0.8
+		max_terrain_height_unclamped = 1.2
+		global.planet_height_for_ufo = 0.0
+		min_terrain_height_unclamped = 0.75
+		max_terrain_height = 1.3
+		min_terrain_height = 0.8
+		clamp_terrain = false
+		invert_height = false
+		craters = true
+		craters_to_mountains = true
+		crater_height_curve = earth_mountain_curve
+		mountain_shift_curve = earth_mountain_shift_curve
+		mountain_color_curve = earth_mountain_color_curve
+		mountain_color = Color('ab8773')
+		num_craters = 20
+		crater_size_multiplier = 2.0
+		crater_height_multiplier = 0.7
+		snow = false
+		mantle.mesh.material = mantle_earth_material
+		lava_lamp.light_color = lava_lamp_color_earth
+		lava_lamp.visible = true
+		h_bands = false
+		craters_to_storms = false
+		rings.visible = false
 	elif planet_style == 3:
 		## earth
 		mountain_noise.noise_type = 4
@@ -515,6 +604,7 @@ func _set_parameters():
 		low_land_top_threshold = 0.9
 		sand_color = Color('9f876b')
 		water_color = Color('0541ff')
+		deep_water_color = Color('000a4a')
 		shallow_water_color = Color('2091bf')
 		sand_threshold = 1.1
 		water_offset = 1.09
@@ -1033,6 +1123,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		var up = dxu.rotated(og_verts[bak].normalized(), -PI/2)
 		
 		var newpiece = piece.instantiate()
+		newpiece.planet_style = planet_style
 		newpiece.wall_vertex = NEW_tess_result[0]
 		newpiece.wall_normal = NEW_tess_result[1]
 		newpiece.wall_color = NEW_tess_result[2]
@@ -1144,11 +1235,20 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		var p3w_depth = p3.length_squared() - p3w.length_squared()
 		
 		# water color
-		var depth_start = 0.001
-		var depth_end = 0.05
-		var p1w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p1w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		var p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		var p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var p1w_color: Color
+		var p2w_color: Color
+		var p3w_color: Color
+		if planet_style == 2:
+			var water_colors = [water_color, water_color_2, water_color_3]
+			p1w_color = venus_color_vary(p1w, water_colors)
+			p2w_color = venus_color_vary(p2w, water_colors)
+			p3w_color = venus_color_vary(p3w, water_colors)
+		else:
+			var depth_start = 0.001
+			var depth_end = 0.05
+			p1w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p1w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+			p2w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p2w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+			p3w_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-p3w_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		
 		# land triangles
 		var pl = Plane(p1, p2, p3)
@@ -1259,7 +1359,6 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 		var depth_end = 0.05
 		var underwater_depth_start = 0.001
 		var underwater_depth_end = 0.03
-		var deep_water_color := Color('000a4a')
 		var v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		var v1pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
 		var n: Vector3
@@ -1286,7 +1385,7 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 			var wo2 = pow(water_offset, 2.0)
 			
 			if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
-				_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1p.limit_length(water_offset), cutwater_triangles)
+				_triangle(v0p.limit_length(water_offset), v0pw, v1p.limit_length(water_offset), cutwater_triangles)
 			else:
 				_triangle(v0p.limit_length(water_offset), v0pw.lerp(vp, 0.004), v1p.limit_length(water_offset), cutwater_triangles)
 			
@@ -1299,7 +1398,7 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 			
 			###
 			if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
-				_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
+				_triangle(v1p.limit_length(water_offset), v0pw, v1pw, cutwater_triangles)
 			else:
 				_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.004), v1pw.lerp(vp, 0.004), cutwater_triangles)
 			#_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
@@ -1661,6 +1760,19 @@ func mm(vec: Vector3):
 			for mycr_i in len(my_craters):
 				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier)) * (1.0 + abs(mountain_noise.get_noise_3dv(newvec) * 5.0))
 	return newvec
+
+func venus_color_vary(vec: Vector3, colors: Array):
+	var return_color: Color
+	vec = Vector3(vec.x * 0.2, vec.y, vec.z * 0.2)
+	var nval = colornoise.get_noise_3dv(vec)
+	nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
+	if nval > 0.5:
+		var final_val = remap(nval, 0.5, 1.0, 0.0, 1.0)
+		return_color = colors[1].lerp(colors[0], venus_color_ease_curve.sample_baked(final_val))
+	elif nval <= 0.5:
+		var final_val = remap(nval, 0.0, 0.5, 0.0, 1.0)
+		return_color = colors[2].lerp(colors[1], venus_color_ease_curve.sample_baked(final_val))
+	return return_color
 
 func color_vary(vec: Vector3, colors: Array):
 	var return_color: Color

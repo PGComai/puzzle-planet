@@ -634,7 +634,6 @@ one_shot = true
 [connection signal="toggled" from="SettingsPopup/VBoxContainer/VibrateHBox/VibrateCheckButton" to="." method="_on_vibrate_check_button_toggled"]
 [connection signal="button_up" from="SettingsPopup/VBoxContainer/Close" to="SettingsPopup" method="_on_close_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/AspectRatioContainer/SubViewportContainer/SubViewport/Universe" method="_on_start_puzzle_button_up"]
-[connection signal="button_up" from="StartPuzzle" to="MainBG/VSplit/MarginContainer/AspectRatioContainer/SubViewportContainer/SubViewport/Browser" method="_on_start_puzzle_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="StartPuzzle" method="_on_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_start_puzzle_button_up"]
 [connection signal="timeout" from="ProgressPanelContainer/MarginContainer/PlanetProgress/ProgressFullTimer" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_progress_full_timer_timeout"]

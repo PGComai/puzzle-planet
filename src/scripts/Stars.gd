@@ -24,7 +24,6 @@ func _ready():
 		var b = randfn(0.8, 0.2)
 		var a = randfn(0.5, 0.5)
 		colors.append(Color(rg,rg,b).lerp(Color('black'), a))
-		
 	
 	surface_array[Mesh.ARRAY_VERTEX] = verts
 	surface_array[Mesh.ARRAY_COLOR] = colors
