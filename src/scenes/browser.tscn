@@ -40,6 +40,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.44511)
 
 [node name="Camera3D" type="Camera3D" parent="camrot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10.8)
+keep_aspect = 0
 fov = 90.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="camrot/Camera3D"]

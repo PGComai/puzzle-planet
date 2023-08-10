@@ -268,8 +268,6 @@ func _on_generate_button_up():
 	#print(error)
 
 func _on_option_button_item_selected(index):
-	if index == 9:
-		index = 2
 	global.generate_type = index + 1
 
 func _on_browser_wheel_rot(rot):
