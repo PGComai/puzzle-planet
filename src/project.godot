@@ -21,10 +21,9 @@ Global="*res://scripts/global.gd"
 
 [display]
 
-window/size/viewport_width=180
-window/size/viewport_height=380
-window/size/window_width_override=720
-window/size/window_height_override=1520
+window/size/viewport_width=720
+window/size/viewport_height=1680
+window/size/resizable=false
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
@@ -51,7 +50,6 @@ pointing/emulate_touch_from_mouse=true
 
 occlusion_culling/bvh_build_quality=1
 renderer/rendering_method="mobile"
-driver/threads/thread_model=2
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/screen_space_roughness_limiter/enabled=false
 

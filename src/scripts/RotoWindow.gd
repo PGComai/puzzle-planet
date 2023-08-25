@@ -1,6 +1,6 @@
 extends PanelContainer
 
-@onready var ghost_ball = $SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall
+@onready var ghost_ball = $"../SubViewportRoto/PieceView/Camera3D/GhostBall"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

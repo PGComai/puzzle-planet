@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dh4yuxiqdo80d"]
+[gd_scene load_steps=11 format=3 uid="uid://dh4yuxiqdo80d"]
 
 [ext_resource type="Script" path="res://scripts/browser.gd" id="1_n1lns"]
 [ext_resource type="ArrayMesh" uid="uid://jc8722fqtglo" path="res://models/wheel.obj" id="2_5ymt6"]
@@ -23,6 +23,9 @@ fog_light_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
 fog_density = 0.2641
 fog_sky_affect = 0.0
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hstdb"]
+albedo_color = Color(0.176471, 0.176471, 0.176471, 1)
+
 [sub_resource type="Curve" id="Curve_pddqo"]
 _data = [Vector2(0, 0.0306748), 0.0, 62.5583, 0, 0, Vector2(0.02589, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
 point_count = 3
@@ -46,6 +49,13 @@ fov = 90.0
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="camrot/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)
 light_energy = 2.036
+light_cull_mask = 4294967231
+
+[node name="WheelLight" type="DirectionalLight3D" parent="camrot/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)
+layers = 64
+light_energy = 2.036
+light_cull_mask = 4293918784
 
 [node name="DirectionalLight3D2" type="DirectionalLight3D" parent="camrot/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, -10.8)
@@ -56,8 +66,10 @@ light_energy = 0.54
 transform = Transform3D(0.612, 0, 0, 0, 0.612, 6.52278e-15, 0, -6.52278e-15, 0.612, 0, 12, -4)
 
 [node name="wheelmesh" type="MeshInstance3D" parent="camrot/Camera3D/wheel"]
+layers = 64
 mesh = ExtResource("2_5ymt6")
 skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_hstdb")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("3_hn560")

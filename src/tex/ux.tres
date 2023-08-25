@@ -1,6 +1,5 @@
-[gd_resource type="Theme" load_steps=6 format=3 uid="uid://1o6egjxby32y"]
+[gd_resource type="Theme" load_steps=5 format=3 uid="uid://1o6egjxby32y"]
 
-[ext_resource type="Texture2D" uid="uid://diqm2gn6d2x4u" path="res://tex/drag_handle_smol.png" id="1_fwqkv"]
 [ext_resource type="FontFile" uid="uid://inqm77e5i8my" path="res://fonts/PixelOperator8.ttf" id="2_t0iek"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wpjmi"]
@@ -13,12 +12,10 @@ bg_color = Color(0, 0, 0, 1)
 
 [resource]
 default_font = ExtResource("2_t0iek")
-MenuButton/font_sizes/font_size = 8
+default_font_size = 50
+Button/font_sizes/font_size = 50
+MenuButton/font_sizes/font_size = 42
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_wpjmi")
-ProgressBar/font_sizes/font_size = 8
+ProgressBar/font_sizes/font_size = 42
 ProgressBar/styles/background = SubResource("StyleBoxFlat_k5lfv")
 ProgressBar/styles/fill = SubResource("StyleBoxFlat_43rwo")
-VSplitContainer/constants/autohide = 0
-VSplitContainer/constants/minimum_grab_thickness = 70
-VSplitContainer/constants/separation = 0
-VSplitContainer/icons/grabber = ExtResource("1_fwqkv")

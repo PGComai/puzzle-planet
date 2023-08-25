@@ -120,12 +120,12 @@ func _ready():
 	var note_array = [grand_piano, grand_piano, grand_piano, electric_sheep_synth, sig_keyboard, trombones, ice_mallets, grand_piano, grand_piano, grand_piano]
 	note_pool = note_array[maxi(global.generate_type - 1, 0)]
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
-	ghostball = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall')
-	ghost = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost')
-	ghostwalls = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost/GhostWalls')
-	ghostwater = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost/GhostWater')
-	ghostoutline = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/GhostOutline')
-	ghostwallsoutline = get_tree().root.get_node('UX/RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/GhostOutline/GhostWallsOutline')
+	ghostball = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall')
+	ghost = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost')
+	ghostwalls = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost/GhostWalls')
+	ghostwater = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost/GhostWater')
+	ghostoutline = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost/GhostWater')
+	ghostwallsoutline = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/GhostOutline/GhostWallsOutline')
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
 	upward.position = upright_vec * 0.7
 	inward.position = direction.normalized() * -0.7
@@ -347,10 +347,10 @@ func _on_picked_you(_idx):
 				ghost.mesh = themesh.mesh
 				ghostwalls.mesh = walls.mesh
 				ghostwater.mesh = water.mesh
-				ghostoutline.mesh = themesh.mesh
-				ghostwallsoutline.mesh = walls.mesh
+				#ghostoutline.mesh = themesh.mesh
+				#ghostwallsoutline.mesh = walls.mesh
 				ghost.rotation = themesh.rotation
-				ghostoutline.rotation = themesh.rotation
+				#ghostoutline.rotation = themesh.rotation
 				ghostball.rotation.z = rotation.z
 				rotowindow.visible = true
 				#print('show roto')

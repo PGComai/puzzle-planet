@@ -134,6 +134,9 @@ signal ufo_ready(dict)
 @onready var mercury_crater_curve = preload("res://tex/mercury_crater_curve.tres")
 @onready var mercury_land_color_curve = preload("res://tex/mercury_land_color_curve.tres")
 
+var mars_mountain_curve: Curve = preload("res://tex/mars_mountain_curve.tres")
+var manual_mountain_color := false
+
 var lava_lamp_color_earth = Color('f1572f')
 var lava_lamp_color_mars = Color('c08333')
 var lava_lamp_color_jupiter = Color('64788f')
@@ -184,6 +187,12 @@ var ufo_locations := {}
 var piece_place_lerp_progression := 0.0
 var piece_place_vibration := false
 var piece_place_lerp_brick_audio_one := preload("res://tex/brick_audio_one_lerp_curve.tres")
+
+var pluto_heart_center: Vector3
+var pluto_heart_plane: Plane
+var pluto_heart_yax: Vector3
+var pluto_heart_xax: Vector3
+var pluto_heart_color := Color('d5b39a')
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -362,6 +371,16 @@ func _generate_mesh(userdata = null):
 		
 		craterize()
 		
+		if planet_style == 10:
+			pluto_heart_center = Vector3(randfn(0.0, 1.0),
+										randfn(-0.1, 0.2),
+										randfn(0.0, 1.0)).normalized()
+			pluto_heart_plane = Plane(pluto_heart_center, pluto_heart_center)
+			pluto_heart_yax = (pluto_heart_plane.project(Vector3(pluto_heart_center.x,
+															pluto_heart_center.y + 1.0,
+															pluto_heart_center.z)) - pluto_heart_center).normalized()
+			pluto_heart_xax = -pluto_heart_yax.cross(pluto_heart_center)
+		
 		var vectree = {}
 		var new_prog_tri = NEW_progressive_triangulate(vi_to_borders, verts, vectree)
 	return true
@@ -536,6 +555,7 @@ func _set_parameters():
 		mountain_shift_curve = earth_mountain_shift_curve
 		mountain_color_curve = earth_mountain_color_curve
 		mountain_color = Color('ab8773')
+		manual_mountain_color = true
 		num_craters = 20
 		crater_size_multiplier = 2.0
 		crater_height_multiplier = 0.7
@@ -617,6 +637,7 @@ func _set_parameters():
 		mountain_shift_curve = earth_mountain_shift_curve
 		mountain_color_curve = earth_mountain_color_curve
 		mountain_color = Color('ab8773')
+		manual_mountain_color = true
 		num_craters = 20
 		crater_size_multiplier = 3.0
 		crater_height_multiplier = 1.2
@@ -629,6 +650,12 @@ func _set_parameters():
 		rings.visible = false
 	elif planet_style == 5:
 		## mars
+		mountain_noise.noise_type = 4
+		mountain_noise.frequency = 5.0
+		mountain_noise.fractal_weighted_strength = 0
+		general_noise_soft.noise_type = 4
+		general_noise_soft.frequency = 0.1
+		general_noise_soft.fractal_weighted_strength = 1
 		colornoise.noise_type = 4
 		colornoise.frequency = 1.5
 		colornoise.domain_warp_enabled = false
@@ -646,7 +673,7 @@ func _set_parameters():
 		colornoise.fractal_type = 1
 		colornoise.fractal_weighted_strength = 0
 		noise3d.noise_type = 4
-		noise3d.frequency = 3.0
+		noise3d.frequency = 1.6
 		noise3d.domain_warp_enabled = false
 		noise3d.domain_warp_amplitude = 0.052
 		noise3d.domain_warp_fractal_gain = 0.285
@@ -657,21 +684,26 @@ func _set_parameters():
 		noise3d.domain_warp_type = 0
 		noise3d.fractal_gain = 0.5
 		noise3d.fractal_lacunarity = 2.0
-		noise3d.fractal_octaves = 5
+		noise3d.fractal_octaves = 8
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
 		ocean = false
 		snow_random_low = 0.9
 		snow_random_high = 0.94
-		max_terrain_height_unclamped = 1.01
-		min_terrain_height_unclamped = 0.2
+		max_terrain_height_unclamped = 1.26
+		min_terrain_height_unclamped = 0.7
 		max_terrain_height = 1.13
 		global.planet_height_for_ufo = 0.0
 		min_terrain_height = 1.02
-		clamp_terrain = true
-		invert_height = true
-		craters = false
+		clamp_terrain = false
+		invert_height = false
+		craters = true
+		craters_to_mountains = true
+		num_craters = 1
+		crater_size_multiplier = 5.0
+		crater_height_multiplier = 1.5
+		crater_height_curve = mars_mountain_curve
 		low_crust_color = Color('5e1c18')
 		crust_color = Color('542b18')
 		land_snow_color = Color('dbdbdb')
@@ -744,7 +776,7 @@ func _set_parameters():
 		low_crust_color = Color('452e27')
 		crust_color = Color('353535')
 		land_snow_color = Color('dbdbdb')
-		land_color = Color('969696')
+		land_color = Color('888888')
 		land_color_2 = Color('6a6a6a')
 		land_color_3 = Color('464646')
 		tint_color = Color('5f78c0')
@@ -816,7 +848,7 @@ func _set_parameters():
 		snow = false
 		craters = true
 		num_craters = 1
-		crater_size_multiplier = 2.0
+		crater_size_multiplier = 2.4
 		crater_height_multiplier = 1.5
 		crater_height_curve = jupiter_storm_curve
 		mantle.mesh.material = mantle_jupiter_material
@@ -1002,8 +1034,8 @@ func _set_parameters():
 		# pluto
 		colornoise.noise_type = 4
 		colornoise.frequency = 1.0
-		colornoise.domain_warp_enabled = false
-		colornoise.domain_warp_amplitude = 30
+		colornoise.domain_warp_enabled = true
+		colornoise.domain_warp_amplitude = 2
 		colornoise.domain_warp_fractal_gain = 0.5
 		colornoise.domain_warp_fractal_lacunarity = 6
 		colornoise.domain_warp_fractal_octaves = 5
@@ -1051,9 +1083,9 @@ func _set_parameters():
 		low_crust_color = Color('452e27')
 		crust_color = Color('2a2a2a')
 		land_snow_color = Color('dbdbdb')
-		land_color = Color('cfb9aa')
+		land_color = Color('b6aeae')
 		land_color_2 = Color('cfa474')
-		land_color_3 = Color('563f2b')
+		land_color_3 = Color('6f2d25')
 		tint_color = Color('523c54')
 		tint_color_2 = Color('5e3a37')
 		tint_color_3 = Color('4e4428')
@@ -1157,7 +1189,7 @@ func craterize():
 #			impact.y += 0.05
 #			impact = impact.normalized()
 		crater_array.append([impact, strength])
-	if craters_to_mountains:
+	if craters_to_mountains and num_craters > 1:
 		for i in 20:
 			crater_array = shift_mountains(crater_array)
 
@@ -1869,7 +1901,7 @@ func color_vary(vec: Vector3, colors: Array):
 			elif nval2 <= 0.5:
 				var tint_val = remap(nval2, 0.0, 0.5, 0.0, 1.0)
 				return_color = return_color.lerp(tint_color_3.lerp(tint_color_2, tint_val), 0.07)
-		if craters and craters_to_mountains:
+		if craters and craters_to_mountains and manual_mountain_color:
 			var my_craters = []
 			for cr in crater_array:
 				var dist = vec.normalized().distance_squared_to(cr[0])
@@ -1883,6 +1915,14 @@ func color_vary(vec: Vector3, colors: Array):
 				var vl = vec.length()
 				return_color = lerp(return_color, land_snow_color, clamp(remap(vl, 1.05, 1.1, 0.0, 1.0), 0.0, mountain_color_curve.sample_baked(my_craters[mycr_i]) * abs(mountain_noise.get_noise_3dv(vec) * 10.0)))
 				#newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
+		if planet_style == 10 and pluto_heart_center.distance_to(vec) < 1.0:
+			var heart_proj := pluto_heart_plane.project(vec)
+			var heart_local_vec := heart_proj - pluto_heart_center
+			var heart_local_y = heart_local_vec.project(pluto_heart_yax).length() * sign(pluto_heart_yax.dot(heart_local_vec))
+			var heart_local_x = heart_local_vec.project(pluto_heart_xax).length()
+			var heart_2d_vec := Vector2(heart_local_x, heart_local_y)
+			if pluto_heart_check(heart_2d_vec * 2.0):
+				return_color = pluto_heart_color
 	else:
 		# gas giant
 		# color depends on cloud height
@@ -1921,7 +1961,21 @@ func color_vary(vec: Vector3, colors: Array):
 				return_color = lerp(return_color, storm_color, storm_color_curve.sample_baked(my_craters[mycr_i]))
 				#newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
 	return return_color
-	
+
+func pluto_heart_check(vec: Vector2):
+	if abs(vec.x) < 1.0:
+		var ht = pluto_heart_top(vec.x)
+		var hb = pluto_heart_bottom(vec.x)
+		if vec.y > hb and vec.y < ht:
+			return true
+	return false
+
+func pluto_heart_top(x: float):
+	return (0.8 * pow(x, 2.0 / 3.0)) + sqrt(1.0 - pow(x, 2.0))
+
+func pluto_heart_bottom(x: float):
+	return (0.8 * pow(x, 2.0 / 3.0)) - sqrt(1.0 - pow(x, 2.0))
+
 func _piece_fit(delta):
 	if current_piece.global_position.normalized().angle_to(current_piece.direction.normalized()) < PI/32:
 		if global.rotation:

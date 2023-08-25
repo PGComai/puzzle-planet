@@ -1,6 +1,5 @@
-[gd_scene load_steps=7 format=3 uid="uid://do2i21h2f6g5q"]
+[gd_scene load_steps=6 format=3 uid="uid://do2i21h2f6g5q"]
 
-[ext_resource type="Script" path="res://scenes/general_atmosphere.gd" id="1_6oppo"]
 [ext_resource type="Shader" uid="uid://hxbcsbg7215o" path="res://tex/general_atmosphere_outer.tres" id="1_at5y2"]
 [ext_resource type="Shader" uid="uid://cgc3qb21hdi7q" path="res://tex/general_atmosphere_inner.tres" id="1_gskiy"]
 
@@ -19,9 +18,8 @@ radius = 1.26
 height = 2.52
 
 [node name="Atmosphere" type="Node3D"]
-script = ExtResource("1_6oppo")
 
-[node name="Outer" type="MeshInstance3D" parent="."]
+[node name="Mesh" type="MeshInstance3D" parent="."]
 layers = 2
 cast_shadow = 0
 mesh = SubResource("SphereMesh_xy8c2")

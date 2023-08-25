@@ -11,6 +11,7 @@
 - add olympus mons
 - fix earth desert weirdness
 - gas giants are too close to carousel camera
+- piece spinner should come from below
 
 - IOS --
 
@@ -20,6 +21,8 @@ GLITCHES:
 - crash/freeze when interrupting moon building process with new planet
 - rendered planet without one chunk of ocean on IOS
 - crashes if another planet requested while generating planet (temporarily fixed)
+- jupiter freeze
+- spinning planet during new planet dialog never slows down
 
 maybe:
 	- slant screen divider for one-handed ease

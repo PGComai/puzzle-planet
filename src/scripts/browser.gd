@@ -9,19 +9,18 @@ signal ufo_at_angle(angle, pos)
 @onready var orbit = $Orbit
 @onready var camrot = $camrot
 @onready var camera_3d = $camrot/Camera3D
-@onready var sub_viewport_container = $"../.."
 @onready var wheel = $camrot/Camera3D/wheel
 @onready var wheelmesh = $camrot/Camera3D/wheel/wheelmesh
 @onready var audio_stream_player = $AudioStreamPlayer
-@onready var ghost = $"../../../../RotoWindow/SubViewportContainer/SubViewport/PieceView/Camera3D/GhostBall/Ghost"
 @onready var ufo_orbit = $UFO_orbit
+@onready var directional_light_3d = $camrot/Camera3D/DirectionalLight3D
 
 var global
 var piece_rotation := false
 
 var rot_h = 0.0
-var h_sensitivity = 0.003
-var v_sensitivity = 0.003
+var h_sensitivity = 0.0008
+var v_sensitivity = 0.0008
 var og_sens: float
 var dx_final := 0.0
 var dy_final := 0.0
@@ -81,6 +80,7 @@ var pieces_ready := false
 var wheel_moving := false
 var ufo_come_drop_off := false
 var wheel_up := true
+var light_toggle_complete := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -92,57 +92,6 @@ func _ready():
 	#print(self.get_viewport().get_visible_rect().size.x)
 	#h_sensitivity *= global.pieces_at_start/15.0
 	og_sens = h_sensitivity
-
-func _unhandled_input(event):
-	if pieces_ready:
-		if event is InputEventScreenDrag:
-			disable_click = false
-			if !holding and !holding_top:
-				first_touch = (event.position.y / sub_viewport_container.size.y)
-				if first_touch >= 0.9:
-					first_touch_too_low = true
-				else:
-					first_touch_too_low = false
-			if true:#event.position.y > 0.0:
-				holding_top = false
-				holding = true
-				drag = true
-				if !rotating:
-					dx = event.relative.x * h_sensitivity
-				else:
-					dx = event.relative.x * og_sens
-				dy = event.relative.y * v_sensitivity
-				if abs(dx) > abs(dy):
-					dy = 0.0
-				elif abs(dx) <= abs(dy):
-					dx = 0.0
-			else:
-				holding_top = true
-				holding = false
-				drag = false
-		if event is InputEventScreenTouch:
-			if event.pressed == false:
-				if !holding and !holding_top:
-					if true:#event.position.y > 0.0:
-						# this is where we pick a piece
-						if piecelocs.has(front_piece):
-							piece_in_space = true
-							emit_signal("picked_you", piecelocs[front_piece])
-							stay_at_angle = front_piece
-				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space and !first_touch_too_low:
-					if piecelocs.has(front_piece):
-						piece_in_space = true
-						emit_signal("picked_you", piecelocs[front_piece])
-						stay_at_angle = front_piece
-				elif dy_final > 0.01 and abs(dx_final) < 0.02 and piece_in_space and first_touch > 0.0:
-					if piecelocs.has(front_piece):
-						emit_signal("picked_you", piecelocs[front_piece])
-						stay_at_angle = front_piece
-				holding_top = false
-				holding = false
-				pick = false
-			elif event.pressed == true:
-				pick = true
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -191,11 +140,13 @@ func _process(delta):
 				dx = 0.0
 			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
 			camrot.rotation.y = rot_h
+			_toggle_light(false)
 		else:
 			rotating = false
 			if global.rotation:
 				toggle_wheel('up')
 			rot_h -= dx_final
+			_toggle_light(true)
 		if rot_h < 0.0:
 			rot_h = 2*PI-abs(rot_h)
 		if rot_h >= 2*PI:
@@ -391,3 +342,68 @@ func _on_ufo_orbit_at_angle(angle, pos):
 
 func _on_ufo_orbit_drop_off_done():
 	pieces_ready = true
+
+func _on_browser_rect_gui_input(event):
+	if pieces_ready:
+		if event is InputEventScreenDrag:
+			disable_click = false
+#			if !holding and !holding_top:
+#				first_touch = (event.position.y / sub_viewport_container.size.y)
+#				if first_touch >= 0.9:
+#					first_touch_too_low = true
+#				else:
+#					first_touch_too_low = false
+			if true:#event.position.y > 0.0:
+				holding_top = false
+				holding = true
+				drag = true
+				if !rotating:
+					dx = event.relative.x * h_sensitivity
+				else:
+					dx = event.relative.x * og_sens
+				dy = event.relative.y * v_sensitivity
+				if abs(dx) > abs(dy):
+					dy = 0.0
+				elif abs(dx) <= abs(dy):
+					dx = 0.0
+			else:
+				holding_top = true
+				holding = false
+				drag = false
+		if event is InputEventScreenTouch:
+			if event.pressed == false:
+				if !holding and !holding_top:
+					if true:#event.position.y > 0.0:
+						# this is where we pick a piece
+						if piecelocs.has(front_piece):
+							piece_in_space = true
+							emit_signal("picked_you", piecelocs[front_piece])
+							stay_at_angle = front_piece
+				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space:# and !first_touch_too_low:
+					# send to space
+					if piecelocs.has(front_piece):
+						piece_in_space = true
+						emit_signal("picked_you", piecelocs[front_piece])
+						stay_at_angle = front_piece
+				elif dy_final > 0.01 and abs(dx_final) < 0.02 and piece_in_space:# and first_touch > 0.0:
+					# return from space
+					if piecelocs.has(front_piece):
+						emit_signal("picked_you", piecelocs[front_piece])
+						stay_at_angle = front_piece
+				holding_top = false
+				holding = false
+				pick = false
+			elif event.pressed == true:
+				pick = true
+
+func _toggle_light(tog: bool):
+	if tog:
+		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 2.036, 0.1)
+		if is_equal_approx(directional_light_3d.light_energy, 2.036):
+			directional_light_3d.light_energy = 2.036
+			light_toggle_complete = true
+	else:
+		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 0.5, 0.1)
+		if is_equal_approx(directional_light_3d.light_energy, 0.5):
+			directional_light_3d.light_energy = 0.5
+			light_toggle_complete = true

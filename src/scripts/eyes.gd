@@ -13,11 +13,10 @@ signal ufo_reset
 signal piece_added
 signal atmo_resize(size)
 
-@export var h_sensitivity = 0.005
-@export var v_sensitivity = 0.005
+@export var h_sensitivity = 0.001
+@export var v_sensitivity = 0.001
 
 @onready var camera_3d = $h/v/Camera3D
-@onready var sub_viewport = $".."
 @onready var piece_target = $h/v/Camera3D/piece_target
 @onready var mesh_maker = $MeshMaker
 @onready var pieces = $Pieces
@@ -25,7 +24,7 @@ signal atmo_resize(size)
 @onready var sun = $Sun
 @onready var space = $Space
 @onready var shadow_light = $h/v/Camera3D/ShadowLight
-@onready var roto_window = $"../../../../RotoWindow"
+@onready var roto_window = $"../../RotoWindow"
 @onready var atmosphere = $Atmosphere
 @onready var error_sound = $ErrorSound
 
@@ -65,56 +64,13 @@ var last_rot_v_tick := 0.0
 func _ready():
 	global = get_node('/root/Global')
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
-	h = sub_viewport.size.y
+	#h = sub_viewport.size.y
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	#v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
 	RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
 	generate_type = global.generate_type
-	
-func _unhandled_input(event):
-	if event is InputEventScreenDrag:
-		fling = false
-		var touchborder = h# + v_split.split_offset - 15
-		#print(touchborder)
-		if true:#event.position.y < touchborder:
-			dx = event.relative.x * h_sensitivity
-			dy = event.relative.y * v_sensitivity
-			if !drag:
-				#first touch
-				pass
-			else:
-				pass
-			drag = true
-			if is_equal_approx($h/v.rotation.x, -(15*PI)/32) or $h/v.rotation.x < -(15*PI)/32:
-				if dy_final > 0.0:
-					#print('uplimit')
-					upper_limit_reached = true
-					limit_pull += abs(dy_final)
-			else:
-				#limit_pull = 0.0
-				upper_limit_reached = false
-			if is_equal_approx($h/v.rotation.x, (15*PI)/32) or $h/v.rotation.x > (15*PI)/32:
-				if dy_final < 0.0:
-					#print('downlimit')
-					lower_limit_reached = true
-					limit_pull += abs(dy_final)
-			else:
-				#limit_pull = 0.0
-				lower_limit_reached = false
-		else:
-			drag = false
-	if event is InputEventScreenTouch:
-		if event.pressed == false:
-			drag = false
-			if limit_pull > 0.0 and abs($h/v.rotation.x) > (15*PI)/32:
-				#print('fling')
-				if global.vibration:
-					Input.vibrate_handheld(8)
-				if global.sound:
-					error_sound.play()
-				fling = true
-				
+
 func _process(delta):
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
 		add_child(mesh_maker)
@@ -227,6 +183,11 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.3)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7a9cae'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7a9cae'))
+	elif global.generate_type == 10:
+		atmosphere.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('81cfff'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
 		
 
 func _on_mesh_maker_meshes_made():
@@ -297,3 +258,46 @@ func _on_ufo_ufo_take_me_home():
 func _on_pieces_child_entered_tree(node):
 	if node.get_parent() == pieces:
 		emit_signal("piece_added")
+
+func _on_universe_rect_gui_input(event):
+	if event is InputEventScreenDrag:
+		fling = false
+		#var touchborder = h# + v_split.split_offset - 15
+		#print(touchborder)
+		if true:#event.position.y < touchborder:
+			dx = event.relative.x * h_sensitivity
+			dy = event.relative.y * v_sensitivity
+			if !drag:
+				#first touch
+				pass
+			else:
+				pass
+			drag = true
+			if is_equal_approx($h/v.rotation.x, -(15*PI)/32) or $h/v.rotation.x < -(15*PI)/32:
+				if dy_final > 0.0:
+					#print('uplimit')
+					upper_limit_reached = true
+					limit_pull += abs(dy_final)
+			else:
+				#limit_pull = 0.0
+				upper_limit_reached = false
+			if is_equal_approx($h/v.rotation.x, (15*PI)/32) or $h/v.rotation.x > (15*PI)/32:
+				if dy_final < 0.0:
+					#print('downlimit')
+					lower_limit_reached = true
+					limit_pull += abs(dy_final)
+			else:
+				#limit_pull = 0.0
+				lower_limit_reached = false
+		else:
+			drag = false
+	if event is InputEventScreenTouch:
+		if event.pressed == false:
+			drag = false
+			if limit_pull > 0.0 and abs($h/v.rotation.x) > (15*PI)/32:
+				#print('fling')
+				if global.vibration:
+					Input.vibrate_handheld(8)
+				if global.sound:
+					error_sound.play()
+				fling = true

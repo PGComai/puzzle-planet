@@ -11,3 +11,6 @@ export_presets.cfg
 data_*/
 .DS_Store
 *.apk
+*.apk
+*.idsig
+*.apk
