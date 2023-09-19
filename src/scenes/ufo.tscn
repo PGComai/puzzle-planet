@@ -1,6 +1,6 @@
 [gd_scene load_steps=18 format=3 uid="uid://cs8eh4rcoct8l"]
 
-[ext_resource type="Shader" uid="uid://dsh1pu8mere1v" path="res://scenes/ufobeam.tres" id="1_ixbkh"]
+[ext_resource type="Shader" uid="uid://dsh1pu8mere1v" path="res://tex/ufobeam.tres" id="1_ixbkh"]
 [ext_resource type="Script" path="res://scripts/ufo.gd" id="1_p1dcn"]
 [ext_resource type="AudioStream" uid="uid://0d6605jf7c2e" path="res://audio/ufo-abduct-one.ogg" id="3_ing0b"]
 [ext_resource type="Script" path="res://scripts/AbductionSound.gd" id="4_u3y8s"]

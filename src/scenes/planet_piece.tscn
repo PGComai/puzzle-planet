@@ -324,7 +324,7 @@ material = SubResource("StandardMaterial3D_du276")
 radius = 0.05
 height = 0.1
 
-[node name="planet_piece" type="Node3D" groups=["pieces"]]
+[node name="planet_piece" type="Node3D" groups=["persist", "pieces"]]
 script = ExtResource("1_jrwu8")
 placement_curve = SubResource("Curve_wdrif")
 grand_piano = Array[AudioStreamOggVorbis]([ExtResource("7_4m878"), ExtResource("3_ajhps"), ExtResource("4_u0gyw"), ExtResource("5_t57mp"), ExtResource("6_touyp"), ExtResource("7_rfem6"), ExtResource("8_pmamu"), ExtResource("9_0vpi8"), ExtResource("10_nus2a"), ExtResource("11_bkoa8"), ExtResource("12_5o8h2"), ExtResource("13_fnh2c"), ExtResource("14_qe5l6"), ExtResource("15_5htb0"), ExtResource("16_tw8bk"), ExtResource("17_crbap"), ExtResource("18_phs1r"), ExtResource("19_5t0hb"), ExtResource("20_gh2fu"), ExtResource("21_7ytk7"), ExtResource("22_2rx0e"), ExtResource("23_bcs5a"), ExtResource("24_sg83o"), ExtResource("25_snn0t"), ExtResource("26_aopt7"), ExtResource("27_m8nm8"), ExtResource("28_m28ti"), ExtResource("29_cyv20"), ExtResource("30_r4jud"), ExtResource("31_tsp7g"), ExtResource("32_mkfkr"), ExtResource("33_dpoea")])

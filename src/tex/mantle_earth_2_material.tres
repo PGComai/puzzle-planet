@@ -1,0 +1,30 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3 uid="uid://dpgm6lkpsdnyu"]
+
+[ext_resource type="Shader" uid="uid://c54jjnang0gwr" path="res://tex/mantle_earth_2.tres" id="1_2b7td"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_7bq1i"]
+noise_type = 2
+frequency = 0.1005
+cellular_jitter = 1.23
+
+[sub_resource type="NoiseTexture3D" id="NoiseTexture3D_k2vmg"]
+seamless = true
+seamless_blend_skirt = 1.0
+noise = SubResource("FastNoiseLite_7bq1i")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_b80e2"]
+noise_type = 4
+frequency = 0.0705
+domain_warp_enabled = true
+domain_warp_amplitude = 7.175
+
+[sub_resource type="NoiseTexture3D" id="NoiseTexture3D_5hw4j"]
+seamless = true
+seamless_blend_skirt = 1.0
+noise = SubResource("FastNoiseLite_b80e2")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_2b7td")
+shader_parameter/tex3d_frg_13 = SubResource("NoiseTexture3D_k2vmg")
+shader_parameter/tex3d_frg_5 = SubResource("NoiseTexture3D_5hw4j")

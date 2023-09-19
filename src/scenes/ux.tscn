@@ -1,6 +1,6 @@
 [gd_scene load_steps=41 format=3 uid="uid://djo67ptd1f4hw"]
 
-[ext_resource type="Script" path="res://scenes/ux.gd" id="1_f5jjs"]
+[ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
 [ext_resource type="PackedScene" uid="uid://ls26k2ueeeb3" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
 [ext_resource type="PackedScene" uid="uid://dh4yuxiqdo80d" path="res://scenes/browser.tscn" id="3_j5u16"]
@@ -10,9 +10,9 @@
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
 [ext_resource type="Script" path="res://scripts/RotoWindow.gd" id="8_827gc"]
 [ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
-[ext_resource type="Script" path="res://scenes/HowToPlayPopup.gd" id="10_kjmqd"]
-[ext_resource type="Script" path="res://scenes/PlanetProgress.gd" id="10_qmupj"]
-[ext_resource type="Script" path="res://scenes/SettingsPopup.gd" id="10_t8qcq"]
+[ext_resource type="Script" path="res://scripts/HowToPlayPopup.gd" id="10_kjmqd"]
+[ext_resource type="Script" path="res://scripts/PlanetProgress.gd" id="10_qmupj"]
+[ext_resource type="Script" path="res://scripts/SettingsPopup.gd" id="10_t8qcq"]
 
 [sub_resource type="Environment" id="Environment_ytaxl"]
 tonemap_mode = 2
@@ -439,6 +439,17 @@ size_flags_vertical = 10
 disabled = true
 text = "Generate"
 
+[node name="HSeparator6" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
+
+[node name="Draw" type="Button" parent="NewPlanetPopup/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+disabled = true
+text = "Draw
+"
+
 [node name="HSeparator3" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
@@ -553,7 +564,6 @@ size_flags_vertical = 4
 button_pressed = true
 
 [node name="HSeparator3" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
-visible = false
 layout_mode = 2
 
 [node name="Close" type="Button" parent="SettingsPopup/VBoxContainer"]
@@ -707,6 +717,8 @@ one_shot = true
 [connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="NewPlanetPopup" method="_on_generate_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Draw" to="SubViewportUniverse/Universe" method="_on_draw_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Draw" to="NewPlanetPopup" method="_on_draw_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Cancel" to="NewPlanetPopup" method="_on_cancel_button_up"]
 [connection signal="toggled" from="SettingsPopup/VBoxContainer/GraphicsHBox/GraphicsCheckButton" to="." method="_on_graphics_check_button_toggled"]
 [connection signal="toggled" from="SettingsPopup/VBoxContainer/SoundHBox/SoundCheckButton" to="." method="_on_sound_check_button_toggled"]

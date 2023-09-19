@@ -11,7 +11,7 @@
 - add olympus mons
 - fix earth desert weirdness
 - gas giants are too close to carousel camera
-- piece spinner should come from below
+- volcanoes
 
 - IOS --
 

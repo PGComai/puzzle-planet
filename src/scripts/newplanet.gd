@@ -5,6 +5,7 @@ extends PopupPanel
 @onready var planet_type_option_button = $VBoxContainer/PlanetType/PlanetTypeOptionButton
 @onready var rot_button = $VBoxContainer/PieceRotation/RotButton
 @onready var generate = $VBoxContainer/Generate
+@onready var draw = $VBoxContainer/Draw
 
 var global
 var total_pieces := 30
@@ -43,7 +44,9 @@ func _on_check_button_toggled(button_pressed):
 func _on_generate_button_up():
 	self.visible = false
 	generate.disabled = true
+	draw.disabled = true
 	global.rotation = queue_rotation_flag
+	global.drawing_mode = false
 	rot_button.set_pressed_no_signal(queue_rotation_flag)
 	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
 	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
@@ -53,3 +56,9 @@ func _on_generate_button_up():
 
 func _on_universe_ready_to_start_2():
 	generate.disabled = false
+	draw.disabled = false
+
+
+func _on_draw_button_up():
+	visible = false
+	global.drawing_mode = true

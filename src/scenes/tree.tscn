@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3dtb06o6eveu"]
+
+[ext_resource type="Script" path="res://scripts/tree.gd" id="1_v5q2p"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qfbjq"]
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+
+[node name="Tree" type="MeshInstance3D"]
+layers = 9
+material_overlay = SubResource("StandardMaterial3D_qfbjq")
+script = ExtResource("1_v5q2p")

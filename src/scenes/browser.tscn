@@ -4,7 +4,7 @@
 [ext_resource type="ArrayMesh" uid="uid://jc8722fqtglo" path="res://models/wheel.obj" id="2_5ymt6"]
 [ext_resource type="AudioStream" uid="uid://beohik0eoofjh" path="res://audio/puzzle planet carousel click.ogg" id="3_hn560"]
 [ext_resource type="Script" path="res://scripts/clicker.gd" id="4_v12kr"]
-[ext_resource type="Script" path="res://scenes/UFO_orbit.gd" id="5_cocbr"]
+[ext_resource type="Script" path="res://scripts/UFO_orbit.gd" id="5_cocbr"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dvmvx"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)

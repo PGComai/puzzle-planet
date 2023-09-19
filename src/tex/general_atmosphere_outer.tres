@@ -195,7 +195,6 @@ void light() {
 
 }
 "
-graph_offset = Vector2(-709.741, -383.183)
 flags/shadows_disabled = true
 flags/ambient_light_disabled = true
 nodes/vertex/0/position = Vector2(700, 140)

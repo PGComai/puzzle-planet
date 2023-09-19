@@ -104,36 +104,29 @@ signal ufo_ready(dict)
 @export var color_fractal_type: FastNoiseLite.FractalType = 1
 @export var color_fractal_weighted_strength := 0.0
 
-@onready var piece = preload("res://scenes/planet_piece.tscn")
-@onready var pieces = $"../Pieces"
-@onready var save_template = preload("res://scripts/save_template.gd")
-@onready var piece_target = $"../h/v/Camera3D/piece_target"
-@onready var shadow_light = $"../h/v/Camera3D/ShadowLight"
-@onready var camera_3d = $"../h/v/Camera3D"
-@onready var where = $where
-@onready var sun = $"../Sun"
-@onready var space = $"../Space"
-@onready var mantle = $"../Mantle"
-@onready var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
-@onready var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
-@onready var mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
-@onready var lava_lamp = $"../Lava Lamp"
-@onready var moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
-@onready var moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
-@onready var jupiter_storm_curve = preload("res://tex/jupiter_storm_curve.tres")
-@onready var mantle_jupiter_material = preload("res://tex/mantle_jupiter_material.tres")
-@onready var rings = $"../Rings"
-@onready var mantle_saturn_material = preload("res://tex/mantle_saturn_material.tres")
-@onready var audio_stream_player = $"../AudioStreamPlayer"
-@onready var mantle_uranus_material = preload("res://tex/mantle_uranus_material.tres")
-@onready var neptune_storm_curve = preload("res://tex/neptune_storm_curve.tres")
-@onready var neptune_storm_color_curve = preload("res://tex/neptune_storm_color_curve.tres")
-@onready var earth_mountain_curve = preload("res://tex/earth_mountain_curve.tres")
-@onready var earth_mountain_shift_curve = preload("res://tex/earth_mountain_shift_curve.tres")
-@onready var earth_mountain_color_curve = preload("res://tex/earth_mountain_color_curve.tres")
-@onready var mercury_crater_curve = preload("res://tex/mercury_crater_curve.tres")
-@onready var mercury_land_color_curve = preload("res://tex/mercury_land_color_curve.tres")
+var piece = preload("res://scenes/planet_piece.tscn")
+var save_template = preload("res://scripts/save_template.gd")
 
+var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
+var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
+var mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
+var mantle_earth_2_material = preload("res://tex/mantle_earth_2_material.tres")
+var mantle_mars_2_material = preload("res://tex/mantle_mars_2_material.tres")
+var moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
+var moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
+var jupiter_storm_curve = preload("res://tex/jupiter_storm_curve.tres")
+var mantle_jupiter_material = preload("res://tex/mantle_jupiter_material.tres")
+var mantle_saturn_material = preload("res://tex/mantle_saturn_material.tres")
+var mantle_uranus_material = preload("res://tex/mantle_uranus_material.tres")
+var neptune_storm_curve = preload("res://tex/neptune_storm_curve.tres")
+var neptune_storm_color_curve = preload("res://tex/neptune_storm_color_curve.tres")
+var earth_mountain_curve = preload("res://tex/earth_mountain_curve.tres")
+var earth_mountain_shift_curve = preload("res://tex/earth_mountain_shift_curve.tres")
+var earth_mountain_color_curve = preload("res://tex/earth_mountain_color_curve.tres")
+var mercury_crater_curve = preload("res://tex/mercury_crater_curve.tres")
+var mercury_land_color_curve = preload("res://tex/mercury_land_color_curve.tres")
+
+var _draw_mode := false
 var mars_mountain_curve: Curve = preload("res://tex/mars_mountain_curve.tres")
 var manual_mountain_color := false
 
@@ -169,6 +162,7 @@ var water_color_2: Color
 var water_color_3: Color
 var venus_color_ease_curve: Curve = preload("res://tex/venus_color_ease_curve.tres")
 var pluto_color_ease_curve: Curve = preload("res://tex/pluto_color_ease_curve.tres")
+var mars_color_ease_curve: Curve = preload("res://tex/mars_land_color_curve.tres")
 
 var treesnap: Vector3
 var treestep := 0.2
@@ -194,6 +188,27 @@ var pluto_heart_yax: Vector3
 var pluto_heart_xax: Vector3
 var pluto_heart_color := Color('d5b39a')
 
+var canyon_noise: FastNoiseLite = preload("res://tex/canyon_noise.tres")
+var canyons := false
+var num_canyons := 0
+var canyon_array := []
+var canyon_size_multiplier := 17.0
+var canyon_height_multiplier := 1.0
+var canyon_height_curve: Curve = preload("res://tex/canyon_height_curve.tres")
+var canyon_fade_curve: Curve = preload("res://tex/canyon_fade_curve.tres")
+
+@onready var audio_stream_player = $"../AudioStreamPlayer"
+@onready var rings = $"../Rings"
+@onready var lava_lamp = $"../Lava Lamp"
+@onready var piece_target = $"../h/v/Camera3D/piece_target"
+@onready var shadow_light = $"../h/v/Camera3D/ShadowLight"
+@onready var camera_3d = $"../h/v/Camera3D"
+@onready var where = $where
+@onready var sun = $"../Sun"
+@onready var space = $"../Space"
+@onready var mantle = $"../Mantle"
+@onready var pieces = $"../Pieces"
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	piece_place_lerp_curve = piece_place_lerp_brick_audio_one
@@ -206,6 +221,7 @@ func _ready():
 		planet_style = global.generate_type
 		pieces_at_start = global.pieces_at_start
 	randomize()
+	canyon_noise.seed = randi_range(0, 100000)
 	mountain_noise.seed = randi_range(0, 100000)
 	general_noise_soft.seed = randi_range(0, 100000)
 	mountain_noise.noise_type = 4
@@ -254,10 +270,6 @@ func _ready():
 	noise3d.cellular_return_type = height_noise_cellular_return_type
 	_set_parameters()
 	thread = Thread.new()
-#	thread = Thread.new()
-#	thread.start(Callable(self, "_generate_mesh"))
-#	thread.wait_to_finish()
-	#_generate_mesh()
 
 func _process(delta):
 	var result = false
@@ -265,14 +277,11 @@ func _process(delta):
 		if !thread.is_alive() and !thread.is_started():
 			thread.start(Callable(self, "_generate_mesh"))
 		if !thread.is_alive() and thread.is_started():
-			#print('wtf')
 			result = thread.wait_to_finish()
-			#print('done')
 		if result:
 			build_planet = false
 			emit_signal("ready_to_start")
 			emit_signal('ufo_ready', ufo_locations)
-			#emit_signal("meshes_made")
 	else:
 		if looking:
 			_piece_fit(delta)
@@ -284,26 +293,6 @@ func _process(delta):
 				placed_signal = true
 				placed_counting = true
 				fit = false
-#			if global.sound:
-#				piece_place_lerp_progression = audio_stream_player.get_playback_position() / 2.2
-#				if !audio_stream_player.playing:
-#					piece_place_lerp_progression += delta / 2.2
-#			else: ## this section needs work
-#				piece_place_lerp_progression += delta / 2.2
-#			piece_place_lerp_progression = clamp(piece_place_lerp_progression, 0.0, 1.0)
-#			if global.vibration and is_equal_approx(piece_place_lerp_progression, 1.0) and !piece_place_vibration:
-#				Input.vibrate_handheld(5)
-#				piece_place_vibration = true
-#				print('placed vibration')
-#			current_piece.global_position = lerp(current_piece.global_position, current_piece.direction, piece_place_lerp_curve.sample_baked(piece_place_lerp_progression))
-#			#piece_place_lerp_progression += delta / 2.5
-#			#print(piece_place_lerp_progression)
-#			if current_piece.global_position.is_equal_approx(current_piece.direction):
-#				current_piece.global_position = current_piece.direction
-#				print('fitted')
-#				fit = false
-#				placed_signal = false
-#				piece_place_vibration = false
 		if placed_counting:
 			placed_timer += delta
 			if placed_timer > 0.2:
@@ -311,7 +300,6 @@ func _process(delta):
 				placed_signal = false
 				placed_counting = false
 				placed_timer = 0.0
-		
 
 func _place_piece():
 	current_piece.reparent(pieces, false)
@@ -327,12 +315,6 @@ func _place_piece():
 	sun._on = true
 	space._on = false
 	rotowindow.visible = false
-#	audio_stream_player.pitch_scale = randfn(0.9, 0.03)
-#	if global.sound:
-#		audio_stream_player.play()
-#	piece_place_lerp_progression = 0.0
-#	piece_place_vibration = false
-	#print('hide roto from sphere')
 
 func _generate_mesh(userdata = null):
 	var verts := PackedVector3Array()
@@ -370,6 +352,7 @@ func _generate_mesh(userdata = null):
 			snow_start = 0.9
 		
 		craterize()
+		canyonize()
 		
 		if planet_style == 10:
 			pluto_heart_center = Vector3(randfn(0.0, 1.0),
@@ -560,7 +543,7 @@ func _set_parameters():
 		crater_size_multiplier = 2.0
 		crater_height_multiplier = 0.7
 		snow = false
-		mantle.mesh.material = mantle_earth_material
+		mantle.mesh.material = mantle_earth_2_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -642,7 +625,7 @@ func _set_parameters():
 		crater_size_multiplier = 3.0
 		crater_height_multiplier = 1.2
 		snow = true
-		mantle.mesh.material = mantle_earth_material
+		mantle.mesh.material = mantle_earth_2_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -656,8 +639,9 @@ func _set_parameters():
 		general_noise_soft.noise_type = 4
 		general_noise_soft.frequency = 0.1
 		general_noise_soft.fractal_weighted_strength = 1
+		canyon_noise.frequency = 1.7
 		colornoise.noise_type = 4
-		colornoise.frequency = 1.5
+		colornoise.frequency = 2.0
 		colornoise.domain_warp_enabled = false
 		colornoise.domain_warp_amplitude = 30
 		colornoise.domain_warp_fractal_gain = 0.5
@@ -691,7 +675,7 @@ func _set_parameters():
 		ocean = false
 		snow_random_low = 0.9
 		snow_random_high = 0.94
-		max_terrain_height_unclamped = 1.26
+		max_terrain_height_unclamped = 1.3
 		min_terrain_height_unclamped = 0.7
 		max_terrain_height = 1.13
 		global.planet_height_for_ufo = 0.0
@@ -704,12 +688,15 @@ func _set_parameters():
 		crater_size_multiplier = 5.0
 		crater_height_multiplier = 1.5
 		crater_height_curve = mars_mountain_curve
+		canyons = true
+		num_canyons = 2
 		low_crust_color = Color('5e1c18')
 		crust_color = Color('542b18')
 		land_snow_color = Color('dbdbdb')
 		land_color = Color('8c5323')
 		land_color_2 = Color('6f4024')
 		land_color_3 = Color('423122')
+		land_color_ease_curve = mars_color_ease_curve
 		low_land_color = Color('74432e')
 		low_land_bottom_threshold = 0.822
 		low_land_top_threshold = 0.9
@@ -717,7 +704,7 @@ func _set_parameters():
 		water_color = Color('0541ff')
 		shallow_water_color = Color('2091bf')
 		snow = true
-		mantle.mesh.material = mantle_mars_material
+		mantle.mesh.material = mantle_mars_2_material
 		lava_lamp.light_color = lava_lamp_color_mars
 		lava_lamp.visible = true
 		h_bands = false
@@ -1193,7 +1180,19 @@ func craterize():
 		for i in 20:
 			crater_array = shift_mountains(crater_array)
 
-func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Array, vectree: Dictionary):
+func canyonize():
+	for ca in num_canyons:
+		var loc: Vector3
+		var depth: float
+		loc = Vector3(randfn(0.0, 1.0), randfn(0.0, 0.25), randfn(0.0, 1.0)).normalized()
+		depth = randfn(3.0, 0.3)
+		canyon_array.append([loc, depth])
+
+func NEW_progressive_triangulate(
+		vbdict: Dictionary,
+		og_verts: PackedVector3Array,
+		vectree: Dictionary
+		):
 	var pieces_stayed := 0
 	var circle_idx := 0
 	var newborders = vbdict.duplicate()
@@ -1206,11 +1205,19 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		var water_triangles = PackedVector3Array()
 		var water_tri_normals = PackedVector3Array()
 		var water_tri_colors = PackedColorArray()
+		var tree_locations = PackedVector3Array()
 		
 		var arrays = [border_triangles, border_tri_normals, border_tri_colors,
-			water_triangles, water_tri_normals, water_tri_colors]
+			water_triangles, water_tri_normals, water_tri_colors,
+			tree_locations]
 		var new_border_array = newborders[bak]
-		var NEW_tess_result = NEW_tesselate(og_verts, bak, new_border_array, crust_thickness, vectree)
+		var WALL_STUFF = NEW_tesselate(
+			og_verts,
+			bak,
+			new_border_array,
+			crust_thickness,
+			vectree
+			)
 		var border_array = vbdict[bak]
 		var on = true
 		for b in len(border_array)-1:
@@ -1227,21 +1234,24 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		
 		var newpiece = piece.instantiate()
 		newpiece.planet_style = planet_style
-		newpiece.wall_vertex = NEW_tess_result[0]
-		newpiece.wall_normal = NEW_tess_result[1]
-		newpiece.wall_color = NEW_tess_result[2]
+		newpiece.wall_vertex = WALL_STUFF[0]
+		newpiece.wall_normal = WALL_STUFF[1]
+		newpiece.wall_color = WALL_STUFF[2]
 		newpiece.vertex = border_triangles
 		newpiece.normal = border_tri_normals
 		newpiece.color = border_tri_colors
+		if planet_style == 3:
+			newpiece.tree_positions = tree_locations
+			newpiece.trees_on = true
 		newpiece.ocean = ocean
 		if ocean:
 			# dont need to generate ocean stuff if no ocean
 			newpiece.vertex_w = water_triangles
 			newpiece.normal_w = water_tri_normals
 			newpiece.color_w = water_tri_colors
-			newpiece.vertex_cw = NEW_tess_result[3]
-			newpiece.normal_cw = NEW_tess_result[4]
-			newpiece.color_cw = NEW_tess_result[5]
+			newpiece.vertex_cw = WALL_STUFF[3]
+			newpiece.normal_cw = WALL_STUFF[4]
+			newpiece.color_cw = WALL_STUFF[5]
 		newpiece.direction = og_verts[bak]
 		newpiece.lat = og_verts[bak].angle_to(Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized()) * sign(og_verts[bak].y)
 		newpiece.lon = Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized().angle_to(Vector3.FORWARD) * sign(og_verts[bak].x)
@@ -1256,7 +1266,7 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		if global.rotation:
 			var randrot = randf_range(0.0, 2*PI)
 			newpiece.random_rotation_offset = randrot
-		newpiece.particle_edges = NEW_tess_result[6]
+		newpiece.particle_edges = WALL_STUFF[6]
 		newpiece.offset = piece_offset
 		if planet_style < 6:
 			newpiece.sound_type = 0
@@ -1274,11 +1284,16 @@ func NEW_progressive_triangulate(vbdict: Dictionary, og_verts: PackedVector3Arra
 		
 		pieces.call_deferred('add_child', newpiece)
 
-func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
-			vectree: Dictionary,
-			recursion := 0,
-			shade_min := 0,
-			shade_max := 1):
+func _sub_triangle(
+		p1: Vector3,
+		p2: Vector3,
+		p3: Vector3,
+		arrays: Array,
+		vectree: Dictionary,
+		recursion := 0,
+		shade_min := 0,
+		shade_max := 1
+		):
 #	[border_triangles, border_tri_normals, border_tri_colors,            0, 1, 2
 #		water_triangles, water_tri_normals, water_tri_colors]            3, 4, 5
 	if recursion > sub_triangle_recursion:
@@ -1304,18 +1319,23 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		var p2_lat = asin(abs(p2.normalized().y)) / (PI/2)
 		var p3_lat = asin(abs(p3.normalized().y)) / (PI/2)
 		
+		var too_far_north := false
+		
 		if ocean or snow:
 			if p1.length_squared() < pow(sand_threshold, 2) and ocean:
 				p1_color = sand_color
 			elif p1_lat > snow_start and snow:
+				too_far_north = true
 				p1_color = p1_color.lerp(land_snow_color, clamp(remap(p1_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
 			if p2.length_squared() < pow(sand_threshold, 2) and ocean:
 				p2_color = sand_color
 			elif p2_lat > snow_start and snow:
+				too_far_north = true
 				p2_color = p2_color.lerp(land_snow_color, clamp(remap(p2_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
 			if p3.length_squared() < pow(sand_threshold, 2) and ocean:
 				p3_color = sand_color
 			elif p3_lat > snow_start and snow:
+				too_far_north = true
 				p3_color = p3_color.lerp(land_snow_color, clamp(remap(p3_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
 		
 		if ocean:
@@ -1354,6 +1374,14 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 		# land triangles
 		var pl = Plane(p1, p2, p3)
 		var n = pl.normal
+		
+		# plant trees
+		if randi_range(0, 50) > 46 and not too_far_north and planet_style == 3:
+			var pts = [p1, p2, p3]
+			var ctr = pl.get_center()
+			var treespot = pts.pick_random().lerp(pts.pick_random(), randf_range(0.0, 1.0))
+			if treespot.length() - water_offset > 0.03:
+				arrays[6].append(treespot)
 		
 		_triangle(p1, p2, p3, arrays[0])
 		if !h_bands:
@@ -1404,7 +1432,10 @@ func _sub_triangle(p1: Vector3, p2: Vector3, p3: Vector3, arrays: Array,
 			
 			_sub_triangle(p12, p23, p31, arrays, vectree, recursion)
 
-func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: ArrayMesh):
+func draw_trimesh(arr: PackedVector3Array,
+		normal_arr: PackedVector3Array,
+		msh: ArrayMesh
+	):
 	var surface_array = []
 	surface_array.resize(Mesh.ARRAY_MAX)
 	
@@ -1413,9 +1444,13 @@ func draw_trimesh(arr: PackedVector3Array, normal_arr: PackedVector3Array, msh: 
 	
 	msh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 
-func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: PackedVector3Array, thickness: float,
+func NEW_tesselate(og_verts: PackedVector3Array,
+		og_idx: int,
+		ring_array: PackedVector3Array,
+		thickness: float,
 		vectree: Dictionary,
-		water = true):
+		water := true,
+		):
 	var wall_triangles = PackedVector3Array()
 	var wall_tri_colors = PackedColorArray()
 	var wall_tri_normals = PackedVector3Array()
@@ -1585,7 +1620,8 @@ func NEW_tesselate(og_verts: PackedVector3Array, og_idx: int, ring_array: Packed
 		## PIECE BOTTOM END ## -----------------------------
 	
 	return [wall_triangles, wall_tri_normals, wall_tri_colors,
-		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors, edges_for_particles]
+		cutwater_triangles, cutwater_tri_normals, cutwater_tri_colors,
+		edges_for_particles]
 
 func _triangle(p1: Vector3, p2: Vector3, p3: Vector3, arr: PackedVector3Array):
 	arr.append(p1)
@@ -1856,6 +1892,18 @@ func mm(vec: Vector3):
 					my_craters.append(dist_mapped)
 			for mycr_i in len(my_craters):
 				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier)) * (1.0 + abs(mountain_noise.get_noise_3dv(newvec) * 5.0))
+	if canyons:
+		var my_canyons = []
+		for cn in canyon_array:
+			var dist = vec.normalized().distance_squared_to(cn[0])
+			var cnsize = 0.01 * canyon_size_multiplier
+			if dist <= cn[1] * cnsize:
+				var dist_mapped = remap(dist, 0.0, cn[1] * cnsize, 0.0, 1.0)
+				my_canyons.append(dist_mapped)
+		for mycn_i in len(my_canyons):
+			newvec *= 1.0 - (canyon_height_curve.sample_baked(remap(canyon_noise.get_noise_3dv(Vector3(vec.x * 0.4, vec.y, vec.z * 0.4).normalized()), 0.5, 1.0, 0.0, 1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
+		if newvec.length() < 1.02:
+			newvec = newvec.normalized() * 1.02
 	return newvec
 
 func venus_color_vary(vec: Vector3, colors: Array):
@@ -1915,6 +1963,16 @@ func color_vary(vec: Vector3, colors: Array):
 				var vl = vec.length()
 				return_color = lerp(return_color, land_snow_color, clamp(remap(vl, 1.05, 1.1, 0.0, 1.0), 0.0, mountain_color_curve.sample_baked(my_craters[mycr_i]) * abs(mountain_noise.get_noise_3dv(vec) * 10.0)))
 				#newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
+		if canyons:
+			var my_canyons = []
+			for cn in canyon_array:
+				var dist = vec.normalized().distance_squared_to(cn[0])
+				var cnsize = 0.01 * canyon_size_multiplier
+				if dist <= cn[1] * cnsize:
+					var dist_mapped = remap(dist, 0.0, cn[1] * cnsize, 0.0, 1.0)
+					my_canyons.append(dist_mapped)
+			for mycn_i in len(my_canyons):
+				return_color = return_color.lerp(Color('black'), 2.0 * canyon_height_curve.sample_baked(remap(canyon_noise.get_noise_3dv(Vector3(vec.x * 0.4, vec.y, vec.z * 0.4).normalized()), 0.5, 0.9, 0.0, 1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
 		if planet_style == 10 and pluto_heart_center.distance_to(vec) < 1.0:
 			var heart_proj := pluto_heart_plane.project(vec)
 			var heart_local_vec := heart_proj - pluto_heart_center

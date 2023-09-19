@@ -373,12 +373,10 @@ func _on_browser_rect_gui_input(event):
 		if event is InputEventScreenTouch:
 			if event.pressed == false:
 				if !holding and !holding_top:
-					if true:#event.position.y > 0.0:
-						# this is where we pick a piece
-						if piecelocs.has(front_piece):
-							piece_in_space = true
-							emit_signal("picked_you", piecelocs[front_piece])
-							stay_at_angle = front_piece
+					if piecelocs.has(front_piece):
+						piece_in_space = true
+						emit_signal("picked_you", piecelocs[front_piece])
+						stay_at_angle = front_piece
 				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space:# and !first_touch_too_low:
 					# send to space
 					if piecelocs.has(front_piece):

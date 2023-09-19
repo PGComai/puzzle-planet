@@ -114,6 +114,10 @@ var placement_lerp_2 := 0.0
 var note_set := false
 var note_pool: Array[AudioStreamOggVorbis]
 
+var tree := preload("res://scenes/tree.tscn")
+var tree_positions: PackedVector3Array
+var trees_on := false
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
@@ -142,6 +146,18 @@ func _ready():
 	surface_array[Mesh.ARRAY_VERTEX] = vertex
 	surface_array[Mesh.ARRAY_NORMAL] = normal
 	surface_array[Mesh.ARRAY_COLOR] = color
+	
+	if trees_on:
+		var mmi := MultiMeshInstance3D.new()
+		for tp in tree_positions:
+			var t = tree.instantiate()
+			t.spawn_position = tp - direction
+			themesh.add_child(t)
+	
+#	var random_vertex = randi_range(0, vertex.size())
+#	var t := tree.instantiate()
+#	t.spawn_position = vertex[random_vertex]
+#	themesh.add_child(t)
 	
 	newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
 	
@@ -269,7 +285,6 @@ func _process(delta):
 
 func _placement():
 	var dist = global_position.distance_to(direction)
-	print(dist)
 	if global.sound:
 		if placement_lerp_1 > 0.92 and !sound_playing:
 			note_player.play()

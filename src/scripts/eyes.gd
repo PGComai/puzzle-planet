@@ -63,6 +63,7 @@ var last_rot_v_tick := 0.0
 
 func _ready():
 	global = get_node('/root/Global')
+	global.drawing_mode_changed.connect(_on_global_drawing_mode_changed)
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	#h = sub_viewport.size.y
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -189,6 +190,8 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('81cfff'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
 		
+func _on_global_drawing_mode_changed(value):
+	pass
 
 func _on_mesh_maker_meshes_made():
 	emit_signal("meshes_made2")
@@ -204,6 +207,7 @@ func _on_generate_button_up():
 	emit_signal("ufo_reset")
 	shadow_light._on = false
 	sun._on = true
+	global.piece_in_space = false
 	#sun_2._on = true
 	space._on = false
 	roto_window.visible = false
@@ -226,6 +230,40 @@ func _on_generate_button_up():
 	generate_type = global.generate_type
 	#var error = get_tree().reload_current_scene()
 	#print(error)
+
+
+func _on_draw_button_up():
+	var ufo = get_tree().get_first_node_in_group('ufo')
+	ufo.reparent(self, false)
+	ufo.in_browser = false
+	ufo.browser_drop_off_begin = false
+	emit_signal("ufo_reset")
+	shadow_light._on = false
+	sun._on = true
+	global.piece_in_space = false
+	#sun_2._on = true
+	space._on = false
+	roto_window.visible = false
+	mesh_maker.queue_free()
+	for n in get_tree().get_nodes_in_group('pieces'):
+		n.queue_free()
+	for n in pieces.get_children():
+		n.queue_free()
+	if global.generate_type != generate_type:
+		_atmo_change()
+	
+	var nmm = new_mesh_maker.instantiate()
+	nmm._draw_mode = true
+	nmm.build_planet = false
+	nmm.connect('meshes_made', _on_mesh_maker_meshes_made)
+	nmm.connect('piece_placed', _on_mesh_maker_piece_placed)
+	nmm.connect('ready_to_start', _on_mesh_maker_ready_to_start)
+	nmm.connect('ufo_ready', _on_mesh_maker_ufo_ready)
+	mesh_maker = nmm # why did i do it like this? why does this work?
+	ready_for_nmm = true
+	last_type = generate_type
+	generate_type = global.generate_type
+
 
 func _on_option_button_item_selected(index):
 	global.generate_type = index + 1
