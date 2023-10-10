@@ -1,20 +1,19 @@
-- rock strata in crust
-- polish ufo dropping off pieces in carousel
-- nicer rotating wheel
 - adjust ufo height per planet
 - implement fast graphics option
 - add automatic puzzle saving
 - add config file saving for settings like graphics, sound, vibrate
-- stop generating ocean vertices for planets with no ocean
-- optimize lighting code
 - optimize snap_to_existing function
-- add olympus mons
 - fix earth desert weirdness
 - gas giants are too close to carousel camera
 - volcanoes
-
-- IOS --
-
+- triangle normal dot gravity is cliff steepness
+- planet builder
+- collectibles that spawn randomly but tailored to planet
+- upper limit on number of trees/other decor
+- less randomness means more things to learn for the player
+- icebergs
+- instruments should be quieter, behind real sounds
+- palm trees
 
 GLITCHES:
 - piece shadow appears and lines up but actual piece never goes in and carousel is stuck

@@ -73,7 +73,7 @@ operator = 2
 
 [resource]
 code = "shader_type spatial;
-render_mode ambient_light_disabled;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx, ambient_light_disabled;
 
 uniform vec4 Scattered_Color : source_color = vec4(0.486275, 0.635294, 0.874510, 1.000000);
 uniform vec4 sunset_color : source_color = vec4(0.899758, 0.082224, 0.166245, 1.000000);
@@ -195,12 +195,11 @@ void light() {
 
 }
 "
-graph_offset = Vector2(-427.118, -209.812)
 flags/ambient_light_disabled = true
 nodes/vertex/0/position = Vector2(700, 140)
 nodes/fragment/0/position = Vector2(1620, 100)
 nodes/fragment/3/node = SubResource("VisualShaderNodeColorParameter_um2mv")
-nodes/fragment/3/position = Vector2(880, 140)
+nodes/fragment/3/position = Vector2(1000, -260)
 nodes/fragment/connections = PackedInt32Array(3, 0, 0, 0)
 nodes/light/0/position = Vector2(880, 300)
 nodes/light/23/node = SubResource("VisualShaderNodeInput_tr2u8")

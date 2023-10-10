@@ -354,7 +354,7 @@ autowrap_mode = 2
 [node name="PlanetTypeOptionButton" type="OptionButton" parent="NewPlanetPopup/VBoxContainer/PlanetType"]
 layout_mode = 2
 size_flags_horizontal = 10
-item_count = 10
+item_count = 11
 selected = 0
 popup/item_0/text = "Mercury"
 popup/item_0/id = 0
@@ -376,6 +376,8 @@ popup/item_8/text = "Neptune"
 popup/item_8/id = 8
 popup/item_9/text = "Pluto"
 popup/item_9/id = 9
+popup/item_10/text = "Custom"
+popup/item_10/id = 10
 
 [node name="HSeparator" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
 layout_mode = 2

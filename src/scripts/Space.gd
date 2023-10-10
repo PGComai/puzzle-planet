@@ -12,14 +12,13 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	if _on:
-		if changing:
+	if changing:
+		if _on:
 			environment.ambient_light_energy = lerp(environment.ambient_light_energy, 0.8, 0.1)
 			if is_equal_approx(environment.ambient_light_energy, 0.8):
 				environment.ambient_light_energy = 0.8
 				changing = false
-	else:
-		if changing:
+		else:
 			environment.ambient_light_energy = lerp(environment.ambient_light_energy, 0.3, 0.1)
 			if is_equal_approx(environment.ambient_light_energy, 0.3):
 				environment.ambient_light_energy = 0.3
