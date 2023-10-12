@@ -947,6 +947,11 @@ func canyonize():
 		var depth: float
 		loc = Vector3(randfn(0.0, 1.0), randfn(0.0, 0.25), randfn(0.0, 1.0)).normalized()
 		depth = randfn(3.0, 0.3)
+		if planet_style == 5:
+			for om in crater_array:
+				if loc.angle_to(om[0]) < PI/5.0:
+					var ax = loc.cross(om[0]).normalized()
+					loc = loc.rotated(ax, -PI/3.0)
 		canyon_array.append([loc, depth])
 
 func _generate_terrain(
@@ -1738,8 +1743,8 @@ func color_vary(vec: Vector3, colors: Array):
 	var nval = colornoise.get_noise_3dv(vec)
 	var nval2 = colornoise2.get_noise_3dv(vec)
 	#if planet_style == 4 or planet_style == 1: # moon or mercury
-	nval = remap(clamp(nval, -1.0, 1.0), -1.0, 1.0, 0.0, 1.0)
-	nval2 = remap(clamp(nval2, -1.0, 1.0), -1.0, 1.0, 0.0, 1.0)
+	nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
+	nval2 = remap(clamp(nval2, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 #	elif planet_style == 3 or planet_style == 5 or planet_style == 10: # earth or mars or pluto
 #		nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 	if nval > 0.5:

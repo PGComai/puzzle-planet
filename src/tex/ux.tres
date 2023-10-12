@@ -1,6 +1,115 @@
-[gd_resource type="Theme" load_steps=5 format=3 uid="uid://1o6egjxby32y"]
+[gd_resource type="Theme" load_steps=14 format=3 uid="uid://1o6egjxby32y"]
 
 [ext_resource type="FontFile" uid="uid://inqm77e5i8my" path="res://fonts/PixelOperator8.ttf" id="2_t0iek"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y0d5b"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.176419, 0.176419, 0.176419, 1)
+corner_radius_top_left = 39
+corner_radius_top_right = 39
+corner_radius_bottom_right = 39
+corner_radius_bottom_left = 39
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2b1re"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+draw_center = false
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+corner_radius_top_left = 39
+corner_radius_top_right = 39
+corner_radius_bottom_right = 39
+corner_radius_bottom_left = 39
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_60dcj"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 39
+corner_radius_top_right = 39
+corner_radius_bottom_right = 39
+corner_radius_bottom_left = 39
+shadow_size = 2
+shadow_offset = Vector2(0, 7)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cquij"]
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+corner_radius_top_left = 39
+corner_radius_top_right = 39
+corner_radius_bottom_right = 39
+corner_radius_bottom_left = 39
+shadow_size = 2
+shadow_offset = Vector2(0, 7)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ksnkj"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+corner_radius_top_left = 39
+corner_radius_top_right = 39
+corner_radius_bottom_right = 39
+corner_radius_bottom_left = 39
+shadow_size = 1
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_voran"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+draw_center = false
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ad1ar"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+shadow_size = 2
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ci6qr"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+shadow_size = 2
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qfmeh"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0.129412, 0.129412, 0.129412, 1)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+shadow_size = 1
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wpjmi"]
 bg_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
@@ -14,7 +123,19 @@ bg_color = Color(0, 0, 0, 1)
 default_font = ExtResource("2_t0iek")
 default_font_size = 50
 Button/font_sizes/font_size = 50
+Button/styles/disabled = SubResource("StyleBoxFlat_y0d5b")
+Button/styles/focus = SubResource("StyleBoxFlat_2b1re")
+Button/styles/hover = SubResource("StyleBoxFlat_60dcj")
+Button/styles/normal = SubResource("StyleBoxFlat_cquij")
+Button/styles/pressed = SubResource("StyleBoxFlat_ksnkj")
+Label/font_sizes/font_size = 50
 MenuButton/font_sizes/font_size = 42
+OptionButton/constants/arrow_margin = 10
+OptionButton/font_sizes/font_size = 36
+OptionButton/styles/focus = SubResource("StyleBoxFlat_voran")
+OptionButton/styles/hover = SubResource("StyleBoxFlat_ad1ar")
+OptionButton/styles/normal = SubResource("StyleBoxFlat_ci6qr")
+OptionButton/styles/pressed = SubResource("StyleBoxFlat_qfmeh")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_wpjmi")
 ProgressBar/font_sizes/font_size = 42
 ProgressBar/styles/background = SubResource("StyleBoxFlat_k5lfv")

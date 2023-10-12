@@ -1,11 +1,11 @@
 extends PopupPanel
 
-@onready var pct = $VBoxContainer/PuzzleSize/Pct
-@onready var pct_fill_slider = $VBoxContainer/PctFillSlider
-@onready var planet_type_option_button = $VBoxContainer/PlanetType/PlanetTypeOptionButton
-@onready var rot_button = $VBoxContainer/PieceRotation/RotButton
-@onready var generate = $VBoxContainer/Generate
-@onready var draw = $VBoxContainer/Draw
+@onready var pct = $MarginContainer/VBoxContainer/PuzzleSize/Pct
+@onready var pct_fill_slider = $MarginContainer/VBoxContainer/PctFillSlider
+@onready var planet_type_option_button = $MarginContainer/VBoxContainer/PlanetType/PlanetTypeOptionButton
+@onready var piece_rotation_button = $MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton
+@onready var generate = $MarginContainer/VBoxContainer/Generate
+@onready var draw = $MarginContainer/VBoxContainer/Draw
 
 var global
 var total_pieces := 30
@@ -16,7 +16,7 @@ func _ready():
 	size.x = get_tree().root.size.x
 	position.y = get_tree().root.size.y - size.y
 	global = get_node('/root/Global')
-	rot_button.set_pressed_no_signal(global.rotation)
+	piece_rotation_button.set_pressed_no_signal(global.rotation)
 	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
 	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
 	pct_fill_slider.max_value = global.total_pieces - 10
@@ -38,16 +38,13 @@ func _on_pct_fill_slider_value_changed(value):
 	pct.text = str(value) + '/' + str(global.total_pieces)
 	global.pieces_at_start = value
 
-func _on_check_button_toggled(button_pressed):
-	queue_rotation_flag = button_pressed
-
 func _on_generate_button_up():
 	self.visible = false
 	generate.disabled = true
 	draw.disabled = true
 	global.rotation = queue_rotation_flag
 	global.drawing_mode = false
-	rot_button.set_pressed_no_signal(queue_rotation_flag)
+	piece_rotation_button.set_pressed_no_signal(queue_rotation_flag)
 	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
 	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
 	pct_fill_slider.max_value = global.total_pieces - 10
@@ -62,3 +59,7 @@ func _on_universe_ready_to_start_2():
 func _on_draw_button_up():
 	visible = false
 	global.drawing_mode = true
+
+
+func _on_piece_rotation_button_toggled(button_pressed):
+	queue_rotation_flag = button_pressed

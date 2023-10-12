@@ -20,3 +20,11 @@ func _on_popup_menu_id_pressed(id):
 
 func _on_close_button_up():
 	visible = false
+
+
+func _on_vibrate_button_toggled(button_pressed):
+	global.vibration = button_pressed
+
+
+func _on_sound_button_toggled(button_pressed):
+	global.sound = button_pressed

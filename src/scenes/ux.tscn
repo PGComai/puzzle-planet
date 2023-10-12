@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=44 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -10,9 +10,13 @@
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
 [ext_resource type="Script" path="res://scripts/RotoWindow.gd" id="8_827gc"]
 [ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
+[ext_resource type="Theme" uid="uid://ccaso356i774l" path="res://tex/toggle_buttons.tres" id="9_yt3th"]
+[ext_resource type="Script" path="res://scenes/PieceRotationButton.gd" id="10_4fljv"]
 [ext_resource type="Script" path="res://scripts/HowToPlayPopup.gd" id="10_kjmqd"]
 [ext_resource type="Script" path="res://scripts/PlanetProgress.gd" id="10_qmupj"]
 [ext_resource type="Script" path="res://scripts/SettingsPopup.gd" id="10_t8qcq"]
+[ext_resource type="Script" path="res://scripts/SoundButton.gd" id="12_7nn8l"]
+[ext_resource type="Script" path="res://scripts/VibrateButton.gd" id="13_0f10h"]
 
 [sub_resource type="Environment" id="Environment_ytaxl"]
 tonemap_mode = 2
@@ -86,8 +90,6 @@ content_margin_bottom = 70.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oq1p0"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_esf1w"]
-
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1wa1r"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_x0o0q"]
@@ -104,7 +106,7 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 expand_margin_left = 5.0
-expand_margin_top = 5.0
+expand_margin_top = 10.0
 expand_margin_right = 5.0
 expand_margin_bottom = 5.0
 
@@ -291,12 +293,12 @@ text = "MENU"
 [node name="PopupMenu" type="PopupMenu" parent="MenuButton"]
 transparent_bg = true
 canvas_item_default_texture_filter = 0
-size = Vector2i(652, 416)
+size = Vector2i(657, 417)
 theme_override_constants/v_separation = 10
 theme_override_font_sizes/font_size = 70
 theme_override_styles/panel = ExtResource("6_qwkga")
 theme_override_styles/separator = SubResource("StyleBoxEmpty_kjmdu")
-item_count = 5
+item_count = 4
 item_0/text = "New Planet"
 item_0/id = 0
 item_1/text = "Settings"
@@ -306,54 +308,59 @@ item_2/id = 2
 item_2/disabled = true
 item_3/text = "Back"
 item_3/id = 3
-item_4/text = ""
-item_4/id = 4
-item_4/disabled = true
-item_4/separator = true
 script = ExtResource("4_esiwd")
 
 [node name="NewPlanetPopup" type="PopupPanel" parent="."]
 canvas_item_default_texture_filter = 0
-size = Vector2i(620, 826)
+size = Vector2i(626, 738)
 theme_override_styles/panel = ExtResource("6_qwkga")
 script = ExtResource("6_ql4kd")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="NewPlanetPopup"]
+[node name="MarginContainer" type="MarginContainer" parent="NewPlanetPopup"]
 offset_left = 6.0
 offset_top = 6.0
-offset_right = 614.0
-offset_bottom = 820.0
+offset_right = 620.0
+offset_bottom = 732.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NewPlanetPopup/MarginContainer"]
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="NewPlanetHeader" type="Label" parent="NewPlanetPopup/VBoxContainer"]
+[node name="NewPlanetHeader" type="Label" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 text = "New Planet"
 horizontal_alignment = 1
 
-[node name="TitleSep" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="TitleSep" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="InvisHSep" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="InvisHSep" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
-[node name="PlanetType" type="HBoxContainer" parent="NewPlanetPopup/VBoxContainer"]
+[node name="PlanetType" type="HBoxContainer" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="PlanetTypeLabel" type="Label" parent="NewPlanetPopup/VBoxContainer/PlanetType"]
+[node name="PlanetTypeLabel" type="Label" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PlanetType"]
 layout_mode = 2
 size_flags_horizontal = 2
-text = "Planet type: "
+text = "Planet"
 autowrap_mode = 2
 
-[node name="PlanetTypeOptionButton" type="OptionButton" parent="NewPlanetPopup/VBoxContainer/PlanetType"]
+[node name="PlanetTypeOptionButton" type="OptionButton" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PlanetType"]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 10
+alignment = 1
 item_count = 11
 selected = 0
 popup/item_0/text = "Mercury"
@@ -379,20 +386,22 @@ popup/item_9/id = 9
 popup/item_10/text = "Custom"
 popup/item_10/id = 10
 
-[node name="HSeparator" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 20
 
-[node name="PuzzleSize" type="HBoxContainer" parent="NewPlanetPopup/VBoxContainer"]
+[node name="PuzzleSize" type="HBoxContainer" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="PctFillLabel" type="Label" parent="NewPlanetPopup/VBoxContainer/PuzzleSize"]
+[node name="PctFillLabel" type="Label" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
 layout_mode = 2
 size_flags_horizontal = 2
-text = "Starting Pieces:"
+text = "Size"
 autowrap_mode = 2
 
-[node name="Pct" type="Label" parent="NewPlanetPopup/VBoxContainer/PuzzleSize"]
+[node name="Pct" type="Label" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_fonts/font = ExtResource("7_wkm7n")
@@ -401,11 +410,12 @@ text = "15/30"
 horizontal_alignment = 2
 autowrap_mode = 2
 
-[node name="HSeparator2" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
 
-[node name="PctFillSlider" type="HSlider" parent="NewPlanetPopup/VBoxContainer"]
+[node name="PctFillSlider" type="HSlider" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 min_value = 1.0
 max_value = 25.0
@@ -414,54 +424,69 @@ rounded = true
 tick_count = 13
 ticks_on_borders = true
 
-[node name="HSeparator5" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="HSeparator5" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
-[node name="HSeparator4" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="HSeparator4" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 20
 
-[node name="PieceRotation" type="HBoxContainer" parent="NewPlanetPopup/VBoxContainer"]
+[node name="PieceRotation" type="HBoxContainer" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="PieceRotationLabel" type="Label" parent="NewPlanetPopup/VBoxContainer/PieceRotation"]
+[node name="PieceRotationLabel" type="Label" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation"]
 layout_mode = 2
 size_flags_horizontal = 2
-text = "Piece Rotation:"
+text = "Rotation"
 autowrap_mode = 2
 
-[node name="RotButton" type="CheckButton" parent="NewPlanetPopup/VBoxContainer/PieceRotation"]
+[node name="PieceRotationButton" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation"]
+custom_minimum_size = Vector2(150, 54)
 layout_mode = 2
-size_flags_horizontal = 6
+theme = ExtResource("9_yt3th")
+toggle_mode = true
+text = "OFF"
+script = ExtResource("10_4fljv")
 
-[node name="Generate" type="Button" parent="NewPlanetPopup/VBoxContainer"]
+[node name="HSeparator7" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Generate" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 78)
 layout_mode = 2
 size_flags_vertical = 10
 disabled = true
 text = "Generate"
 
-[node name="HSeparator6" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="HSeparator6" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
-[node name="Draw" type="Button" parent="NewPlanetPopup/VBoxContainer"]
+[node name="Draw" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 size_flags_vertical = 8
 disabled = true
 text = "Draw
 "
 
-[node name="HSeparator3" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 10
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
-[node name="Cancel" type="Button" parent="NewPlanetPopup/VBoxContainer"]
+[node name="Cancel" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 78)
 layout_mode = 2
 size_flags_vertical = 8
 text = "Cancel"
 
-[node name="80Sep" type="HSeparator" parent="NewPlanetPopup/VBoxContainer"]
+[node name="80Sep" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 80
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
@@ -472,108 +497,123 @@ size = Vector2i(620, 800)
 theme_override_styles/panel = ExtResource("6_qwkga")
 script = ExtResource("10_t8qcq")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPopup"]
+[node name="MarginContainer" type="MarginContainer" parent="SettingsPopup"]
 offset_left = 6.0
 offset_top = 6.0
 offset_right = 614.0
 offset_bottom = 794.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPopup/MarginContainer"]
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SettingsHeader" type="Label" parent="SettingsPopup/VBoxContainer"]
+[node name="SettingsHeader" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"HeaderLarge"
 text = "Settings"
 horizontal_alignment = 1
 
-[node name="TitleSep" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+[node name="TitleSep" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="InvisHSep" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+[node name="GraphicsHBox" type="HBoxContainer" parent="SettingsPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
-theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
+size_flags_horizontal = 4
+size_flags_vertical = 0
 
-[node name="GraphicsLabel" type="Label" parent="SettingsPopup/VBoxContainer"]
+[node name="GraphicsLabel" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer/GraphicsHBox"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"HeaderMedium"
 text = "Graphics"
 horizontal_alignment = 1
 
-[node name="UpperHSep2" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
-layout_mode = 2
-theme_override_styles/separator = SubResource("StyleBoxEmpty_esf1w")
-
-[node name="GraphicsHBox" type="HBoxContainer" parent="SettingsPopup/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-
-[node name="Label" type="Label" parent="SettingsPopup/VBoxContainer/GraphicsHBox"]
+[node name="Label" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer/GraphicsHBox"]
+visible = false
 layout_mode = 2
 theme_type_variation = &"HeaderSmall"
 theme_override_font_sizes/font_size = 24
 text = "Fast"
 horizontal_alignment = 1
 
-[node name="GraphicsCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/GraphicsHBox"]
+[node name="GraphicsCheckButton" type="CheckButton" parent="SettingsPopup/MarginContainer/VBoxContainer/GraphicsHBox"]
+visible = false
 layout_mode = 2
 button_pressed = true
 
-[node name="Label2" type="Label" parent="SettingsPopup/VBoxContainer/GraphicsHBox"]
+[node name="Label2" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer/GraphicsHBox"]
+visible = false
 layout_mode = 2
 theme_type_variation = &"HeaderSmall"
 theme_override_font_sizes/font_size = 24
 text = "Fancy"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 
-[node name="SoundHBox" type="HBoxContainer" parent="SettingsPopup/VBoxContainer"]
+[node name="SoundHBox" type="HBoxContainer" parent="SettingsPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="SoundLabel" type="Label" parent="SettingsPopup/VBoxContainer/SoundHBox"]
+[node name="SoundLabel" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer/SoundHBox"]
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"HeaderMedium"
 text = "Sound"
 
-[node name="SoundCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/SoundHBox"]
+[node name="SoundButton" type="Button" parent="SettingsPopup/MarginContainer/VBoxContainer/SoundHBox"]
+custom_minimum_size = Vector2(150, 54)
 layout_mode = 2
 size_flags_horizontal = 10
-size_flags_vertical = 4
+theme = ExtResource("9_yt3th")
+toggle_mode = true
 button_pressed = true
+text = "ON"
+script = ExtResource("12_7nn8l")
 
-[node name="HSeparator2" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="VibrateHBox" type="HBoxContainer" parent="SettingsPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="VibrateHBox" type="HBoxContainer" parent="SettingsPopup/VBoxContainer"]
-layout_mode = 2
-
-[node name="VibrateLabel" type="Label" parent="SettingsPopup/VBoxContainer/VibrateHBox"]
+[node name="VibrateLabel" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"HeaderMedium"
 text = "Vibration"
 
-[node name="VibrateCheckButton" type="CheckButton" parent="SettingsPopup/VBoxContainer/VibrateHBox"]
+[node name="VibrateButton" type="Button" parent="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox"]
+custom_minimum_size = Vector2(150, 54)
 layout_mode = 2
 size_flags_horizontal = 10
-size_flags_vertical = 4
+theme = ExtResource("9_yt3th")
+toggle_mode = true
 button_pressed = true
+text = "ON"
+script = ExtResource("13_0f10h")
 
-[node name="HSeparator3" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 20
 
-[node name="Close" type="Button" parent="SettingsPopup/VBoxContainer"]
+[node name="Close" type="Button" parent="SettingsPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 78)
 layout_mode = 2
 size_flags_vertical = 10
 text = "Close"
 
-[node name="80Sep" type="HSeparator" parent="SettingsPopup/VBoxContainer"]
+[node name="80Sep" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 80
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
@@ -711,21 +751,24 @@ one_shot = true
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="MenuButton/PopupMenu" method="_on_id_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="NewPlanetPopup" method="_on_popup_menu_id_pressed"]
 [connection signal="id_pressed" from="MenuButton/PopupMenu" to="SettingsPopup" method="_on_popup_menu_id_pressed"]
-[connection signal="item_selected" from="NewPlanetPopup/VBoxContainer/PlanetType/PlanetTypeOptionButton" to="SubViewportUniverse/Universe" method="_on_option_button_item_selected"]
-[connection signal="value_changed" from="NewPlanetPopup/VBoxContainer/PctFillSlider" to="NewPlanetPopup" method="_on_pct_fill_slider_value_changed"]
-[connection signal="toggled" from="NewPlanetPopup/VBoxContainer/PieceRotation/RotButton" to="NewPlanetPopup" method="_on_check_button_toggled"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="SubViewportBrowser/Browser" method="_on_generate_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="SubViewportUniverse/Universe" method="_on_generate_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="NewPlanetPopup" method="_on_generate_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Generate" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_generate_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Draw" to="SubViewportUniverse/Universe" method="_on_draw_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Draw" to="NewPlanetPopup" method="_on_draw_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/VBoxContainer/Cancel" to="NewPlanetPopup" method="_on_cancel_button_up"]
-[connection signal="toggled" from="SettingsPopup/VBoxContainer/GraphicsHBox/GraphicsCheckButton" to="." method="_on_graphics_check_button_toggled"]
-[connection signal="toggled" from="SettingsPopup/VBoxContainer/SoundHBox/SoundCheckButton" to="." method="_on_sound_check_button_toggled"]
-[connection signal="toggled" from="SettingsPopup/VBoxContainer/VibrateHBox/VibrateCheckButton" to="." method="_on_vibrate_check_button_toggled"]
-[connection signal="button_up" from="SettingsPopup/VBoxContainer/Close" to="SettingsPopup" method="_on_close_button_up"]
+[connection signal="item_selected" from="NewPlanetPopup/MarginContainer/VBoxContainer/PlanetType/PlanetTypeOptionButton" to="SubViewportUniverse/Universe" method="_on_option_button_item_selected"]
+[connection signal="value_changed" from="NewPlanetPopup/MarginContainer/VBoxContainer/PctFillSlider" to="NewPlanetPopup" method="_on_pct_fill_slider_value_changed"]
+[connection signal="toggled" from="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton" to="NewPlanetPopup" method="_on_piece_rotation_button_toggled"]
+[connection signal="toggled" from="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton" to="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton" method="_on_toggled"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="SubViewportBrowser/Browser" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="SubViewportUniverse/Universe" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="NewPlanetPopup" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_generate_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Draw" to="SubViewportUniverse/Universe" method="_on_draw_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Draw" to="NewPlanetPopup" method="_on_draw_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Cancel" to="NewPlanetPopup" method="_on_cancel_button_up"]
+[connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/GraphicsHBox/GraphicsCheckButton" to="." method="_on_graphics_check_button_toggled"]
+[connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/SoundHBox/SoundButton" to="SettingsPopup" method="_on_sound_button_toggled"]
+[connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/SoundHBox/SoundButton" to="SettingsPopup/MarginContainer/VBoxContainer/SoundHBox/SoundButton" method="_on_toggled"]
+[connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox/VibrateButton" to="SettingsPopup" method="_on_vibrate_button_toggled"]
+[connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox/VibrateButton" to="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox/VibrateButton" method="_on_toggled"]
+[connection signal="button_up" from="SettingsPopup/MarginContainer/VBoxContainer/Close" to="SettingsPopup" method="_on_close_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="SubViewportUniverse/Universe" method="_on_start_puzzle_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="StartPuzzle" method="_on_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_start_puzzle_button_up"]

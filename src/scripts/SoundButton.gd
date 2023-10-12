@@ -1,13 +1,18 @@
-extends Control
+extends Button
 
-var global
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	global = get_node('/root/Global')
+	pass # Replace with function body.
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
 
-func _on_graphics_check_button_toggled(button_pressed):
-	global.graphics_fancy = button_pressed
+
+func _on_toggled(button_pressed):
+	if button_pressed:
+		text = 'ON'
+	else:
+		text = 'OFF'
