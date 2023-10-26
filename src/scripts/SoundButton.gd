@@ -1,9 +1,15 @@
 extends Button
 
+var global: Node
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	global = get_node("/root/Global")
+	set_pressed_no_signal(global.sound)
+	if button_pressed:
+		text = 'ON'
+	else:
+		text = 'OFF'
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -28,3 +28,19 @@ func _on_vibrate_button_toggled(button_pressed):
 
 func _on_sound_button_toggled(button_pressed):
 	global.sound = button_pressed
+
+
+func _on_graphics_check_button_toggled(button_pressed):
+	global.graphics_fancy = button_pressed
+
+
+func _on_music_button_toggled(button_pressed):
+	global.music = button_pressed
+
+
+func _on_debug_button_toggled(button_pressed):
+	global.debugging = button_pressed
+
+
+func _on_visibility_changed():
+	global.menu_open = visible

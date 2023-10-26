@@ -295,7 +295,7 @@ func _on_universe_ufo_done_2():
 	h_sensitivity *= 15.0/float(rotosnaps)
 	#print(rotosnaps)
 	max_rotosnaps = rotosnaps
-	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
+	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8 ### FIX ME
 	#recam = true
 	camera_3d.position.z = cam_dist
 	var ang = (2*PI)/rotosnaps

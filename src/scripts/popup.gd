@@ -1,8 +1,10 @@
 extends PopupMenu
 
+var global: Node
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	global = get_node("/root/Global")
 	size.x = get_tree().root.size.x
 	position.y = get_tree().root.size.y - size.y
 
@@ -16,3 +18,8 @@ func _on_id_pressed(id):
 
 func _on_menu_button_pressed():
 	visible = true
+	global.debug_message = "Menu button pressed"
+
+
+func _on_visibility_changed():
+	global.menu_open = visible

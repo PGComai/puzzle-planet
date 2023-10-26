@@ -13,6 +13,7 @@ config_version=5
 config/name="puzzle_planet"
 run/main_scene="res://scenes/ux.tscn"
 config/features=PackedStringArray("4.1", "Mobile")
+boot_splash/use_filter=false
 config/icon="res://icon.svg"
 
 [autoload]
@@ -73,5 +74,5 @@ atmo_sunset={
 }
 ez_mantle_effect={
 "type": "float",
-"value": 0.6
+"value": 0.0
 }

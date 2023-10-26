@@ -76,9 +76,6 @@ func _process(delta):
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
 		add_child(mesh_maker)
 		ready_for_nmm = false
-	#print(dy)
-	#print($h.basis.z.angle_to(current_grab))
-	#print(initial_grab.angle_to(current_grab))
 	if $h/v.rotation.x > -(15*PI)/32:
 		upper_limit_reached = false
 	if $h/v.rotation.x < (15*PI)/32:
@@ -224,7 +221,7 @@ func _on_generate_button_up():
 	nmm.connect('piece_placed', _on_mesh_maker_piece_placed)
 	nmm.connect('ready_to_start', _on_mesh_maker_ready_to_start)
 	nmm.connect('ufo_ready', _on_mesh_maker_ufo_ready)
-	mesh_maker = nmm
+	mesh_maker = nmm ### why did i do it like this? why does this work?
 	ready_for_nmm = true
 	last_type = generate_type
 	generate_type = global.generate_type
@@ -259,14 +256,11 @@ func _on_draw_button_up():
 	nmm.connect('piece_placed', _on_mesh_maker_piece_placed)
 	nmm.connect('ready_to_start', _on_mesh_maker_ready_to_start)
 	nmm.connect('ufo_ready', _on_mesh_maker_ufo_ready)
-	mesh_maker = nmm # why did i do it like this? why does this work?
+	mesh_maker = nmm
 	ready_for_nmm = true
 	last_type = generate_type
 	generate_type = global.generate_type
 
-
-func _on_option_button_item_selected(index):
-	global.generate_type = index + 1
 
 func _on_browser_wheel_rot(rot):
 	emit_signal('spin_piece', rot)

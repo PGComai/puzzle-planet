@@ -7,24 +7,10 @@ signal this_is_my_rotation(rot)
 signal drop_off_sound
 
 @export var placement_curve: Curve
-@export var grand_piano: Array[AudioStreamOggVorbis]
-@export var sig_keyboard: Array[AudioStreamOggVorbis]
-@export var electric_sheep_synth: Array[AudioStreamOggVorbis]
-@export var ice_mallets: Array[AudioStreamOggVorbis]
-@export var koto: Array[AudioStreamOggVorbis]
-@export var trombones: Array[AudioStreamOggVorbis]
-@export var vibraphone: Array[AudioStreamOggVorbis]
-
-@onready var upward = $upward
-@onready var inward = $inward
-@onready var zbasis = $zbasis
 @onready var themesh = $themesh
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
 @onready var wall_effect = $themesh/wall_effect
-@onready var piece_drop_rock = $PieceDropRock
-@onready var piece_drop_gas = $PieceDropGas
-@onready var note_player = $NotePlayer
 
 var offset := 1.0
 
@@ -81,7 +67,7 @@ var zbasis_offset_ax: Vector3
 var zbasis_offset := 0.0
 var lat := 0.0
 var lon := 0.0
-var rotation_saver: Quaternion
+var rotation_saver: Quaternion # unused
 var random_rotation_offset := 0.0
 var new_up: Vector3
 var thickness: float
@@ -105,14 +91,11 @@ var ghostwallsoutline
 var rotowindow
 
 var global
-var water_instance_id
 var placement_finished := false
-var sound_type := 0
+var sound_type := 0 # unused
 var sound_playing := false
 var placement_lerp_1 := 0.0
 var placement_lerp_2 := 0.0
-var note_set := false
-var note_pool: Array[AudioStreamOggVorbis]
 
 var tree := preload("res://scenes/tree.tscn")
 var tree_positions: PackedVector3Array
@@ -121,8 +104,6 @@ var trees_on := false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
-	var note_array = [grand_piano, grand_piano, grand_piano, electric_sheep_synth, sig_keyboard, trombones, ice_mallets, grand_piano, grand_piano, grand_piano]
-	note_pool = note_array[maxi(global.generate_type - 1, 0)]
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	ghostball = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall')
 	ghost = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost')
@@ -131,10 +112,8 @@ func _ready():
 	ghostoutline = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost/GhostWater')
 	ghostwallsoutline = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/GhostOutline/GhostWallsOutline')
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
-	upward.position = upright_vec * 0.7
-	inward.position = direction.normalized() * -0.7
-	zbasis_offset_ax = direction.normalized().cross(self.transform.basis.z).normalized()
-	zbasis_offset = direction.normalized().signed_angle_to(self.transform.basis.z, zbasis_offset_ax)
+#	zbasis_offset_ax = direction.normalized().cross(self.transform.basis.z).normalized()
+#	zbasis_offset = direction.normalized().signed_angle_to(self.transform.basis.z, zbasis_offset_ax)
 	var newmesh = ArrayMesh.new()
 	
 	var surface_array = []
@@ -277,24 +256,19 @@ func _process(delta):
 				in_transit = true
 				back_from_space = false
 	else:
-		if !note_set:
-			note_player.stream = note_pool[note_pool.size() - global.pieces_placed_so_far[1] + global.pieces_placed_so_far[0]]
-			note_set = true
 		if !placement_finished:
 			_placement()
 
 func _placement():
 	var dist = global_position.distance_to(direction)
-	if global.sound:
-		if placement_lerp_1 > 0.92 and !sound_playing:
-			note_player.play()
+	if placement_lerp_1 > 0.92 and !sound_playing:
+		if global.sound:
+			#note_player.play()
 			sound_playing = true
 	placement_lerp_1 = lerp(placement_lerp_1, 1.0, 0.03)
 	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
 	global_position = lerp(global_position, direction, placement_lerp_2)
 	if global_position.is_equal_approx(direction):
-#		if global.sound:
-#			note_player.play()
 		global_position = direction
 		placement_finished = true
 		global.pieces_placed_so_far[0] += 1

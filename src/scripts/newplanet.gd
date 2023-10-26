@@ -49,6 +49,7 @@ func _on_generate_button_up():
 	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
 	pct_fill_slider.max_value = global.total_pieces - 10
 	pct_fill_slider.tick_count = global.total_pieces - 10
+	global.debug_message = "Generate button pressed"
 
 
 func _on_universe_ready_to_start_2():
@@ -63,3 +64,12 @@ func _on_draw_button_up():
 
 func _on_piece_rotation_button_toggled(button_pressed):
 	queue_rotation_flag = button_pressed
+
+
+func _on_visibility_changed():
+	global.menu_open = visible
+
+
+func _on_planet_type_option_button_item_selected(index):
+	global.generate_type = index + 1
+	global.debug_message = "Planet type selected"

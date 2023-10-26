@@ -1,7 +1,14 @@
+HIGH PRIORITY:
+- add automatic puzzle saving
+- upper limit on number of trees/other decor
+- finalize sounds and music
+- main menu
+- splash screen
+- figure out planet size
+
+LOW PRIORITY:
 - adjust ufo height per planet
 - implement fast graphics option
-- add automatic puzzle saving
-- add config file saving for settings like graphics, sound, vibrate
 - optimize snap_to_existing function
 - fix earth desert weirdness
 - gas giants are too close to carousel camera
@@ -9,20 +16,27 @@
 - triangle normal dot gravity is cliff steepness
 - planet builder
 - collectibles that spawn randomly but tailored to planet
-- upper limit on number of trees/other decor
 - less randomness means more things to learn for the player
 - icebergs
-- instruments should be quieter, behind real sounds
 - palm trees
+- planet construction animation
+- gentler mantle option
+- spice up gas giants
 
 GLITCHES:
 - piece shadow appears and lines up but actual piece never goes in and carousel is stuck
-- crash/freeze when interrupting moon building process with new planet
 - rendered planet without one chunk of ocean on IOS
 - crashes if another planet requested while generating planet (temporarily fixed)
 - jupiter freeze
-- spinning planet during new planet dialog never slows down
 
-maybe:
-	- slant screen divider for one-handed ease
-	- reduce opacity and transparency
+NAMES:
+- Puzzle Space Program
+- Puzzle Galactica
+- Puzzle Worlds
+- Puzzle Astronomica
+- Puzzle Atlas
+- Astro Puzzle
+- PuzzleNaut
+- Puzzlenaut
+- Puzzleverse
+- Puzzle Planetarium

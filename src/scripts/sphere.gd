@@ -104,6 +104,7 @@ var mars_mountain_curve: Curve = preload("res://tex/mars_mountain_curve.tres")
 var venus_color_ease_curve: Curve = preload("res://tex/venus_color_ease_curve.tres")
 var pluto_color_ease_curve: Curve = preload("res://tex/pluto_color_ease_curve.tres")
 var mars_color_ease_curve: Curve = preload("res://tex/mars_land_color_curve.tres")
+var earth_color_ease_curve: Curve = preload("res://tex/earth_land_color_curve.tres")
 
 var _draw_mode := false
 var manual_mountain_color := false
@@ -186,7 +187,6 @@ var neptune_turbulence := 0.05
 @onready var piece_target = $"../h/v/Camera3D/piece_target"
 @onready var shadow_light = $"../h/v/Camera3D/ShadowLight"
 @onready var camera_3d = $"../h/v/Camera3D"
-@onready var where = $where
 @onready var sun = $"../Sun"
 @onready var space = $"../Space"
 @onready var mantle = $"../Mantle"
@@ -433,6 +433,7 @@ func _set_parameters():
 		crater_height_curve = earth_mountain_curve
 		mountain_shift_curve = earth_mountain_shift_curve
 		mountain_color_curve = earth_mountain_color_curve
+		land_color_ease_curve = venus_color_ease_curve
 		mountain_color = Color('ab8773')
 		manual_mountain_color = true
 		num_craters = 20
@@ -497,6 +498,7 @@ func _set_parameters():
 		crater_height_curve = earth_mountain_curve
 		mountain_shift_curve = earth_mountain_shift_curve
 		mountain_color_curve = earth_mountain_color_curve
+		land_color_ease_curve = earth_color_ease_curve
 		mountain_color = Color('ab8773')
 		manual_mountain_color = true
 		num_craters = 20
@@ -669,7 +671,7 @@ func _set_parameters():
 		h_band_snap = 0.001
 		h_band_wiggle = 0.1
 		craters_to_storms = true
-		manual_storm_color = true
+		manual_storm_color = false
 		storm_color_curve = neptune_storm_color_curve
 		storm_color = Color('385478')
 		rings.visible = false
@@ -1024,7 +1026,7 @@ func _generate_terrain(
 		newpiece.direction = og_verts[bak]
 		newpiece.lat = og_verts[bak].angle_to(Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized()) * sign(og_verts[bak].y)
 		newpiece.lon = Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized().angle_to(Vector3.FORWARD) * sign(og_verts[bak].x)
-		newpiece.rotation_saver = Quaternion(og_verts[bak], Vector3.BACK)
+		newpiece.rotation_saver = Quaternion(og_verts[bak], Vector3.BACK) # unused
 		puzzle_fits[bak] = og_verts[bak]
 		newpiece.idx = bak
 		newpiece.siblings = len(og_verts)
@@ -1037,10 +1039,10 @@ func _generate_terrain(
 			newpiece.random_rotation_offset = randrot
 		newpiece.particle_edges = WALL_STUFF[6]
 		newpiece.offset = piece_offset
-		if planet_style < 6:
-			newpiece.sound_type = 0
-		else:
-			newpiece.sound_type = 1
+		if planet_style < 6: # unused
+			newpiece.sound_type = 0 # unused
+		else: # unused
+			newpiece.sound_type = 1 # unused
 		# checking who stays
 		if pieces_stayed < pieces_at_start:
 			newpiece.remove_from_group('pieces')
@@ -1468,7 +1470,6 @@ func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, vect
 		var new_border_array = PackedVector3Array()
 		for b in len(border_array):
 			var plus1 = b+1
-
 			if plus1 == len(border_array):
 				## last one
 				plus1 = 0
@@ -1479,13 +1480,10 @@ func fill_border_halfways(vbdict: Dictionary, og_verts: PackedVector3Array, vect
 				if current_border_point != next_border_point:
 					var ang = current_border_point.angle_to(next_border_point)
 					var ax = current_border_point.cross(next_border_point).normalized()
-					#if !(new_border_array.has(current_border_point)):
 					new_border_array.append(current_border_point)
 					var halfway = current_border_point.rotated(ax, ang/2.0).snapped(Vector3(vsnap, vsnap, vsnap))
 					halfway = snap_to_existing(halfway, vectree)
-					#if !(new_border_array.has(halfway)):
 					new_border_array.append(halfway)
-					#if !(new_border_array.has(next_border_point)):
 					new_border_array.append(next_border_point)
 			else:
 				var current_border_point = border_array[b].snapped(Vector3(vsnap, vsnap, vsnap))
@@ -1542,7 +1540,6 @@ func delaunay(points: PackedVector3Array, return_tris := false):
 				
 				var is_good = true
 				var is_good2 = true
-
 				for pp in num_of_points:
 					if pl.is_point_over(points[pp]):
 						if abs(pl.distance_to(points[pp])) > 0.0005:
@@ -1710,8 +1707,8 @@ func gas_color_vary(vec: Vector3, colors: Array, turbulence := 0.2):
 	var vlen = snapped(vec.length(), h_band_snap)
 	var maxlen = max_terrain_height_unclamped
 	var minlen = min_terrain_height_unclamped
-	if manual_storm_color:
-		vlen = clamp(vlen, min_terrain_height_unclamped, max_terrain_height_unclamped)
+	#if manual_storm_color:
+	vlen = clamp(vlen, min_terrain_height_unclamped, max_terrain_height_unclamped)
 	var halfway = ((max_terrain_height_unclamped - min_terrain_height_unclamped) / 2.0) + min_terrain_height_unclamped
 	if vlen > halfway:
 		# bigger half
@@ -1742,15 +1739,12 @@ func color_vary(vec: Vector3, colors: Array):
 	var return_color: Color
 	var nval = colornoise.get_noise_3dv(vec)
 	var nval2 = colornoise2.get_noise_3dv(vec)
-	#if planet_style == 4 or planet_style == 1: # moon or mercury
 	nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 	nval2 = remap(clamp(nval2, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
-#	elif planet_style == 3 or planet_style == 5 or planet_style == 10: # earth or mars or pluto
-#		nval = remap(clamp(nval, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 	if nval > 0.5:
 		var final_val = remap(nval, 0.5, 1.0, 0.0, 1.0)
 		return_color = colors[1].lerp(colors[0], land_color_ease_curve.sample_baked(final_val))
-	elif nval <= 0.5:
+	else:
 		var final_val = remap(nval, 0.0, 0.5, 0.0, 1.0)
 		if planet_style == 3: # earth ### this needs some fixing
 			var vlat = asin(abs(vec.normalized().y)) / (PI/2)
@@ -1761,7 +1755,7 @@ func color_vary(vec: Vector3, colors: Array):
 		if nval2 > 0.5:
 			var tint_val = remap(nval2, 0.5, 1.0, 0.0, 1.0)
 			return_color = return_color.lerp(tint_color_2.lerp(tint_color, tint_val), 0.07)
-		elif nval2 <= 0.5:
+		else:
 			var tint_val = remap(nval2, 0.0, 0.5, 0.0, 1.0)
 			return_color = return_color.lerp(tint_color_3.lerp(tint_color_2, tint_val), 0.07)
 	

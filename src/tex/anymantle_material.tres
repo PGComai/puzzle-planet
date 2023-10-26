@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bdx4ir0kca6uu"]
+
+[ext_resource type="Shader" uid="uid://cu210rpuhpy6w" path="res://tex/anymantle.tres" id="1_4dn6e"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_4dn6e")
