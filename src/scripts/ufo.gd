@@ -31,13 +31,18 @@ var drop_off_enter_circle_checkpoint := false
 var drop_off_exit_circle_checkpoint := false
 var start_drop_off_pos: Vector3
 var planet_hover_height := 1.3
-@onready var tractor_beam = $meshes/tractor_beam
 
 var global
+
+@onready var tractor_beam = $meshes/tractor_beam
+@onready var abduction_sound = $AbductionSound
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	global.ufo_ready_signal.connect(_on_global_ufo_ready_signal)
+	global.ufo_reset_signal.connect(_on_global_ufo_reset_signal)
+	global.ufo_time_signal.connect(_on_global_ufo_time_signal)
 	visible = false
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -63,7 +68,8 @@ func _process(delta):
 				lerp_multiplier = 1.0
 				visible = false
 		else:
-			emit_signal('ufo_done')
+			#emit_signal('ufo_done')
+			global.ufo_done = true
 			showtime = false
 			journey = false
 			checkpoint_1 = false
@@ -116,7 +122,11 @@ func _run_journey(delta):
 		position = position.slerp(target, journey_speed_curve.sample_baked(journey_lerp_multiplier))
 		if position.is_equal_approx(target):
 			if !abduct_signal_sent:
-				emit_signal("ufo_abducting", path[next_stop], journey_speed_curve.sample_baked(journey_lerp_multiplier))
+				var speed = journey_speed_curve.sample_baked(journey_lerp_multiplier)
+				if global.sound:
+					abduction_sound.pitch_scale = 0.8 + (speed / 5.0)
+					abduction_sound.play()
+				global.ufo_abducting = [path[next_stop], speed]
 				abduct_signal_sent = true
 			if !beam_done:
 				_beam(delta, journey_lerp_multiplier)
@@ -137,13 +147,11 @@ func _beam(delta, multi := 1.0):
 		beam_done = true
 		beam_timer = 0.0
 		tractor_beam.visible = false
-		emit_signal("ufo_abduction_done")
+		#emit_signal("ufo_abduction_done")
+		global.ufo_abduction_done = true
 	else:
 		tractor_beam.visible = true
 
-func _on_universe_ufo_ready_2(dict):
-	locs = dict
-	_make_path()
 
 func _make_path():
 	path = []
@@ -159,11 +167,13 @@ func _make_path():
 	num_stops = len(path)
 	#print(path)
 
-func _on_universe_ufo_time():
-	showtime = true
-	visible = true
 
-func _on_universe_ufo_reset():
+func _on_global_ufo_ready_signal(dict):
+	locs = dict
+	_make_path()
+
+
+func _on_global_ufo_reset_signal():
 	visible = false
 	showtime = false
 	beam_timer = 0.0
@@ -177,3 +187,8 @@ func _on_universe_ufo_reset():
 	abduct_signal_sent = false
 	position = Vector3(0.1, 5.0, 0.1)
 	tractor_beam.visible = false
+
+
+func _on_global_ufo_time_signal():
+	showtime = true
+	visible = true

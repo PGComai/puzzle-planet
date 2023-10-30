@@ -1,17 +1,6 @@
 extends Node3D
 
-signal ufo_time
-signal ufo_ready2(dict)
-signal ufo_done2
-signal ready_to_start2
-signal meshes_made2
-signal piece_placed2
-signal spin_piece(rot)
-signal ufo_abducting2(piece)
-signal ufo_abduction_done2
-signal ufo_reset
 signal piece_added
-signal atmo_resize(size)
 
 @export var h_sensitivity = 0.001
 @export var v_sensitivity = 0.001
@@ -186,26 +175,22 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('81cfff'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
-		
+
+
+
 func _on_global_drawing_mode_changed(value):
 	pass
 
-func _on_mesh_maker_meshes_made():
-	emit_signal("meshes_made2")
-
-func _on_mesh_maker_piece_placed(cidx):
-	emit_signal("piece_placed2", cidx)
 
 func _on_generate_button_up():
 	var ufo = get_tree().get_first_node_in_group('ufo')
 	ufo.reparent(self, false)
 	ufo.in_browser = false
 	ufo.browser_drop_off_begin = false
-	emit_signal("ufo_reset")
+	global.ufo_reset = true
 	shadow_light._on = false
 	sun._on = true
 	global.piece_in_space = false
-	#sun_2._on = true
 	space._on = false
 	roto_window.visible = false
 	mesh_maker.queue_free()
@@ -217,10 +202,7 @@ func _on_generate_button_up():
 		_atmo_change()
 	
 	var nmm = new_mesh_maker.instantiate()
-	nmm.connect('meshes_made', _on_mesh_maker_meshes_made)
-	nmm.connect('piece_placed', _on_mesh_maker_piece_placed)
-	nmm.connect('ready_to_start', _on_mesh_maker_ready_to_start)
-	nmm.connect('ufo_ready', _on_mesh_maker_ufo_ready)
+	nmm.build_planet = true
 	mesh_maker = nmm ### why did i do it like this? why does this work?
 	ready_for_nmm = true
 	last_type = generate_type
@@ -229,59 +211,23 @@ func _on_generate_button_up():
 	#print(error)
 
 
-func _on_draw_button_up():
+func _on_resume_button_up():
 	var ufo = get_tree().get_first_node_in_group('ufo')
 	ufo.reparent(self, false)
 	ufo.in_browser = false
 	ufo.browser_drop_off_begin = false
-	emit_signal("ufo_reset")
+	global.ufo_reset = true
 	shadow_light._on = false
 	sun._on = true
 	global.piece_in_space = false
-	#sun_2._on = true
 	space._on = false
 	roto_window.visible = false
-	mesh_maker.queue_free()
 	for n in get_tree().get_nodes_in_group('pieces'):
 		n.queue_free()
 	for n in pieces.get_children():
 		n.queue_free()
-	if global.generate_type != generate_type:
-		_atmo_change()
-	
-	var nmm = new_mesh_maker.instantiate()
-	nmm._draw_mode = true
-	nmm.build_planet = false
-	nmm.connect('meshes_made', _on_mesh_maker_meshes_made)
-	nmm.connect('piece_placed', _on_mesh_maker_piece_placed)
-	nmm.connect('ready_to_start', _on_mesh_maker_ready_to_start)
-	nmm.connect('ufo_ready', _on_mesh_maker_ufo_ready)
-	mesh_maker = nmm
-	ready_for_nmm = true
-	last_type = generate_type
-	generate_type = global.generate_type
+	global._load_saved_puzzle()
 
-
-func _on_browser_wheel_rot(rot):
-	emit_signal('spin_piece', rot)
-
-func _on_mesh_maker_ready_to_start():
-	emit_signal("ready_to_start2")
-
-func _on_start_puzzle_button_up():
-	emit_signal("ufo_time")
-
-func _on_mesh_maker_ufo_ready(dict):
-	emit_signal('ufo_ready2', dict)
-
-func _on_ufo_ufo_done():
-	emit_signal("ufo_done2")
-
-func _on_ufo_ufo_abducting(piece, speed):
-	emit_signal("ufo_abducting2", piece, speed)
-
-func _on_ufo_ufo_abduction_done():
-	emit_signal('ufo_abduction_done2')
 
 func _on_ufo_ufo_take_me_home():
 	var ufo = get_tree().get_first_node_in_group('ufo')

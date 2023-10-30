@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=50 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/popup.gd" id="4_esiwd"]
 [ext_resource type="Script" path="res://scripts/DebugLabel.gd" id="5_aeyxo"]
 [ext_resource type="Script" path="res://scripts/UniverseRect.gd" id="5_an6gj"]
+[ext_resource type="Script" path="res://scripts/Ghost.gd" id="5_guaq5"]
 [ext_resource type="Script" path="res://scripts/newplanet.gd" id="6_ql4kd"]
 [ext_resource type="StyleBox" uid="uid://dd6v7dxm3exou" path="res://tex/NewPlanetPanelBox.tres" id="6_qwkga"]
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
@@ -184,6 +185,7 @@ size = 1.5
 
 [node name="GhostBall" type="Node3D" parent="SubViewportRoto/PieceView/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.70692)
+script = ExtResource("5_guaq5")
 
 [node name="Ghost" type="MeshInstance3D" parent="SubViewportRoto/PieceView/Camera3D/GhostBall"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.772147)
@@ -477,6 +479,7 @@ text = "OFF"
 script = ExtResource("10_4fljv")
 
 [node name="HSeparator7" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 20
 
@@ -484,7 +487,6 @@ theme_override_constants/separation = 20
 custom_minimum_size = Vector2(0, 78)
 layout_mode = 2
 size_flags_vertical = 10
-disabled = true
 text = "Generate"
 
 [node name="HSeparator6" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
@@ -492,15 +494,20 @@ visible = false
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
-[node name="Draw" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+[node name="Resume" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 78)
+layout_mode = 2
+size_flags_vertical = 10
+disabled = true
+text = "Resume Saved"
+
+[node name="HSeparator8" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
-size_flags_vertical = 8
-disabled = true
-text = "Draw
-"
+theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 
 [node name="HSeparator3" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 10
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
@@ -508,7 +515,7 @@ theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
 [node name="Cancel" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 78)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_vertical = 10
 text = "Cancel"
 
 [node name="80Sep" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
@@ -770,7 +777,12 @@ Puzzle
 "
 script = ExtResource("9_7ob1j")
 
+[node name="Timer" type="Timer" parent="StartPuzzle"]
+wait_time = 0.1
+one_shot = true
+
 [node name="ProgressPanelContainer" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -803,14 +815,7 @@ script = ExtResource("10_qmupj")
 [node name="ProgressFullTimer" type="Timer" parent="ProgressPanelContainer/MarginContainer/PlanetProgress"]
 one_shot = true
 
-[connection signal="wheel_rot" from="SubViewportBrowser/Browser" to="SubViewportUniverse/Universe" method="_on_browser_wheel_rot"]
-[connection signal="wheel_rot" from="SubViewportBrowser/Browser" to="RotoWindow" method="_on_browser_wheel_rot"]
-[connection signal="meshes_made2" from="SubViewportUniverse/Universe" to="SubViewportBrowser/Browser" method="_on_universe_meshes_made_2"]
 [connection signal="piece_added" from="SubViewportUniverse/Universe" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_universe_piece_added"]
-[connection signal="piece_placed2" from="SubViewportUniverse/Universe" to="SubViewportBrowser/Browser" method="_on_universe_piece_placed_2"]
-[connection signal="ready_to_start2" from="SubViewportUniverse/Universe" to="NewPlanetPopup" method="_on_universe_ready_to_start_2"]
-[connection signal="ready_to_start2" from="SubViewportUniverse/Universe" to="StartPuzzle" method="_on_universe_ready_to_start_2"]
-[connection signal="ufo_done2" from="SubViewportUniverse/Universe" to="SubViewportBrowser/Browser" method="_on_universe_ufo_done_2"]
 [connection signal="gui_input" from="MainBG/VSplitContainer/UniverseRect" to="SubViewportUniverse/Universe" method="_on_universe_rect_gui_input"]
 [connection signal="timeout" from="MainBG/VSplitContainer/UniverseRect/Timer" to="MainBG/VSplitContainer/UniverseRect" method="_on_timer_timeout"]
 [connection signal="gui_input" from="MainBG/VSplitContainer/BrowserRect" to="SubViewportBrowser/Browser" method="_on_browser_rect_gui_input"]
@@ -830,8 +835,10 @@ one_shot = true
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="NewPlanetPopup" method="_on_generate_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="StartPuzzle" method="_on_generate_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_generate_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Draw" to="SubViewportUniverse/Universe" method="_on_draw_button_up"]
-[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Draw" to="NewPlanetPopup" method="_on_draw_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Resume" to="SubViewportBrowser/Browser" method="_on_resume_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Resume" to="SubViewportUniverse/Universe" method="_on_resume_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Resume" to="NewPlanetPopup" method="_on_resume_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Resume" to="StartPuzzle" method="_on_resume_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Cancel" to="NewPlanetPopup" method="_on_cancel_button_up"]
 [connection signal="visibility_changed" from="SettingsPopup" to="SettingsPopup" method="_on_visibility_changed"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/GraphicsHBox/GraphicsCheckButton" to="SettingsPopup" method="_on_graphics_check_button_toggled"]
@@ -844,7 +851,7 @@ one_shot = true
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/DebugHBox/DebugButton" to="SettingsPopup" method="_on_debug_button_toggled"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/DebugHBox/DebugButton" to="SettingsPopup/MarginContainer/VBoxContainer/DebugHBox/DebugButton" method="_on_toggled"]
 [connection signal="button_up" from="SettingsPopup/MarginContainer/VBoxContainer/Close" to="SettingsPopup" method="_on_close_button_up"]
-[connection signal="button_up" from="StartPuzzle" to="SubViewportUniverse/Universe" method="_on_start_puzzle_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="StartPuzzle" method="_on_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_start_puzzle_button_up"]
+[connection signal="timeout" from="StartPuzzle/Timer" to="StartPuzzle" method="_on_timer_timeout"]
 [connection signal="timeout" from="ProgressPanelContainer/MarginContainer/PlanetProgress/ProgressFullTimer" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_progress_full_timer_timeout"]

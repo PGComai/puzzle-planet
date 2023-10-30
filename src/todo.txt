@@ -5,6 +5,8 @@ HIGH PRIORITY:
 - main menu
 - splash screen
 - figure out planet size
+- icon art
+- adjust ufo speed with amount of pieces it drops off
 
 LOW PRIORITY:
 - adjust ufo height per planet
@@ -40,3 +42,4 @@ NAMES:
 - Puzzlenaut
 - Puzzleverse
 - Puzzle Planetarium
+- GeoPuzzle

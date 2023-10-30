@@ -5,6 +5,17 @@ signal piece_in_space_changed(value)
 signal debug_message_added
 signal menu_open_signal(open)
 signal preferences_read
+signal ready_to_start_signal
+signal ufo_ready_signal(dict)
+signal piece_placed(cidx)
+signal ufo_reset_signal
+signal ufo_time_signal
+signal wheel_rot_signal(rot)
+signal ufo_done_signal
+signal ufo_abducting_signal(info)
+signal ufo_abduction_done_signal
+signal puzzle_done
+signal loaded_pieces_ready(pieces)
 
 var generate_type := 3
 var pieces_at_start := 15
@@ -29,7 +40,9 @@ var music := true:
 			_write_preferences_dict()
 var debugging := false
 var planet_height_for_ufo: float
-var pieces_placed_so_far := [0, 0]
+var pieces_placed_so_far := [0, 0]:
+	set(value):
+		pieces_placed_so_far = value
 var drawing_mode := false:
 	set(value):
 		drawing_mode = value
@@ -52,17 +65,72 @@ var menu_open := false:
 	set(value):
 		menu_open = value
 		emit_signal('menu_open_signal', value)
+var puzzle_started := false:
+	set(value):
+		puzzle_started = value
+		if value:
+			_save_puzzle()
+var puzzle_finished := false:
+	set(value):
+		puzzle_finished = value
+		if value:
+			emit_signal("puzzle_done")
+var ready_to_start := false:
+	set(value):
+		if value:
+			emit_signal("ready_to_start_signal")
+var ufo_locations := Dictionary():
+	set(value):
+		emit_signal("ufo_ready_signal", value)
+var placed_cidx : int:
+	set(value):
+		emit_signal("piece_placed", value)
+var ufo_reset := false:
+	set(value):
+		if value:
+			emit_signal("ufo_reset_signal")
+var ufo_time := false:
+	set(value):
+		if value:
+			emit_signal("ufo_time_signal")
+var wheel_rot : float:
+	set(value):
+		emit_signal("wheel_rot_signal", value)
+var ufo_done := false:
+	set(value):
+		if value:
+			emit_signal("ufo_done_signal")
+var ufo_abducting: Array:
+	set(value):
+		emit_signal("ufo_abducting_signal", value)
+var ufo_abduction_done := false:
+	set(value):
+		if value:
+			emit_signal("ufo_abduction_done_signal")
+var piece_tracker: Dictionary
+var unfinished_puzzle_exists := false
 
 var save_data: FileAccess
 var save_preferences: FileAccess
 
 var preferences_dict: Dictionary
+var node_data := {}
+var current_puzzle_was_loaded := false
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
-	save_data.close()
+	if not FileAccess.file_exists("user://save_data.dat"):
+		print("no save_data file exists")
+		save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
+		save_data.close()
+	else:
+		save_data = FileAccess.open("user://save_data.dat", FileAccess.READ)
+		unfinished_puzzle_exists = !save_data.get_var()
+		print("unfinished puzzle exists: %s" % unfinished_puzzle_exists)
+#		print(save_data.get_var(true))
+#		print(save_data.get_var(true))
+		save_data.close()
 	if not FileAccess.file_exists("user://save_preferences.dat"):
 		print("no save_preferences file exists")
 		save_preferences = FileAccess.open("user://save_preferences.dat", FileAccess.WRITE_READ)
@@ -95,8 +163,147 @@ func _process(delta):
 		RenderingServer.global_shader_parameter_set('ez_mantle_effect', ez_mantle_proxy)
 
 
-func _save_call():
-	pass
+func _save_puzzle():
+	### IMPORTANT VARIABLES FOR MESH CONSTRUCTION ###
+		# random_rotation_offset
+		# vertex
+		# normal
+		# color
+		# direction
+		# trees_on
+		# tree_positions
+		# ocean
+		# vertex_cw
+		# normal_cw
+		# color_cw
+		# vertex_w
+		# normal_w
+		# color_w
+		# planet_style
+		# wall_vertex
+		# wall_normal
+		# wall_color
+		# offset
+		# lat
+		# lon
+		# orient_upright
+		# circle_idx
+		# idx
+	piece_tracker = {}
+	var saving_nodes = get_tree().get_nodes_in_group("persist")
+	node_data = {}
+	print("saving %s nodes" % saving_nodes.size())
+	for n in saving_nodes:
+		var is_in_pieces_group := n.is_in_group("pieces")
+		piece_tracker[n.idx] = is_in_pieces_group
+		node_data[n.idx] = get_node_data(n)
+	print(piece_tracker)
+	#saving_nodes = saving_nodes.map(pack_scene)
+	if save_data.is_open():
+		save_data.close()
+	save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
+	var was_puzzle_completed := false
+	var puzzle_has_rotation := rotation
+	save_data.store_var(was_puzzle_completed)
+	save_data.store_var(puzzle_has_rotation)
+	save_data.store_var(pieces_placed_so_far)
+	save_data.store_var(generate_type)
+	save_data.store_var(piece_tracker)
+	save_data.store_var(node_data, true)
+	save_data.close()
+	print("puzzle saved")
+	ufo_time = true ### THIS LINE STARTS THE GAME
+
+
+func get_node_data(n: Node) -> Dictionary:
+	var return_dict := {
+		"random_rotation_offset": n.random_rotation_offset,
+		"vertex": n.vertex,
+		"normal": n.normal,
+		"color": n.color,
+		"direction": n.direction,
+		"trees_on": n.trees_on,
+		"tree_positions": n.tree_positions,
+		"ocean": n.ocean,
+		"vertex_cw": n.vertex_cw,
+		"normal_cw": n.normal_cw,
+		"color_cw": n.color_cw,
+		"vertex_w": n.vertex_w,
+		"normal_w": n.normal_w,
+		"color_w": n.color_w,
+		"planet_style": n.planet_style,
+		"wall_vertex": n.wall_vertex,
+		"wall_normal": n.wall_normal,
+		"wall_color": n.wall_color,
+		"offset": n.offset,
+		"lat": n.lat,
+		"lon": n.lon,
+		"orient_upright": n.random_rotation_offset,
+		"circle_idx": n.circle_idx,
+		"idx": n.idx,
+	}
+	return return_dict
+
+
+func pack_scene(n : Node):
+	var packed = PackedScene.new()
+	packed.pack(n)
+	return packed
+
+
+func _save_puzzle_status():
+	if get_tree().get_nodes_in_group("pieces").size() > 0:
+		var saving_nodes = get_tree().get_nodes_in_group("persist")
+		piece_tracker = {}
+		for n in saving_nodes:
+			var is_in_pieces_group := n.is_in_group("pieces")
+			piece_tracker[n.idx] = is_in_pieces_group
+		print(piece_tracker)
+		if save_data.is_open():
+			save_data.close()
+		save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
+		var was_puzzle_completed := false
+		var puzzle_has_rotation := rotation
+		save_data.store_var(was_puzzle_completed)
+		save_data.store_var(puzzle_has_rotation)
+		save_data.store_var(pieces_placed_so_far)
+		save_data.store_var(generate_type)
+		save_data.store_var(piece_tracker)
+		save_data.store_var(node_data, true)
+		save_data.close()
+		print("puzzle status saved")
+	else:
+		if save_data.is_open():
+			save_data.close()
+		save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
+		var was_puzzle_completed := true
+		var puzzle_has_rotation := rotation
+		save_data.store_var(was_puzzle_completed)
+		save_data.store_var(puzzle_has_rotation)
+		save_data.store_var(pieces_placed_so_far)
+		save_data.store_var(generate_type)
+		save_data.store_var(piece_tracker)
+		save_data.store_var(node_data, true)
+		save_data.store_var(was_puzzle_completed)
+		save_data.close()
+
+
+func _load_saved_puzzle():
+	if save_data.is_open():
+		save_data.close()
+	save_data = FileAccess.open("user://save_data.dat", FileAccess.READ)
+	var was_completed = save_data.get_var()
+	rotation = save_data.get_var()
+	pieces_placed_so_far = save_data.get_var()
+	generate_type = save_data.get_var()
+	var pieces_tracked = save_data.get_var()
+	var loaded_pieces_data = save_data.get_var(true)
+	save_data.close()
+#	print("loaded %s nodes" % loaded_pieces.size())
+#	for lp in loaded_pieces:
+#		if lp.is_in_group("pieces") and not pieces_tracked[lp.idx]:
+#			lp.remove_from_group("pieces")
+	emit_signal("loaded_pieces_ready", [pieces_tracked, loaded_pieces_data])
 
 
 func _write_preferences_dict():

@@ -1,10 +1,5 @@
 extends Node3D
 
-signal ready_to_start
-signal meshes_made
-signal piece_placed(cidx)
-signal ufo_ready(dict)
-
 @export var debug := false
 @export var max_points = 30
 @export var generations = 100
@@ -151,7 +146,7 @@ var rotowindow
 
 var thread: Thread
 
-var build_planet := true
+var build_planet := false
 var parameters_set := false
 var ufo_locations := {}
 
@@ -197,9 +192,9 @@ func _ready():
 	piece_place_lerp_curve = piece_place_lerp_brick_audio_one
 	treesnap = Vector3(treestep, treestep, treestep)
 	global = get_node('/root/Global')
+	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
+	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready)
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
-	if !get_parent().is_connected('spin_piece', _on_universe_spin_piece):
-		get_parent().spin_piece.connect(_on_universe_spin_piece)
 	if !(planet_style == 0) and !debug:
 		planet_style = global.generate_type
 		pieces_at_start = global.pieces_at_start
@@ -222,8 +217,8 @@ func _process(delta):
 			result = thread.wait_to_finish()
 		if result:
 			build_planet = false
-			emit_signal("ready_to_start")
-			emit_signal('ufo_ready', ufo_locations)
+			global.ufo_locations = ufo_locations
+			global.ready_to_start = true
 	else:
 		if looking:
 			_piece_fit(delta)
@@ -232,13 +227,16 @@ func _process(delta):
 		if fit:
 			if !placed_signal:
 				current_piece.remove_from_group('pieces')
+				global.pieces_placed_so_far[0] += 1
+				print(global.pieces_placed_so_far)
+				global._save_puzzle_status()
 				placed_signal = true
 				placed_counting = true
 				fit = false
 		if placed_counting:
 			placed_timer += delta
 			if placed_timer > 0.2:
-				emit_signal("piece_placed", current_piece.circle_idx)
+				global.placed_cidx = current_piece.circle_idx
 				placed_signal = false
 				placed_counting = false
 				placed_timer = 0.0
@@ -284,8 +282,6 @@ func _generate_mesh(userdata = null):
 		delaunay_triangle_centers = delaunay(verts, true)
 		var my_delaunay_points = verts_to_delaunay_points(verts, delaunay_triangle_centers)
 		vi_to_borders = make_border_array(verts, my_delaunay_points)
-		
-		var l = len(verts)
 		
 		if snow_random_high > snow_random_low:
 			snow_start = randf_range(snow_random_low, snow_random_high)
@@ -1026,27 +1022,27 @@ func _generate_terrain(
 		newpiece.direction = og_verts[bak]
 		newpiece.lat = og_verts[bak].angle_to(Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized()) * sign(og_verts[bak].y)
 		newpiece.lon = Vector3(og_verts[bak].x, 0.0, og_verts[bak].z).normalized().angle_to(Vector3.FORWARD) * sign(og_verts[bak].x)
-		newpiece.rotation_saver = Quaternion(og_verts[bak], Vector3.BACK) # unused
+		#newpiece.rotation_saver = Quaternion(og_verts[bak], Vector3.BACK) # unused
 		puzzle_fits[bak] = og_verts[bak]
 		newpiece.idx = bak
-		newpiece.siblings = len(og_verts)
+		#newpiece.siblings = len(og_verts)
 		newpiece.ready_for_launch.connect(_on_ready_for_launch)
-		newpiece.upright_vec = up.normalized()
+		#newpiece.upright_vec = up.normalized()
 		newpiece.orient_upright = !global.rotation
-		newpiece.thickness = crust_thickness - 1.0
+		#newpiece.thickness = crust_thickness - 1.0
 		if global.rotation:
 			var randrot = randf_range(0.0, 2*PI)
 			newpiece.random_rotation_offset = randrot
-		newpiece.particle_edges = WALL_STUFF[6]
+		#newpiece.particle_edges = WALL_STUFF[6]
 		newpiece.offset = piece_offset
-		if planet_style < 6: # unused
-			newpiece.sound_type = 0 # unused
-		else: # unused
-			newpiece.sound_type = 1 # unused
+#		if planet_style < 6: # unused
+#			newpiece.sound_type = 0 # unused
+#		else: # unused
+#			newpiece.sound_type = 1 # unused
 		# checking who stays
 		if pieces_stayed < pieces_at_start:
 			newpiece.remove_from_group('pieces')
-			newpiece.staying = true
+			#newpiece.staying = true
 			pieces_stayed += 1
 		else:
 			newpiece.circle_idx = circle_idx
@@ -1849,10 +1845,86 @@ func _on_piece_take_me_home(_idx):
 	#sun_2._on = true
 	looking = false
 
-### DONE ###
-func _on_universe_spin_piece(rot):
+
+func _on_global_wheel_rot_signal(rot):
 	var the_rot = fmod(abs(rot), 2*PI)
 	if the_rot < (0.0 + (PI/32)) or the_rot > ((2*PI) - (PI/32)):
 		correct_rotation = true
 	else:
 		correct_rotation = false
+
+
+func _on_global_loaded_pieces_ready(data):
+	var pieces_tracked: Dictionary = data[0]
+	var loaded_pieces_data: Dictionary = data[1]
+	ufo_locations = {}
+	var new_circle_idx := 0
+	
+	for i in loaded_pieces_data.keys():
+		var newpiece = piece.instantiate()
+		var piece_dict = loaded_pieces_data[i]
+		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
+		newpiece.vertex = piece_dict["vertex"]
+		newpiece.normal = piece_dict["normal"]
+		newpiece.color = piece_dict["color"]
+		newpiece.direction = piece_dict["direction"]
+		newpiece.trees_on = piece_dict["trees_on"]
+		newpiece.tree_positions = piece_dict["tree_positions"]
+		newpiece.ocean = piece_dict["ocean"]
+		newpiece.vertex_cw = piece_dict["vertex_cw"]
+		newpiece.normal_cw = piece_dict["normal_cw"]
+		newpiece.color_cw = piece_dict["color_cw"]
+		newpiece.vertex_w = piece_dict["vertex_w"]
+		newpiece.normal_w = piece_dict["normal_w"]
+		newpiece.color_w = piece_dict["color_w"]
+		newpiece.planet_style = piece_dict["planet_style"]
+		newpiece.wall_vertex = piece_dict["wall_vertex"]
+		newpiece.wall_normal = piece_dict["wall_normal"]
+		newpiece.wall_color = piece_dict["wall_color"]
+		newpiece.offset = piece_dict["offset"]
+		newpiece.lat = piece_dict["lat"]
+		newpiece.lon = piece_dict["lon"]
+		newpiece.orient_upright = piece_dict["orient_upright"]
+		newpiece.idx = piece_dict["idx"]
+		newpiece.ready_for_launch.connect(_on_ready_for_launch)
+		
+		if not pieces_tracked[i]:
+			newpiece.remove_from_group("pieces")
+		else:
+			newpiece.circle_idx = new_circle_idx
+			new_circle_idx += 1
+			ufo_locations[i] = piece_dict["direction"]
+		
+		pieces.add_child(newpiece)
+		#pieces.call_deferred("add_child", newpiece)
+	global.ufo_locations = ufo_locations
+	global.ready_to_start = true
+
+### LOADED PIECES DATA STRUCTURE
+#	var return_dict := {
+#		"random_rotation_offset": n.random_rotation_offset,
+#		"vertex": n.vertex,
+#		"normal": n.normal,
+#		"color": n.color,
+#		"direction": n.direction,
+#		"trees_on": n.trees_on,
+#		"tree_positions": n.tree_positions,
+#		"ocean": n.ocean,
+#		"vertex_cw": n.vertex_cw,
+#		"normal_cw": n.normal_cw,
+#		"color_cw": n.color_cw,
+#		"vertex_w": n.vertex_w,
+#		"normal_w": n.normal_w,
+#		"color_w": n.color_w,
+#		"planet_style": n.planet_style,
+#		"wall_vertex": n.wall_vertex,
+#		"wall_normal": n.wall_normal,
+#		"wall_color": n.wall_color,
+#		"offset": n.offset,
+#		"lat": n.lat,
+#		"lon": n.lon,
+#		"orient_upright": n.random_rotation_offset,
+#		"circle_idx": n.circle_idx,
+#		"idx": n.idx,
+#	}
+

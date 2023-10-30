@@ -2,7 +2,6 @@ extends Node3D
 
 signal found_you(idx)
 signal picked_you(idx)
-signal wheel_rot(rot)
 signal click(speed)
 signal ufo_at_angle(angle, pos)
 
@@ -85,6 +84,8 @@ var light_toggle_complete := false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	global.piece_placed.connect(_on_global_piece_placed)
+	global.ufo_done_signal.connect(_on_global_ufo_done_signal)
 	piece_rotation = global.rotation
 	camera_3d.position.z = cam_dist
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -135,7 +136,7 @@ func _process(delta):
 				rotating = true
 				toggle_wheel('down')
 				wheelmesh.rotation.z += dx_final
-				emit_signal('wheel_rot', wheelmesh.rotation.z)
+				global.wheel_rot =  wheelmesh.rotation.z
 			else:
 				dx = 0.0
 			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
@@ -213,7 +214,8 @@ func _on_take_me_home(idx):
 			p.back_from_space = true
 			piece_in_space = false
 
-func _on_universe_piece_placed_2(cidx):
+
+func _on_global_piece_placed(cidx):
 	if global.rotation:
 		wheel_moving = true
 	disable_click = true
@@ -222,6 +224,7 @@ func _on_universe_piece_placed_2(cidx):
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	rotosnaps = len(pieces)
 	if rotosnaps == 0:
+		global.puzzle_finished = true
 		puzzle_done = true
 		print('done')
 	else:
@@ -241,7 +244,8 @@ func _on_universe_piece_placed_2(cidx):
 			#p.rearrange_offset = p.circle_idx - cidx
 			p.arrange(true)
 
-func _resetti_spaghetti():
+
+func _resetti_spaghetti(set_rot := true):
 	ufo_come_drop_off = false
 	ufo_orbit.spin = false
 	ufo_orbit.past_halfway = false
@@ -254,13 +258,15 @@ func _resetti_spaghetti():
 	piecelocs = {}
 	snaps = []
 	snap_to = 0.0
-	piece_rotation = global.rotation
+	if set_rot:
+		piece_rotation = global.rotation
 	h_sensitivity = og_sens
 	camera_3d.position.y = 0.0
 	wheel.position.y = 12.0
 	wheel_moving = false
 	wheel_up = true
-	
+
+
 func toggle_wheel(direction := 'down'):
 	if wheel_moving:
 		if direction == 'down':
@@ -281,6 +287,7 @@ func toggle_wheel(direction := 'down'):
 				wheel_moving = false
 				wheel_up = true
 
+
 func _on_picked_you(idx):
 	dx = 0.0
 	dx_final = 0.0
@@ -288,7 +295,8 @@ func _on_picked_you(idx):
 	if global.rotation:
 		wheel_moving = true
 
-func _on_universe_ufo_done_2():
+
+func _on_global_ufo_done_signal():
 	#pieces_ready = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	rotosnaps = len(pieces)
@@ -323,8 +331,14 @@ func _on_universe_ufo_done_2():
 	ufo.drop_off_cam_pos = camera_3d.position
 	ufo_orbit._connect_to_UFO()
 
+
 func _on_generate_button_up():
 	_resetti_spaghetti()
+
+
+func _on_resume_button_up():
+	_resetti_spaghetti(false)
+
 
 func _on_ufo_take_me_home():
 	var pieces = get_tree().get_nodes_in_group('pieces')
