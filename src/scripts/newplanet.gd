@@ -6,6 +6,7 @@ extends PopupPanel
 @onready var piece_rotation_button = $MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton
 @onready var generate = $MarginContainer/VBoxContainer/Generate
 @onready var resume = $MarginContainer/VBoxContainer/Resume
+@onready var timer = $Timer
 
 var global
 var total_pieces := 30
@@ -83,9 +84,13 @@ func _on_planet_type_option_button_item_selected(index):
 
 
 func _on_global_ready_to_start_signal():
-	generate.disabled = false
-	resume.disabled = !global.unfinished_puzzle_exists
+	timer.start()
 
 
 func _on_global_puzzle_done():
 	resume.disabled = true
+
+
+func _on_timer_timeout():
+	generate.disabled = false
+	resume.disabled = !global.unfinished_puzzle_exists

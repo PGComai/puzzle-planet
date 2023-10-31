@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=53 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -8,11 +8,13 @@
 [ext_resource type="Script" path="res://scripts/DebugLabel.gd" id="5_aeyxo"]
 [ext_resource type="Script" path="res://scripts/UniverseRect.gd" id="5_an6gj"]
 [ext_resource type="Script" path="res://scripts/Ghost.gd" id="5_guaq5"]
+[ext_resource type="Script" path="res://scripts/splitscreen.gd" id="6_dj3jp"]
 [ext_resource type="Script" path="res://scripts/newplanet.gd" id="6_ql4kd"]
 [ext_resource type="StyleBox" uid="uid://dd6v7dxm3exou" path="res://tex/NewPlanetPanelBox.tres" id="6_qwkga"]
 [ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
 [ext_resource type="Script" path="res://scripts/RotoWindow.gd" id="8_827gc"]
 [ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
+[ext_resource type="Script" path="res://scripts/MenuButton.gd" id="9_xhe56"]
 [ext_resource type="Theme" uid="uid://ccaso356i774l" path="res://tex/toggle_buttons.tres" id="9_yt3th"]
 [ext_resource type="Script" path="res://scenes/PieceRotationButton.gd" id="10_4fljv"]
 [ext_resource type="Script" path="res://scripts/HowToPlayPopup.gd" id="10_kjmqd"]
@@ -22,6 +24,7 @@
 [ext_resource type="Script" path="res://scripts/VibrateButton.gd" id="13_0f10h"]
 [ext_resource type="Script" path="res://scripts/MusicButton.gd" id="13_g8tjt"]
 [ext_resource type="Script" path="res://scripts/DebugButton.gd" id="15_yt5gt"]
+[ext_resource type="Script" path="res://scripts/StartGame.gd" id="25_n04pg"]
 
 [sub_resource type="Environment" id="Environment_ytaxl"]
 tonemap_mode = 2
@@ -239,8 +242,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_yjwgs")
 
 [node name="VSplitContainer" type="VSplitContainer" parent="MainBG"]
 layout_mode = 2
-split_offset = 1010
+split_offset = 1500
 dragger_visibility = 1
+script = ExtResource("6_dj3jp")
 
 [node name="UniverseRect" type="TextureRect" parent="MainBG/VSplitContainer"]
 texture_filter = 1
@@ -294,6 +298,7 @@ wait_time = 2.0
 one_shot = true
 
 [node name="MenuButton" type="Button" parent="."]
+visible = false
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 7
@@ -318,16 +323,17 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_ogvk4")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_nfqoi")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_oaw3r")
 text = "MENU"
+script = ExtResource("9_xhe56")
 
 [node name="PopupMenu" type="PopupMenu" parent="MenuButton"]
 transparent_bg = true
 canvas_item_default_texture_filter = 0
-size = Vector2i(657, 417)
+size = Vector2i(652, 417)
 theme_override_constants/v_separation = 10
 theme_override_font_sizes/font_size = 70
 theme_override_styles/panel = ExtResource("6_qwkga")
 theme_override_styles/separator = SubResource("StyleBoxEmpty_kjmdu")
-item_count = 4
+item_count = 5
 item_0/text = "New Planet"
 item_0/id = 0
 item_1/text = "Settings"
@@ -337,6 +343,8 @@ item_2/id = 2
 item_2/disabled = true
 item_3/text = "Back"
 item_3/id = 3
+item_4/text = "Save planet"
+item_4/id = 4
 script = ExtResource("4_esiwd")
 
 [node name="NewPlanetPopup" type="PopupPanel" parent="."]
@@ -522,6 +530,10 @@ text = "Cancel"
 layout_mode = 2
 theme_override_constants/separation = 80
 theme_override_styles/separator = SubResource("StyleBoxEmpty_oq1p0")
+
+[node name="Timer" type="Timer" parent="NewPlanetPopup"]
+wait_time = 0.1
+one_shot = true
 
 [node name="SettingsPopup" type="PopupPanel" parent="."]
 canvas_item_default_texture_filter = 0
@@ -815,6 +827,28 @@ script = ExtResource("10_qmupj")
 [node name="ProgressFullTimer" type="Timer" parent="ProgressPanelContainer/MarginContainer/PlanetProgress"]
 one_shot = true
 
+[node name="StartGame" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -255.0
+offset_top = -180.0
+offset_right = 255.0
+offset_bottom = -115.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 60
+theme_override_styles/normal = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_7l88b")
+theme_override_styles/focus = SubResource("StyleBoxFlat_7l88b")
+text = "Start Game"
+script = ExtResource("25_n04pg")
+
 [connection signal="piece_added" from="SubViewportUniverse/Universe" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_universe_piece_added"]
 [connection signal="gui_input" from="MainBG/VSplitContainer/UniverseRect" to="SubViewportUniverse/Universe" method="_on_universe_rect_gui_input"]
 [connection signal="timeout" from="MainBG/VSplitContainer/UniverseRect/Timer" to="MainBG/VSplitContainer/UniverseRect" method="_on_timer_timeout"]
@@ -840,6 +874,7 @@ one_shot = true
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Resume" to="NewPlanetPopup" method="_on_resume_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Resume" to="StartPuzzle" method="_on_resume_button_up"]
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Cancel" to="NewPlanetPopup" method="_on_cancel_button_up"]
+[connection signal="timeout" from="NewPlanetPopup/Timer" to="NewPlanetPopup" method="_on_timer_timeout"]
 [connection signal="visibility_changed" from="SettingsPopup" to="SettingsPopup" method="_on_visibility_changed"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/GraphicsHBox/GraphicsCheckButton" to="SettingsPopup" method="_on_graphics_check_button_toggled"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/SoundHBox/SoundButton" to="SettingsPopup" method="_on_sound_button_toggled"]
@@ -855,3 +890,4 @@ one_shot = true
 [connection signal="button_up" from="StartPuzzle" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_start_puzzle_button_up"]
 [connection signal="timeout" from="StartPuzzle/Timer" to="StartPuzzle" method="_on_timer_timeout"]
 [connection signal="timeout" from="ProgressPanelContainer/MarginContainer/PlanetProgress/ProgressFullTimer" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_progress_full_timer_timeout"]
+[connection signal="button_up" from="StartGame" to="StartGame" method="_on_button_up"]

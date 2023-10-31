@@ -45,6 +45,7 @@ func _ready():
 	global.ufo_time_signal.connect(_on_global_ufo_time_signal)
 	visible = false
 
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if showtime:
@@ -82,7 +83,7 @@ func _process(delta):
 			browser_drop_off_begin = false
 			drop_off_enter_circle_checkpoint = false
 			drop_off_exit_circle_checkpoint = false
-			start_drop_off_pos = -drop_off_cam_pos.limit_length(drop_off_cam_pos.length() - 1.3) + Vector3(0.0, 0.2, 0.0)
+			start_drop_off_pos = -drop_off_cam_pos.limit_length(drop_off_cam_pos.length() - 1.3) + Vector3(0.01, 0.2, 0.0)
 			visible = true
 		elif !browser_drop_off_end:
 			_drop_off()
@@ -97,12 +98,13 @@ func _process(delta):
 				drop_off_exit_circle_checkpoint = false
 				visible = false
 
+
 func _drop_off():
 	if !drop_off_enter_circle_checkpoint:
 		position = lerp(position, start_drop_off_pos, 0.1)
 		var loo = start_drop_off_pos.normalized() * 100.0
 		var look = Vector3(loo.x, -20.0, loo.z)
-		look_at(look, Vector3.UP)
+		look_at(look, Vector3.UP) ### sometimes gives error on loaded puzzles with few pieces
 		if position.is_equal_approx(start_drop_off_pos):
 			drop_off_enter_circle_checkpoint = true
 			emit_signal('spinny_time')
@@ -110,6 +112,7 @@ func _drop_off():
 		position = lerp(position, Vector3(0.0, 0.2, 0.0), 0.1)
 		if position.is_equal_approx(Vector3(0.0, 0.2, 0.0)):
 			browser_drop_off_end = true
+
 
 func _run_journey(delta):
 	if next_stop > num_stops - 1:
@@ -139,6 +142,7 @@ func _run_journey(delta):
 					Input.vibrate_handheld(5)
 				beam_done = false
 				abduct_signal_sent = false
+
 
 func _beam(delta, multi := 1.0):
 	beam_timer += delta

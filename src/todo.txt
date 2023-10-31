@@ -1,5 +1,4 @@
 HIGH PRIORITY:
-- add automatic puzzle saving
 - upper limit on number of trees/other decor
 - finalize sounds and music
 - main menu
@@ -7,6 +6,7 @@ HIGH PRIORITY:
 - figure out planet size
 - icon art
 - adjust ufo speed with amount of pieces it drops off
+- how to play
 
 LOW PRIORITY:
 - adjust ufo height per planet
@@ -43,3 +43,4 @@ NAMES:
 - Puzzleverse
 - Puzzle Planetarium
 - GeoPuzzle
+- Star Puzzle

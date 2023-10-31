@@ -20,6 +20,7 @@ func _on_global_menu_open_signal(open):
 	if open:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		browser_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		timer.stop()
 	else:
 		timer.start()
 

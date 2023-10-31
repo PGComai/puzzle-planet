@@ -53,6 +53,7 @@ var last_rot_v_tick := 0.0
 func _ready():
 	global = get_node('/root/Global')
 	global.drawing_mode_changed.connect(_on_global_drawing_mode_changed)
+	global.redo_atmosphere.connect(_on_global_redo_atmosphere)
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	#h = sub_viewport.size.y
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -84,7 +85,11 @@ func _process(delta):
 				dy_final = fling_strength
 			fling = false
 			limit_pull = 0.0
-		dx_final = lerp(dx_final, 0.0, 0.05)
+		if not global.title_screen:
+			dx_final = lerp(dx_final, 0.0, 0.05)
+		else:
+			dx_final = lerp(dx_final, 0.001, 0.05)
+			rot_v = lerp(rot_v, 0.0, 0.05)
 		dy_final = lerp(dy_final, 0.0, 0.05)
 	else:
 		if abs(dx) < 0.01:
@@ -122,19 +127,11 @@ func _process(delta):
 		rot_v = clamp(rot_v, v_min, PI/2)
 	else:
 		rot_v = clamp(rot_v, v_min, v_max)
-		
-#	var rot_h_tick = fmod(abs(rot_h), PI/4.0)
-#	var rot_v_tick = fmod(abs(rot_v), PI/4.0)
-#	if (rot_h_tick >= PI/8.0 and last_rot_h_tick < PI/8.0) or (rot_h_tick <= PI/8.0 and last_rot_h_tick > PI/8.0):
-#		Input.vibrate_handheld(3)
-#	elif (rot_v_tick >= PI/8.0 and last_rot_v_tick < PI/8.0) or (rot_v_tick <= PI/8.0 and last_rot_v_tick > PI/8.0):
-#		Input.vibrate_handheld(3)
-#	last_rot_h_tick = rot_h_tick
-#	last_rot_v_tick = rot_v_tick
-
+	
 	$h.rotation.y = rot_h
 	$h/v.rotation.x = rot_v
-	
+
+
 func _atmo_change():
 	if global.generate_type == 3:
 		atmosphere.visible = true
@@ -177,7 +174,6 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
 
 
-
 func _on_global_drawing_mode_changed(value):
 	pass
 
@@ -196,19 +192,18 @@ func _on_generate_button_up():
 	mesh_maker.queue_free()
 	for n in get_tree().get_nodes_in_group('pieces'):
 		n.queue_free()
+	for n in get_tree().get_nodes_in_group("title_pieces"):
+		n.queue_free()
 	for n in pieces.get_children():
 		n.queue_free()
 	if global.generate_type != generate_type:
 		_atmo_change()
-	
 	var nmm = new_mesh_maker.instantiate()
 	nmm.build_planet = true
 	mesh_maker = nmm ### why did i do it like this? why does this work?
 	ready_for_nmm = true
 	last_type = generate_type
 	generate_type = global.generate_type
-	#var error = get_tree().reload_current_scene()
-	#print(error)
 
 
 func _on_resume_button_up():
@@ -224,6 +219,8 @@ func _on_resume_button_up():
 	roto_window.visible = false
 	for n in get_tree().get_nodes_in_group('pieces'):
 		n.queue_free()
+	for n in get_tree().get_nodes_in_group("title_pieces"):
+		n.queue_free()
 	for n in pieces.get_children():
 		n.queue_free()
 	global._load_saved_puzzle()
@@ -233,9 +230,11 @@ func _on_ufo_ufo_take_me_home():
 	var ufo = get_tree().get_first_node_in_group('ufo')
 	ufo.reparent(self, false)
 
+
 func _on_pieces_child_entered_tree(node):
 	if node.get_parent() == pieces:
 		emit_signal("piece_added")
+
 
 func _on_universe_rect_gui_input(event):
 	if event is InputEventScreenDrag:
@@ -279,3 +278,7 @@ func _on_universe_rect_gui_input(event):
 				if global.sound:
 					error_sound.play()
 				fling = true
+
+
+func _on_global_redo_atmosphere():
+	_atmo_change()

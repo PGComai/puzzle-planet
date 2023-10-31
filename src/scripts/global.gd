@@ -16,6 +16,8 @@ signal ufo_abducting_signal(info)
 signal ufo_abduction_done_signal
 signal puzzle_done
 signal loaded_pieces_ready(pieces)
+signal redo_atmosphere
+signal title_screen_signal(status)
 
 var generate_type := 3
 var pieces_at_start := 15
@@ -109,6 +111,10 @@ var ufo_abduction_done := false:
 			emit_signal("ufo_abduction_done_signal")
 var piece_tracker: Dictionary
 var unfinished_puzzle_exists := false
+var title_screen := true:
+	set(value):
+		title_screen = value
+		emit_signal("title_screen_signal", value)
 
 var save_data: FileAccess
 var save_preferences: FileAccess
@@ -116,7 +122,8 @@ var save_preferences: FileAccess
 var preferences_dict: Dictionary
 var node_data := {}
 var current_puzzle_was_loaded := false
-
+var title_planet_resource := preload("res://planets/title_planet_resource.tres")
+var title_planet: Resource
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -145,6 +152,7 @@ func _ready():
 		_read_preferences_dict()
 	preferences_have_been_read = true
 	RenderingServer.global_shader_parameter_set('ez_mantle_effect', 0.0)
+	_load_planet_for_title()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -164,31 +172,6 @@ func _process(delta):
 
 
 func _save_puzzle():
-	### IMPORTANT VARIABLES FOR MESH CONSTRUCTION ###
-		# random_rotation_offset
-		# vertex
-		# normal
-		# color
-		# direction
-		# trees_on
-		# tree_positions
-		# ocean
-		# vertex_cw
-		# normal_cw
-		# color_cw
-		# vertex_w
-		# normal_w
-		# color_w
-		# planet_style
-		# wall_vertex
-		# wall_normal
-		# wall_color
-		# offset
-		# lat
-		# lon
-		# orient_upright
-		# circle_idx
-		# idx
 	piece_tracker = {}
 	var saving_nodes = get_tree().get_nodes_in_group("persist")
 	node_data = {}
@@ -238,7 +221,7 @@ func get_node_data(n: Node) -> Dictionary:
 		"offset": n.offset,
 		"lat": n.lat,
 		"lon": n.lon,
-		"orient_upright": n.random_rotation_offset,
+		"orient_upright": n.orient_upright,
 		"circle_idx": n.circle_idx,
 		"idx": n.idx,
 	}
@@ -303,6 +286,7 @@ func _load_saved_puzzle():
 #	for lp in loaded_pieces:
 #		if lp.is_in_group("pieces") and not pieces_tracked[lp.idx]:
 #			lp.remove_from_group("pieces")
+	emit_signal("redo_atmosphere")
 	emit_signal("loaded_pieces_ready", [pieces_tracked, loaded_pieces_data])
 
 
@@ -334,3 +318,25 @@ func _read_preferences_dict():
 	print("reading save_preferences file")
 	print(preferences_dict)
 	save_preferences.close()
+
+
+func _save_planet_for_title():
+	var saving_nodes = get_tree().get_nodes_in_group("persist")
+	if saving_nodes.size() > 0:
+		node_data = {}
+		print("saving %s nodes for title" % saving_nodes.size())
+		for n in saving_nodes:
+			node_data[n.idx] = get_node_data(n)
+	var ntp := TitlePlanet.new()
+	ntp.node_data = node_data
+	var files := DirAccess.get_files_at("res://planets/")
+	print("%s saved planets exist" % (files.size() - 1))
+	var res_name := "planet%s.res" % files.size()
+	ResourceSaver.save(ntp, "res://planets/%s" % res_name)
+
+
+func _load_planet_for_title():
+	var files := Array(DirAccess.get_files_at("res://planets/"))
+	files.erase("title_planet_resource.tres")
+	print(files)
+	title_planet = ResourceLoader.load("res://planets/%s" % files.pick_random())

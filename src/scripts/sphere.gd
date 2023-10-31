@@ -207,6 +207,8 @@ func _ready():
 	noise3d.seed = randi_range(0, 100000)
 	_set_parameters()
 	thread = Thread.new()
+	if global.title_screen:
+		_load_title_planet()
 
 func _process(delta):
 	var result = false
@@ -1928,3 +1930,36 @@ func _on_global_loaded_pieces_ready(data):
 #		"idx": n.idx,
 #	}
 
+func _load_title_planet():
+	var node_data: Dictionary = global.title_planet.node_data
+	var new_circle_idx := 0
+	for i in node_data.keys():
+		var newpiece = piece.instantiate()
+		var piece_dict = node_data[i]
+		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
+		newpiece.vertex = piece_dict["vertex"]
+		newpiece.normal = piece_dict["normal"]
+		newpiece.color = piece_dict["color"]
+		newpiece.direction = piece_dict["direction"]
+		newpiece.trees_on = piece_dict["trees_on"]
+		newpiece.tree_positions = piece_dict["tree_positions"]
+		newpiece.ocean = piece_dict["ocean"]
+		newpiece.vertex_cw = piece_dict["vertex_cw"]
+		newpiece.normal_cw = piece_dict["normal_cw"]
+		newpiece.color_cw = piece_dict["color_cw"]
+		newpiece.vertex_w = piece_dict["vertex_w"]
+		newpiece.normal_w = piece_dict["normal_w"]
+		newpiece.color_w = piece_dict["color_w"]
+		newpiece.planet_style = piece_dict["planet_style"]
+		newpiece.wall_vertex = piece_dict["wall_vertex"]
+		newpiece.wall_normal = piece_dict["wall_normal"]
+		newpiece.wall_color = piece_dict["wall_color"]
+		newpiece.offset = piece_dict["offset"]
+		newpiece.lat = piece_dict["lat"]
+		newpiece.lon = piece_dict["lon"]
+		newpiece.orient_upright = piece_dict["orient_upright"]
+		newpiece.idx = piece_dict["idx"]
+		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
+		newpiece.remove_from_group("pieces")
+		newpiece.add_to_group("title_pieces")
+		pieces.add_child(newpiece)

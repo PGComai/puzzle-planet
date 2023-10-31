@@ -1,0 +1,33 @@
+extends VSplitContainer
+
+const DEFAULT_SPLIT := 1010
+const TITLE_SPLIT := 1500
+
+var global: Node
+var title_up := true
+var transition_complete := true
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	global = get_node("/root/Global")
+	global.title_screen_signal.connect(_on_global_title_screen_signal)
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	if not transition_complete:
+		if not title_up:
+			split_offset = lerp(split_offset, DEFAULT_SPLIT, 0.05)
+			if is_equal_approx(split_offset, DEFAULT_SPLIT):
+				split_offset = DEFAULT_SPLIT
+				transition_complete = true
+		else:
+			split_offset = lerp(split_offset, TITLE_SPLIT, 0.05)
+			if is_equal_approx(split_offset, TITLE_SPLIT):
+				split_offset = TITLE_SPLIT
+				transition_complete = true
+
+
+func _on_global_title_screen_signal(status):
+	title_up = status
+	transition_complete = false
