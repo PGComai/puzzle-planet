@@ -318,18 +318,19 @@ func _on_global_ufo_done_signal():
 		p.take_me_home.connect(_on_take_me_home)
 		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
 		p.drop_off_original_dist = cam_dist
-		p.visible = false
+		p.visible = true
 		p.arrange()
-	ufo_come_drop_off = true
-	var ufo = get_tree().get_first_node_in_group('ufo')
-	ufo.reparent(ufo_orbit, false)
-	if !ufo.is_connected('ufo_take_me_home', _on_ufo_take_me_home):
-		ufo.ufo_take_me_home.connect(_on_ufo_take_me_home)
-	ufo.in_browser = true
-	ufo.browser_drop_off_begin = true
-	ufo.drop_off_cam_dist = cam_dist
-	ufo.drop_off_cam_pos = camera_3d.position
-	ufo_orbit._connect_to_UFO()
+	pieces_ready = true
+#	ufo_come_drop_off = true
+#	var ufo = get_tree().get_first_node_in_group('ufo')
+#	ufo.reparent(ufo_orbit, false)
+#	if !ufo.is_connected('ufo_take_me_home', _on_ufo_take_me_home):
+#		ufo.ufo_take_me_home.connect(_on_ufo_take_me_home)
+#	ufo.in_browser = true
+#	ufo.browser_drop_off_begin = true
+#	ufo.drop_off_cam_dist = cam_dist
+#	ufo.drop_off_cam_pos = camera_3d.position
+#	ufo_orbit._connect_to_UFO()
 
 
 func _on_generate_button_up():

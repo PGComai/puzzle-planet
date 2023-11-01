@@ -234,8 +234,8 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if !placed:
-		if !drop_off_finished:
-			_dropped_off_animation()
+#		if !drop_off_finished:
+#			_dropped_off_animation()
 		if being_abducted:
 			_abducted_animation()
 		if repositioning:
@@ -332,6 +332,7 @@ func arrange(re = false):
 	if not orient_upright and not re:
 		self.rotate(good_pos.normalized(), random_rotation_offset)
 	emit_signal("i_am_here",idx ,snappedf(angle, 0.01))
+	drop_off_finished = true
 
 
 func _on_found_you(_idx):
@@ -403,6 +404,9 @@ func _abducted_animation():
 		position = Vector3.ZERO
 		scale = Vector3(1.0, 1.0, 1.0)
 		being_abducted = false
+		water.material_overlay.emission_enabled = false
+		themesh.material_overlay.emission_enabled = false
+		walls.material_overlay.emission_enabled = false
 
 
 func _on_global_ufo_abducting_signal(info):

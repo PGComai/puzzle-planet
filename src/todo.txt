@@ -41,5 +41,3 @@ NAMES:
 - Puzzlenaut
 - Puzzleverse
 - Puzzle Planetarium
-- GeoPuzzle
-- Star Puzzle

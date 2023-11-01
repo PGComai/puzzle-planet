@@ -13,7 +13,7 @@ func _ready():
 	global = get_node("/root/Global")
 	global.title_screen_signal.connect(_on_global_title_screen_signal)
 	TITLE_SPLIT = ux.size.y - 430
-	DEFAULT_SPLIT = ux.size.y - 560
+	DEFAULT_SPLIT = min(ux.size.y - 560, ux.size.y / 2)
 	split_offset = TITLE_SPLIT
 
 

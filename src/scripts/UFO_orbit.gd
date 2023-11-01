@@ -19,10 +19,11 @@ func _process(delta):
 		_spin()
 
 func _connect_to_UFO():
-	if get_child_count() > 0:
-		ufo = get_child(0)
-		if !ufo.is_connected('spinny_time', _on_UFO_spinny_time):
-			ufo.spinny_time.connect(_on_UFO_spinny_time)
+#	if get_child_count() > 0:
+#		ufo = get_child(0)
+	ufo = get_tree().get_first_node_in_group("ufo")
+	if !ufo.is_connected('spinny_time', _on_UFO_spinny_time):
+		ufo.spinny_time.connect(_on_UFO_spinny_time)
 
 func _on_UFO_spinny_time():
 	spin = true

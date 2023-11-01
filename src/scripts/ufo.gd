@@ -79,6 +79,7 @@ func _process(delta):
 		look_at(Vector3.ZERO, Vector3.UP)
 	elif in_browser:
 		if browser_drop_off_begin:
+			print("beginning browser drop off")
 			position = Vector3(0.0, 12.0, 0.0)
 			browser_drop_off_begin = false
 			drop_off_enter_circle_checkpoint = false
@@ -97,9 +98,11 @@ func _process(delta):
 				drop_off_enter_circle_checkpoint = false
 				drop_off_exit_circle_checkpoint = false
 				visible = false
+				print("browser drop off done")
 
 
 func _drop_off():
+	print("dropping off")
 	if !drop_off_enter_circle_checkpoint:
 		position = lerp(position, start_drop_off_pos, 0.1)
 		var loo = start_drop_off_pos.normalized() * 100.0
