@@ -151,6 +151,7 @@ func _ready():
 	if not FileAccess.file_exists("user://save_data.dat"):
 		print("no save_data file exists")
 		save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
+		save_data.store_var(false)
 		save_data.close()
 	else:
 		save_data = FileAccess.open("user://save_data.dat", FileAccess.READ)
