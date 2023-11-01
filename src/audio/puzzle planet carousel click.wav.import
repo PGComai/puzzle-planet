@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dpsh6dap1paog"
+path="res://.godot/imported/puzzle planet carousel click.wav-892c788d1ba9ec3dff9c65464509da14.sample"
+
+[deps]
+
+source_file="res://audio/puzzle planet carousel click.wav"
+dest_files=["res://.godot/imported/puzzle planet carousel click.wav-892c788d1ba9ec3dff9c65464509da14.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0

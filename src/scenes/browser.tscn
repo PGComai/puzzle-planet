@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/browser.gd" id="1_n1lns"]
 [ext_resource type="ArrayMesh" uid="uid://jc8722fqtglo" path="res://models/wheel.obj" id="2_5ymt6"]
-[ext_resource type="AudioStream" uid="uid://beohik0eoofjh" path="res://audio/puzzle planet carousel click.ogg" id="3_hn560"]
+[ext_resource type="AudioStream" uid="uid://dpsh6dap1paog" path="res://audio/puzzle planet carousel click.wav" id="3_6n0dn"]
 [ext_resource type="Script" path="res://scripts/clicker.gd" id="4_v12kr"]
 [ext_resource type="Script" path="res://scripts/UFO_orbit.gd" id="5_cocbr"]
 
@@ -74,7 +74,7 @@ skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_hstdb")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("3_hn560")
+stream = ExtResource("3_6n0dn")
 script = ExtResource("4_v12kr")
 
 [node name="UFO_orbit" type="Node3D" parent="."]

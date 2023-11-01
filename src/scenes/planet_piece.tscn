@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
-[ext_resource type="AudioStream" uid="uid://cpgjx21snc68b" path="res://audio/ufo-dropoff-one.ogg" id="3_ley4f"]
+[ext_resource type="AudioStream" uid="uid://d0dcs5p5din0n" path="res://audio/ufo-abduct-one.wav" id="3_p3cpx"]
 [ext_resource type="Script" path="res://scripts/DropOffSound.gd" id="4_wo60a"]
 
 [sub_resource type="Curve" id="Curve_wdrif"]
@@ -116,7 +116,7 @@ visible = false
 mesh = SubResource("SphereMesh_gl2kt")
 
 [node name="DropOffSound" type="AudioStreamPlayer3D" parent="."]
-stream = ExtResource("3_ley4f")
+stream = ExtResource("3_p3cpx")
 volume_db = -1.586
 unit_size = 2.23
 max_db = 1.0

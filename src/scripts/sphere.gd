@@ -178,7 +178,6 @@ var neptune_turbulence := 0.05
 
 var tree_noise := preload("res://tex/tree_noise.tres")
 
-@onready var audio_stream_player = $"../AudioStreamPlayer"
 @onready var rings = $"../Rings"
 @onready var lava_lamp = $"../Lava Lamp"
 @onready var piece_target = $"../h/v/Camera3D/piece_target"

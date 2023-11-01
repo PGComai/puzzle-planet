@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bk4udtvrlidf3"
+path="res://.godot/imported/Error sound 1.wav-93b37550749f4440458577e3cf906d78.sample"
+
+[deps]
+
+source_file="res://audio/Error sound 1.wav"
+dest_files=["res://.godot/imported/Error sound 1.wav-93b37550749f4440458577e3cf906d78.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0
