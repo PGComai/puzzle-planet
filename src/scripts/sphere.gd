@@ -176,6 +176,8 @@ var saturn_turbulence := 0.05
 var uranus_turbulence := 0.05
 var neptune_turbulence := 0.05
 
+var tree_noise := preload("res://tex/tree_noise.tres")
+
 @onready var audio_stream_player = $"../AudioStreamPlayer"
 @onready var rings = $"../Rings"
 @onready var lava_lamp = $"../Lava Lamp"
@@ -205,6 +207,9 @@ func _ready():
 	colornoise.seed = randi_range(0, 100000)
 	colornoise2.seed = randi_range(0, 100000)
 	noise3d.seed = randi_range(0, 100000)
+	noise3d.seed = randi_range(0, 100000)
+	tree_noise.seed = randi_range(0, 100000)
+	
 	_set_parameters()
 	thread = Thread.new()
 	if global.title_screen:
@@ -1152,12 +1157,12 @@ func _sub_triangle(
 		
 		if too_far_north and randfn(0.0, 1.0) > 2.0:
 			too_far_north = false
-		
+		var fertilizer = clamp(tree_noise.get_noise_3dv(pl.get_center()), 0.0, 1.0)
 #		if n.dot(pl.get_center().normalized()) > -0.5:
 #			too_far_north = true
-		
+		#print(fertilizer)
 		# plant trees
-		if randfn(0.0, 1.0) > 1.5 and not too_far_north and planet_style == 3:
+		if randfn(0.0, 0.7) > (1.5 - fertilizer) and not too_far_north and planet_style == 3:
 			var pts = [p1, p2, p3]
 			var ctr = pl.get_center()
 			var treespot = pts.pick_random().lerp(pts.pick_random(), randf_range(0.0, 1.0))

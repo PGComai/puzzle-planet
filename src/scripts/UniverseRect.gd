@@ -9,6 +9,7 @@ var global: Node
 func _ready():
 	global = get_node("/root/Global")
 	global.menu_open_signal.connect(_on_global_menu_open_signal)
+	global.tablet_mode_signal.connect(_on_global_tablet_mode_signal)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -28,3 +29,10 @@ func _on_global_menu_open_signal(open):
 func _on_timer_timeout():
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	browser_rect.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
+func _on_global_tablet_mode_signal(yes: bool):
+	if yes:
+		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	else:
+		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED

@@ -21,6 +21,7 @@ signal title_screen_signal(status)
 signal stop_the_music
 signal pause_the_music
 signal play_the_music
+signal tablet_mode_signal(onoff)
 
 var generate_type := 3
 var atmo_type: int:
@@ -140,7 +141,10 @@ var current_puzzle_was_loaded := false
 var title_planet_resource := preload("res://planets/title_planet_resource.tres")
 var title_planet: Resource
 
-var viewport_rect_size: Vector2
+var tablet_mode := false:
+	set(value):
+		tablet_mode = value
+		emit_signal("tablet_mode_signal", value)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

@@ -257,6 +257,7 @@ script = ExtResource("6_dj3jp")
 [node name="UniverseRect" type="TextureRect" parent="MainBG/VSplitContainer"]
 texture_filter = 1
 layout_mode = 2
+size_flags_vertical = 4
 texture = SubResource("ViewportTexture_l2rlh")
 expand_mode = 4
 stretch_mode = 6

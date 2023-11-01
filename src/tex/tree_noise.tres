@@ -1,0 +1,10 @@
+[gd_resource type="FastNoiseLite" format=3 uid="uid://b8oj2p5lxccqt"]
+
+[resource]
+noise_type = 2
+frequency = 0.4344
+fractal_type = 2
+fractal_gain = 0.9
+fractal_weighted_strength = 1.0
+cellular_jitter = 1.025
+metadata/_preview_in_3d_space_ = true
