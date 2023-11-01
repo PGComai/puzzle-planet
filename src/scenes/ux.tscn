@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=57 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -25,6 +25,9 @@
 [ext_resource type="Script" path="res://scripts/MusicButton.gd" id="13_g8tjt"]
 [ext_resource type="Script" path="res://scripts/DebugButton.gd" id="15_yt5gt"]
 [ext_resource type="Script" path="res://scripts/StartGame.gd" id="25_n04pg"]
+[ext_resource type="AudioStream" uid="uid://dvfnrqw6dcraw" path="res://audio/placing pieces of planets intro.ogg" id="26_m7dch"]
+[ext_resource type="Script" path="res://scripts/MusicPlayer.gd" id="27_6vbsj"]
+[ext_resource type="Script" path="res://scripts/Resolution.gd" id="28_l7cvt"]
 
 [sub_resource type="Environment" id="Environment_ytaxl"]
 tonemap_mode = 2
@@ -135,6 +138,10 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.287295, 0.287295, 0.287295, 1)
 
+[sub_resource type="Curve" id="Curve_s4xei"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 3.24239, 0.0, 0, 0]
+point_count = 2
+
 [node name="UX" type="Control"]
 texture_filter = 1
 layout_mode = 3
@@ -242,7 +249,8 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_yjwgs")
 
 [node name="VSplitContainer" type="VSplitContainer" parent="MainBG"]
 layout_mode = 2
-split_offset = 1500
+theme_override_constants/separation = 0
+split_offset = 850
 dragger_visibility = 1
 script = ExtResource("6_dj3jp")
 
@@ -250,6 +258,7 @@ script = ExtResource("6_dj3jp")
 texture_filter = 1
 layout_mode = 2
 texture = SubResource("ViewportTexture_l2rlh")
+expand_mode = 4
 stretch_mode = 6
 script = ExtResource("5_an6gj")
 
@@ -345,6 +354,7 @@ item_3/text = "Back"
 item_3/id = 3
 item_4/text = "Save planet"
 item_4/id = 4
+item_4/disabled = true
 script = ExtResource("4_esiwd")
 
 [node name="NewPlanetPopup" type="PopupPanel" parent="."]
@@ -849,7 +859,32 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_7l88b")
 text = "Start Game"
 script = ExtResource("25_n04pg")
 
+[node name="StartGameTimer" type="Timer" parent="StartGame"]
+wait_time = 0.5
+one_shot = true
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("26_m7dch")
+script = ExtResource("27_6vbsj")
+fade_curve = SubResource("Curve_s4xei")
+fade_time = 4.0
+
+[node name="Resolution" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -22.0
+offset_top = 213.0
+offset_right = 18.0
+offset_bottom = 264.0
+grow_horizontal = 2
+script = ExtResource("28_l7cvt")
+
+[connection signal="no_pitch_mod" from="SubViewportUniverse/Universe" to="MusicPlayer" method="_on_universe_no_pitch_mod"]
 [connection signal="piece_added" from="SubViewportUniverse/Universe" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_universe_piece_added"]
+[connection signal="rotation_music_multiplier" from="SubViewportUniverse/Universe" to="MusicPlayer" method="_on_universe_rotation_music_multiplier"]
 [connection signal="gui_input" from="MainBG/VSplitContainer/UniverseRect" to="SubViewportUniverse/Universe" method="_on_universe_rect_gui_input"]
 [connection signal="timeout" from="MainBG/VSplitContainer/UniverseRect/Timer" to="MainBG/VSplitContainer/UniverseRect" method="_on_timer_timeout"]
 [connection signal="gui_input" from="MainBG/VSplitContainer/BrowserRect" to="SubViewportBrowser/Browser" method="_on_browser_rect_gui_input"]
@@ -888,6 +923,9 @@ script = ExtResource("25_n04pg")
 [connection signal="button_up" from="SettingsPopup/MarginContainer/VBoxContainer/Close" to="SettingsPopup" method="_on_close_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="StartPuzzle" method="_on_button_up"]
 [connection signal="button_up" from="StartPuzzle" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_start_puzzle_button_up"]
+[connection signal="button_up" from="StartPuzzle" to="MusicPlayer" method="_on_start_puzzle_button_up"]
 [connection signal="timeout" from="StartPuzzle/Timer" to="StartPuzzle" method="_on_timer_timeout"]
 [connection signal="timeout" from="ProgressPanelContainer/MarginContainer/PlanetProgress/ProgressFullTimer" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_progress_full_timer_timeout"]
 [connection signal="button_up" from="StartGame" to="StartGame" method="_on_button_up"]
+[connection signal="timeout" from="StartGame/StartGameTimer" to="MenuButton/PopupMenu" method="_on_start_game_timer_timeout"]
+[connection signal="finished" from="MusicPlayer" to="MusicPlayer" method="_on_finished"]

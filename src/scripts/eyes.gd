@@ -1,6 +1,8 @@
 extends Node3D
 
 signal piece_added
+signal rotation_music_multiplier(multi)
+signal no_pitch_mod
 
 @export var h_sensitivity = 0.001
 @export var v_sensitivity = 0.001
@@ -35,8 +37,8 @@ var lower_limit_reached := false
 var limit_pull := 0.0
 var fling := false
 
-var generate_type := 1
-var last_type := 1
+#var generate_type := 1
+#var last_type := 1
 
 var dx := 0.0
 var dy := 0.0
@@ -58,9 +60,11 @@ func _ready():
 	#h = sub_viewport.size.y
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
 	#v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
-	RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
-	RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
-	generate_type = global.generate_type
+#	RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
+#	RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
+	#generate_type = global.generate_type
+	if global.title_screen:
+		_atmo_change()
 
 func _process(delta):
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
@@ -128,46 +132,53 @@ func _process(delta):
 	else:
 		rot_v = clamp(rot_v, v_min, v_max)
 	
+	if is_equal_approx(dx_final, 0.001):
+		emit_signal("no_pitch_mod")
+	else:
+		emit_signal("rotation_music_multiplier", dx_final - 0.001)
+	
 	$h.rotation.y = rot_h
 	$h/v.rotation.x = rot_v
 
 
 func _atmo_change():
-	if global.generate_type == 3:
+	var type = global.atmo_type
+	print("new atmosphere: %s" % type)
+	if type == 3:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
-	elif global.generate_type == 2:
+	elif type == 2:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('b89679'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('b89679'))
-	elif global.generate_type == 5:
+	elif type == 5:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 3.2)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('d4995a'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
-	elif global.generate_type == 4 or global.generate_type == 1:
+	elif type == 4 or type == 1:
 		atmosphere.visible = false
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('black'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('black'))
-	elif global.generate_type == 6:
+	elif type == 6:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
-	elif global.generate_type == 7:
+	elif type == 7:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
-	elif global.generate_type == 8 or global.generate_type == 9:
+	elif type == 8 or type == 9:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.3)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7a9cae'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7a9cae'))
-	elif global.generate_type == 10:
+	elif type == 10:
 		atmosphere.visible = true
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('81cfff'))
@@ -196,14 +207,14 @@ func _on_generate_button_up():
 		n.queue_free()
 	for n in pieces.get_children():
 		n.queue_free()
-	if global.generate_type != generate_type:
-		_atmo_change()
+	#if global.generate_type != generate_type:
+	_atmo_change()
 	var nmm = new_mesh_maker.instantiate()
 	nmm.build_planet = true
 	mesh_maker = nmm ### why did i do it like this? why does this work?
 	ready_for_nmm = true
-	last_type = generate_type
-	generate_type = global.generate_type
+	#last_type = generate_type
+	#generate_type = global.generate_type
 
 
 func _on_resume_button_up():

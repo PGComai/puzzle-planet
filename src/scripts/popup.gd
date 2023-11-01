@@ -1,12 +1,17 @@
 extends PopupMenu
 
 var global: Node
+@onready var resolution = $"../../Resolution"
+@onready var ux = $"../.."
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node("/root/Global")
-	size.x = get_tree().root.size.x
-	position.y = get_tree().root.size.y - size.y
+	var sz = ux.size
+	size.x = sz.x
+	print(sz)
+	position.y = sz.y - size.y
+	resolution.text = str(position)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -28,3 +33,7 @@ func _on_menu_button_pressed():
 
 func _on_visibility_changed():
 	global.menu_open = visible
+
+
+func _on_start_game_timer_timeout():
+	visible = true

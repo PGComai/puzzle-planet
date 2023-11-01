@@ -3,6 +3,7 @@ extends Resource
 class_name TitlePlanet
 
 @export var node_data: Dictionary
+@export var planet_style: int
 
 #var random_rotation_offset: float
 #var vertex: PackedVector3Array

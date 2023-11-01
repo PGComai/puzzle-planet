@@ -1,16 +1,20 @@
 extends VSplitContainer
 
-const DEFAULT_SPLIT := 1010
-const TITLE_SPLIT := 1500
+var DEFAULT_SPLIT := 720
+var TITLE_SPLIT := 850
 
 var global: Node
 var title_up := true
 var transition_complete := true
+@onready var ux = $"../.."
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node("/root/Global")
 	global.title_screen_signal.connect(_on_global_title_screen_signal)
+	TITLE_SPLIT = ux.size.y - 430
+	DEFAULT_SPLIT = ux.size.y - 560
+	split_offset = TITLE_SPLIT
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -18,8 +18,15 @@ signal puzzle_done
 signal loaded_pieces_ready(pieces)
 signal redo_atmosphere
 signal title_screen_signal(status)
+signal stop_the_music
+signal pause_the_music
+signal play_the_music
 
 var generate_type := 3
+var atmo_type: int:
+	set(value):
+		atmo_type = value
+		emit_signal("redo_atmosphere")
 var pieces_at_start := 15
 var total_pieces := 30
 var graphics_fancy := false
@@ -40,6 +47,10 @@ var music := true:
 		music = value
 		if preferences_have_been_read:
 			_write_preferences_dict()
+		if not value:
+			emit_signal("pause_the_music")
+		else:
+			emit_signal("play_the_music")
 var debugging := false
 var planet_height_for_ufo: float
 var pieces_placed_so_far := [0, 0]:
@@ -115,6 +126,10 @@ var title_screen := true:
 	set(value):
 		title_screen = value
 		emit_signal("title_screen_signal", value)
+var stop_music := false:
+	set(value):
+		if value:
+			emit_signal("stop_the_music")
 
 var save_data: FileAccess
 var save_preferences: FileAccess
@@ -124,6 +139,8 @@ var node_data := {}
 var current_puzzle_was_loaded := false
 var title_planet_resource := preload("res://planets/title_planet_resource.tres")
 var title_planet: Resource
+
+var viewport_rect_size: Vector2
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -286,7 +303,7 @@ func _load_saved_puzzle():
 #	for lp in loaded_pieces:
 #		if lp.is_in_group("pieces") and not pieces_tracked[lp.idx]:
 #			lp.remove_from_group("pieces")
-	emit_signal("redo_atmosphere")
+	atmo_type = generate_type
 	emit_signal("loaded_pieces_ready", [pieces_tracked, loaded_pieces_data])
 
 
@@ -329,6 +346,7 @@ func _save_planet_for_title():
 			node_data[n.idx] = get_node_data(n)
 	var ntp := TitlePlanet.new()
 	ntp.node_data = node_data
+	ntp.planet_style = generate_type
 	var files := DirAccess.get_files_at("res://planets/")
 	print("%s saved planets exist" % (files.size() - 1))
 	var res_name := "planet%s.res" % files.size()
@@ -340,3 +358,4 @@ func _load_planet_for_title():
 	files.erase("title_planet_resource.tres")
 	print(files)
 	title_planet = ResourceLoader.load("res://planets/%s" % files.pick_random())
+	atmo_type = title_planet.planet_style

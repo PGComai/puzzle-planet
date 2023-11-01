@@ -1,7 +1,6 @@
 HIGH PRIORITY:
 - upper limit on number of trees/other decor
 - finalize sounds and music
-- main menu
 - splash screen
 - figure out planet size
 - icon art

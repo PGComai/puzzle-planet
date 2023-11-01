@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://8lhjmpgt22bk"
+path="res://.godot/imported/moonwalk air.ogg-0ab2bf278b976814511a3809081e70bb.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/moonwalk air.ogg"
+dest_files=["res://.godot/imported/moonwalk air.ogg-0ab2bf278b976814511a3809081e70bb.oggvorbisstr"]
+
+[params]
+
+loop=true
+loop_offset=0.0
+bpm=140.0
+beat_count=0
+bar_beats=4

@@ -7,6 +7,7 @@ extends PopupPanel
 @onready var generate = $MarginContainer/VBoxContainer/Generate
 @onready var resume = $MarginContainer/VBoxContainer/Resume
 @onready var timer = $Timer
+@onready var ux = $".."
 
 var global
 var total_pieces := 30
@@ -14,8 +15,8 @@ var queue_rotation_flag := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	size.x = get_tree().root.size.x
-	position.y = get_tree().root.size.y - size.y
+	size.x = ux.size.x
+	position.y = ux.size.y - size.y
 	global = get_node('/root/Global')
 	global.ready_to_start_signal.connect(_on_global_ready_to_start_signal)
 	global.puzzle_done.connect(_on_global_puzzle_done)
@@ -60,6 +61,8 @@ func _on_generate_button_up():
 	pct_fill_slider.max_value = global.total_pieces - 10
 	pct_fill_slider.tick_count = global.total_pieces - 10
 	global.debug_message = "Generate button pressed"
+	global.stop_music = true
+	global.atmo_type = global.generate_type
 
 
 func _on_resume_button_up():
@@ -68,6 +71,7 @@ func _on_resume_button_up():
 	generate.disabled = true
 	resume.disabled = true
 	global.drawing_mode = false
+	global.stop_music = true
 
 
 func _on_piece_rotation_button_toggled(button_pressed):

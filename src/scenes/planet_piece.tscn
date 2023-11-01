@@ -124,5 +124,7 @@ pitch_scale = 0.6
 max_polyphony = 3
 script = ExtResource("4_wo60a")
 
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="."]
+
 [connection signal="child_entered_tree" from="." to="." method="_on_child_entered_tree"]
 [connection signal="drop_off_sound" from="." to="DropOffSound" method="_on_planet_piece_drop_off_sound"]

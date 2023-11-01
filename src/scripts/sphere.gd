@@ -1157,7 +1157,7 @@ func _sub_triangle(
 #			too_far_north = true
 		
 		# plant trees
-		if randfn(0.0, 1.0) > 1.6 and not too_far_north and planet_style == 3:
+		if randfn(0.0, 1.0) > 1.5 and not too_far_north and planet_style == 3:
 			var pts = [p1, p2, p3]
 			var ctr = pl.get_center()
 			var treespot = pts.pick_random().lerp(pts.pick_random(), randf_range(0.0, 1.0))
@@ -1857,6 +1857,11 @@ func _on_global_wheel_rot_signal(rot):
 
 
 func _on_global_loaded_pieces_ready(data):
+	global.atmo_type = global.generate_type
+	if global.generate_type == 7:
+		rings.visible = true
+	else:
+		rings.visible = false
 	var pieces_tracked: Dictionary = data[0]
 	var loaded_pieces_data: Dictionary = data[1]
 	ufo_locations = {}
@@ -1933,6 +1938,8 @@ func _on_global_loaded_pieces_ready(data):
 func _load_title_planet():
 	var node_data: Dictionary = global.title_planet.node_data
 	var new_circle_idx := 0
+	if global.title_planet.planet_style == 7:
+		rings.visible = true
 	for i in node_data.keys():
 		var newpiece = piece.instantiate()
 		var piece_dict = node_data[i]

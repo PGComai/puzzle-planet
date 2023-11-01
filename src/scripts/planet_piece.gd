@@ -99,8 +99,12 @@ var placement_lerp_1 := 0.0
 var placement_lerp_2 := 0.0
 
 var tree := preload("res://scenes/tree.tscn")
+var treemesh := preload("res://tex/tree_mesh_1.tres")
+var tree_material := preload("res://tex/tree_1_material.tres")
 var tree_positions: PackedVector3Array
 var trees_on := false
+var tree_color_1 := Color(1.5, 1.5, 1.5)
+var tree_color_2 := Color(2.0, 2.0, 2.0)
 
 @export var built := false ### this will be handy for loading a saved game
 var oriented := false
@@ -134,11 +138,30 @@ func _ready():
 	surface_array[Mesh.ARRAY_COLOR] = color
 	
 	if trees_on:
-		#var mmi := MultiMeshInstance3D.new()
-		for tp in tree_positions:
-			var t = tree.instantiate()
-			t.spawn_position = tp - direction
-			themesh.add_child(t)
+		var mmi := MultiMeshInstance3D.new()
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = treemesh
+		mm.use_colors = true
+		mmi.material_overlay = tree_material
+		mm.instance_count = tree_positions.size()
+		for tp in tree_positions.size():
+			var bas := Basis().looking_at(-tree_positions[tp])
+			var altbas := Basis(Vector3(1.0, 0.0, 0.0),
+								Vector3(0.0, 1.0, 0.0),
+								Vector3(0.0, 0.0, 1.0))
+			var tf := Transform3D(bas,
+								tree_positions[tp] - direction)
+			mm.set_instance_transform(tp, tf)
+			var clr := tree_color_1.lerp(tree_color_2, clamp(randfn(0.5, 0.5), 0.0, 1.0))
+			mm.set_instance_color(tp, clr)
+#			var t = tree.instantiate()
+#			t.spawn_position = tp - direction
+#			themesh.add_child(t)
+		mm.visible_instance_count = mm.instance_count
+		#mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.multimesh = mm
+		themesh.add_child(mmi)
 	
 #	var random_vertex = randi_range(0, vertex.size())
 #	var t := tree.instantiate()

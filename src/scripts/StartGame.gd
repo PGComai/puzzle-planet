@@ -1,6 +1,7 @@
 extends Button
 
 var global: Node
+@onready var timer = $StartGameTimer
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -20,3 +21,4 @@ func _process(delta):
 func _on_button_up():
 	visible = false
 	global.title_screen = false
+	timer.start()
