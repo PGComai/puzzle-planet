@@ -299,6 +299,7 @@ func _placement():
 	if global_position.is_equal_approx(direction):
 		global_position = direction
 		placement_finished = true
+		global.placed_cidx = circle_idx
 
 
 func arrange(re = false):

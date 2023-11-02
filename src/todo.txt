@@ -1,10 +1,14 @@
+FEEDBACK:
+- better music
+- give gas giants the venus treatment
+- 
+
 HIGH PRIORITY:
-- upper limit on number of trees/other decor
 - finalize sounds and music
 - splash screen
 - figure out planet size
 - icon art
-- adjust ufo speed with amount of pieces it drops off
+- figure out ufo dropoff issues
 - how to play
 
 LOW PRIORITY:

@@ -169,7 +169,8 @@ var canyon_height_multiplier := 1.0
 var canyon_height_curve: Curve = preload("res://tex/canyon_height_curve.tres")
 var canyon_fade_curve: Curve = preload("res://tex/canyon_fade_curve.tres")
 
-var turb := 0.2
+var turb1 := 0.2
+var turb2 := 0.2
 
 var jupiter_turbulence := 0.05
 var saturn_turbulence := 0.05
@@ -177,6 +178,11 @@ var uranus_turbulence := 0.05
 var neptune_turbulence := 0.05
 
 var tree_noise := preload("res://tex/tree_noise.tres")
+var gas_color_ease_curve: Curve
+var jupiter_color_ease_curve := preload("res://tex/jupiter_color_ease_curve.tres")
+var saturn_color_ease_curve := preload("res://tex/saturn_color_ease_curve.tres")
+var uranus_color_ease_curve := preload("res://tex/uranus_color_ease_curve.tres")
+var neptune_color_ease_curve := preload("res://tex/neptune_color_ease_curve.tres")
 
 @onready var rings = $"../Rings"
 @onready var lava_lamp = $"../Lava Lamp"
@@ -237,15 +243,15 @@ func _process(delta):
 				print(global.pieces_placed_so_far)
 				global._save_puzzle_status()
 				placed_signal = true
-				placed_counting = true
+				#placed_counting = true
 				fit = false
-		if placed_counting:
-			placed_timer += delta
-			if placed_timer > 0.2:
-				global.placed_cidx = current_piece.circle_idx
-				placed_signal = false
-				placed_counting = false
-				placed_timer = 0.0
+#		if placed_counting:
+#			placed_timer += delta
+#			if placed_timer > 0.2:
+#				global.placed_cidx = current_piece.circle_idx
+#				placed_signal = false
+#				placed_counting = false
+#				placed_timer = 0.0
 
 ### DONE ###
 func _place_piece():
@@ -650,6 +656,26 @@ func _set_parameters():
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
+		colornoise.noise_type = 4
+		colornoise.frequency = 4.0
+		colornoise.domain_warp_enabled = false
+		colornoise.domain_warp_amplitude = 0.1
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		colornoise2.noise_type = 4
+		colornoise2.frequency = 3.0
+		colornoise2.domain_warp_enabled = true
+		colornoise2.domain_warp_amplitude = 0.5
+		colornoise2.fractal_gain = 0.8
+		colornoise2.fractal_lacunarity = 2
+		colornoise2.fractal_octaves = 5
+		colornoise2.fractal_ping_pong_strength = 2
+		colornoise2.fractal_type = 1
+		colornoise2.fractal_weighted_strength = 0.5
 		low_crust_color = Color('64788f')
 		land_color = Color('a17f61')
 		land_color_2 = Color('614739')
@@ -673,12 +699,14 @@ func _set_parameters():
 		h_band_snap = 0.001
 		h_band_wiggle = 0.1
 		craters_to_storms = true
-		manual_storm_color = false
+		manual_storm_color = true
 		storm_color_curve = neptune_storm_color_curve
-		storm_color = Color('385478')
+		storm_color = Color('a85023')
 		rings.visible = false
 		storm_flatness = 4.0
-		turb = jupiter_turbulence
+		turb1 = 0.02
+		turb2 = 0.2
+		gas_color_ease_curve = jupiter_color_ease_curve
 	elif planet_style == 7:
 		# saturn
 		noise3d.noise_type = 4
@@ -690,10 +718,29 @@ func _set_parameters():
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
+		colornoise.noise_type = 4
+		colornoise.frequency = 3.0
+		colornoise.domain_warp_enabled = false
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		colornoise2.noise_type = 4
+		colornoise2.frequency = 3.0
+		colornoise2.domain_warp_enabled = true
+		colornoise2.domain_warp_amplitude = 0.5
+		colornoise2.fractal_gain = 0.8
+		colornoise2.fractal_lacunarity = 2
+		colornoise2.fractal_octaves = 5
+		colornoise2.fractal_ping_pong_strength = 2
+		colornoise2.fractal_type = 1
+		colornoise2.fractal_weighted_strength = 0.5
 		low_crust_color = Color('8b79b3')
-		land_color = Color('94633d')
-		land_color_2 = Color('7a664b')
-		land_color_3 = Color('6c4f3b')
+		land_color = Color('cfac7e')
+		land_color_2 = Color('b39368')
+		land_color_3 = Color('c79c6d')
 		ocean = false
 		snow_random_low = 0.85
 		snow_random_high = 0.95
@@ -714,7 +761,9 @@ func _set_parameters():
 		h_band_wiggle = 0.01
 		craters_to_storms = false
 		rings.visible = true
-		turb = saturn_turbulence
+		turb1 = 0.02
+		turb2 = 0.2
+		gas_color_ease_curve = saturn_color_ease_curve
 	elif planet_style == 8:
 		# uranus
 		noise3d.noise_type = 4
@@ -726,6 +775,25 @@ func _set_parameters():
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
+		colornoise.noise_type = 4
+		colornoise.frequency = 5.0
+		colornoise.domain_warp_enabled = false
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		colornoise2.noise_type = 4
+		colornoise2.frequency = 4.0
+		colornoise2.domain_warp_enabled = false
+		colornoise2.domain_warp_amplitude = 0.5
+		colornoise2.fractal_gain = 0.8
+		colornoise2.fractal_lacunarity = 2
+		colornoise2.fractal_octaves = 5
+		colornoise2.fractal_ping_pong_strength = 2
+		colornoise2.fractal_type = 1
+		colornoise2.fractal_weighted_strength = 0.5
 		#low_crust_color = Color('8b94a0')
 		low_crust_color = Color('3b5253')
 		land_color = Color('7a9cae')
@@ -751,7 +819,9 @@ func _set_parameters():
 		h_band_wiggle = 0.01
 		craters_to_storms = false
 		rings.visible = false
-		turb = uranus_turbulence
+		turb1 = 0.02
+		turb2 = 0.2
+		gas_color_ease_curve = uranus_color_ease_curve
 	elif planet_style == 9:
 		# neptune
 		noise3d.noise_type = 4
@@ -763,11 +833,30 @@ func _set_parameters():
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
+		colornoise.noise_type = 4
+		colornoise.frequency = 2.0
+		colornoise.domain_warp_enabled = false
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		colornoise2.noise_type = 4
+		colornoise2.frequency = 0.7
+		colornoise2.domain_warp_enabled = false
+		colornoise2.domain_warp_amplitude = 0.5
+		colornoise2.fractal_gain = 0.8
+		colornoise2.fractal_lacunarity = 2
+		colornoise2.fractal_octaves = 5
+		colornoise2.fractal_ping_pong_strength = 2
+		colornoise2.fractal_type = 1
+		colornoise2.fractal_weighted_strength = 0.5
 		#low_crust_color = Color('8b94a0')
 		low_crust_color = Color('3f4965')
-		land_color = Color('3b587e')
+		land_color = Color('5277c7')
 		land_color_2 = Color('476ab5')
-		land_color_3 = Color('6995c1')
+		land_color_3 = Color('bcd2e8')
 		ocean = false
 		snow_random_low = 0.85
 		snow_random_high = 0.95
@@ -790,9 +879,11 @@ func _set_parameters():
 		rings.visible = false
 		manual_storm_color = true
 		storm_color_curve = neptune_storm_color_curve
-		storm_color = Color('385478')
+		storm_color = Color('2c456b')
 		storm_flatness = 16.0
-		turb = neptune_turbulence
+		turb1 = 0.1
+		turb2 = 0.7
+		gas_color_ease_curve = neptune_color_ease_curve
 	elif planet_style == 10:
 		# pluto
 		colornoise.noise_type = 4
@@ -869,6 +960,73 @@ func _set_parameters():
 		mantle.mesh.material = mantle_moon_material
 		#lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = false
+		h_bands = false
+		craters_to_storms = false
+		rings.visible = false
+	elif planet_style == 11:
+		## watermelon
+		mountain_noise.noise_type = 4
+		mountain_noise.frequency = 5.0
+		mountain_noise.fractal_weighted_strength = 0
+		general_noise_soft.noise_type = 4
+		general_noise_soft.frequency = 0.1
+		general_noise_soft.fractal_weighted_strength = 1
+		colornoise.noise_type = 4
+		colornoise.frequency = 2.0
+		colornoise.domain_warp_enabled = false
+		colornoise.fractal_gain = 0.5
+		colornoise.fractal_lacunarity = 2
+		colornoise.fractal_octaves = 5
+		colornoise.fractal_ping_pong_strength = 2
+		colornoise.fractal_type = 1
+		colornoise.fractal_weighted_strength = 0
+		noise3d.noise_type = 4
+		noise3d.frequency = 1.5
+		noise3d.domain_warp_enabled = false
+		noise3d.fractal_gain = 0.5
+		noise3d.fractal_lacunarity = 2.0
+		noise3d.fractal_octaves = 5
+		noise3d.fractal_ping_pong_strength = 2.0
+		noise3d.fractal_type = 1
+		noise3d.fractal_weighted_strength = 0.0
+		low_crust_color = Color('6e2e0c')
+		crust_color = Color('3f3227')
+		land_snow_color = Color('dbdbdb')
+		land_color = Color('ac5c22')
+		land_color_2 = Color('7e4e24')
+		land_color_3 = Color('b35639')
+		low_land_color = Color('5b2716')
+		low_land_bottom_threshold = 0.5
+		low_land_top_threshold = 0.9
+		sand_color = Color('9f876b')
+		water_color = Color('b59e87')
+		water_color_2 = Color('8f6f59')
+		water_color_3 = Color('c2aca0')
+		deep_water_color = Color('853403')
+		shallow_water_color = Color('b59e87')
+		sand_threshold = 1.1
+		water_offset = 1.2
+		ocean = true
+		snow_random_low = 0.7
+		snow_random_high = 0.8
+		max_terrain_height_unclamped = 1.2
+		global.planet_height_for_ufo = 0.0
+		min_terrain_height_unclamped = 0.75
+		craters = true
+		craters_to_mountains = true
+		crater_height_curve = earth_mountain_curve
+		mountain_shift_curve = earth_mountain_shift_curve
+		mountain_color_curve = earth_mountain_color_curve
+		land_color_ease_curve = venus_color_ease_curve
+		mountain_color = Color('ab8773')
+		manual_mountain_color = true
+		num_craters = 20
+		crater_size_multiplier = 2.0
+		crater_height_multiplier = 0.7
+		snow = false
+		mantle.mesh.material = mantle_earth_2_material
+		lava_lamp.light_color = lava_lamp_color_earth
+		lava_lamp.visible = true
 		h_bands = false
 		craters_to_storms = false
 		rings.visible = false
@@ -1090,9 +1248,9 @@ func _sub_triangle(
 			p2_color = color_vary(p2old, land_colors)
 			p3_color = color_vary(p3old, land_colors)
 		else:
-			p1_color = gas_color_vary(p1old, land_colors, turb)
-			p2_color = gas_color_vary(p2old, land_colors, turb)
-			p3_color = gas_color_vary(p3old, land_colors, turb)
+			p1_color = gas_color_vary(p1old, land_colors)
+			p2_color = gas_color_vary(p2old, land_colors)
+			p3_color = gas_color_vary(p3old, land_colors)
 		
 		var p1_lat = asin(abs(p1.normalized().y)) / (PI/2)
 		var p2_lat = asin(abs(p2.normalized().y)) / (PI/2)
@@ -1326,24 +1484,24 @@ func make_walls(og_verts: PackedVector3Array,
 			
 			# quarter way up
 			var v01 = v0.move_toward(v0p, v0_atmo_thickness * 0.25)
-			var v01_color = gas_color_vary(mm(v0)*0.97, land_colors, turb).lerp(low_crust_color, 0.75)
+			var v01_color = gas_color_vary(mm(v0)*0.97, land_colors).lerp(low_crust_color, 0.75)
 			var v11 = v1.move_toward(v1p, v1_atmo_thickness * 0.25)
-			var v11_color = gas_color_vary(mm(v1)*0.97, land_colors, turb).lerp(low_crust_color, 0.75)
+			var v11_color = gas_color_vary(mm(v1)*0.97, land_colors).lerp(low_crust_color, 0.75)
 			
 			# halfway up
 			var v02 = v0.move_toward(v0p, v0_atmo_thickness * 0.5)
-			var v02_color = gas_color_vary(mm(v0)*0.98, land_colors, turb).lerp(low_crust_color, 0.5)
+			var v02_color = gas_color_vary(mm(v0)*0.98, land_colors).lerp(low_crust_color, 0.5)
 			var v12 = v1.move_toward(v1p, v1_atmo_thickness * 0.5)
-			var v12_color = gas_color_vary(mm(v1)*0.98, land_colors, turb).lerp(low_crust_color, 0.5)
+			var v12_color = gas_color_vary(mm(v1)*0.98, land_colors).lerp(low_crust_color, 0.5)
 			
 			# three quarters up
 			var v03 = v0.move_toward(v0p, v0_atmo_thickness * 0.75)
-			var v03_color = gas_color_vary(mm(v0)*0.99, land_colors, turb).lerp(low_crust_color, 0.25)
+			var v03_color = gas_color_vary(mm(v0)*0.99, land_colors).lerp(low_crust_color, 0.25)
 			var v13 = v1.move_toward(v1p, v1_atmo_thickness * 0.75)
-			var v13_color = gas_color_vary(mm(v1)*0.99, land_colors, turb).lerp(low_crust_color, 0.25)
+			var v13_color = gas_color_vary(mm(v1)*0.99, land_colors).lerp(low_crust_color, 0.25)
 			
-			var v0p_color = gas_color_vary(mm(v0), land_colors, turb)
-			var v1p_color = gas_color_vary(mm(v1), land_colors, turb)
+			var v0p_color = gas_color_vary(mm(v0), land_colors)
+			var v1p_color = gas_color_vary(mm(v1), land_colors)
 			
 			_triangle(v0, v01, v1, wall_triangles)
 			_tricolor(low_crust_color, v01_color, low_crust_color, wall_tri_colors)
@@ -1626,68 +1784,72 @@ func shift_mountains(mountains: Array):
 	return mountains
 
 func mm(vec: Vector3):
-	var offset
+	var offset = noise3d.get_noise_3dv(vec)
+	var newvec: Vector3
+#	if !h_bands:
+#		offset = noise3d.get_noise_3dv(vec)
+#	else:
+#		offset = noise3d.get_noise_3dv(Vector3(vec.x * h_band_wiggle, vec.y, vec.z * h_band_wiggle)) * 2.0
 	if !h_bands:
-		offset = noise3d.get_noise_3dv(vec)
+		newvec = vec * remap(offset, -1.0, 1.0, min_terrain_height_unclamped, max_terrain_height_unclamped)
+		
+		if craters: ### CRATERS
+			if !craters_to_storms and !craters_to_mountains:
+				var my_craters = []
+				for cr in crater_array:
+					var dist = vec.normalized().distance_squared_to(cr[0])
+					var crsize = 0.01 * crater_size_multiplier
+					if dist <= cr[1] * crsize:
+						var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+						my_craters.append(dist_mapped)
+				for mycr_i in len(my_craters):
+					newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
+			
+			elif craters_to_storms: ### STORMS
+				var my_craters = []
+				for cr in crater_array:
+					var dist = vec.normalized().distance_squared_to(cr[0])
+					var crsize = 0.01 * crater_size_multiplier
+					if dist <= cr[1] * crsize:
+						var sideways = cr[0].cross(Vector3.UP).normalized()
+						var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
+						var vecproj = spl.project(vec).normalized()
+						var vdist = vecproj.distance_squared_to(cr[0])
+						var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
+						var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+						my_craters.append(dist_mapped*vdist_mapped)
+				for mycr_i in len(my_craters):
+					newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
+			
+			elif craters_to_mountains: ### MOUNTAINS
+				var my_craters = []
+				for cr in crater_array:
+					var dist = vec.normalized().distance_squared_to(cr[0])
+					var crsize = 0.01 * crater_size_multiplier
+					if dist <= cr[1] * crsize:
+						var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+						my_craters.append(dist_mapped)
+				for mycr_i in len(my_craters):
+					newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier)) * (1.0 + abs(mountain_noise.get_noise_3dv(newvec) * 5.0))
+		
+		if canyons: ### CANYONS
+			var my_canyons = []
+			for cn in canyon_array:
+				var dist = vec.normalized().distance_squared_to(cn[0])
+				var cnsize = 0.01 * canyon_size_multiplier
+				if dist <= cn[1] * cnsize:
+					var dist_mapped = remap(dist, 0.0, cn[1] * cnsize, 0.0, 1.0)
+					my_canyons.append(dist_mapped)
+			for mycn_i in len(my_canyons):
+				newvec *= 1.0 - (canyon_height_curve.sample_baked(remap(canyon_noise.get_noise_3dv(Vector3(vec.x * 0.4, vec.y, vec.z * 0.4).normalized()), 0.5, 1.0, 0.0, 1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
+		
+		### height boundaries
+		if newvec.length() < 1.02:
+			newvec = newvec.normalized() * 1.02
+		elif newvec.length() > 1.3:
+			newvec = newvec.normalized() * 1.3
 	else:
-		offset = noise3d.get_noise_3dv(Vector3(vec.x * h_band_wiggle, vec.y, vec.z * h_band_wiggle)) * 2.0
-	var newvec = vec * remap(offset, -1.0, 1.0, min_terrain_height_unclamped, max_terrain_height_unclamped)
-	
-	if craters: ### CRATERS
-		if !craters_to_storms and !craters_to_mountains:
-			var my_craters = []
-			for cr in crater_array:
-				var dist = vec.normalized().distance_squared_to(cr[0])
-				var crsize = 0.01 * crater_size_multiplier
-				if dist <= cr[1] * crsize:
-					var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
-					my_craters.append(dist_mapped)
-			for mycr_i in len(my_craters):
-				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
-		
-		elif craters_to_storms: ### STORMS
-			var my_craters = []
-			for cr in crater_array:
-				var dist = vec.normalized().distance_squared_to(cr[0])
-				var crsize = 0.01 * crater_size_multiplier
-				if dist <= cr[1] * crsize:
-					var sideways = cr[0].cross(Vector3.UP).normalized()
-					var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
-					var vecproj = spl.project(vec).normalized()
-					var vdist = vecproj.distance_squared_to(cr[0])
-					var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
-					var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
-					my_craters.append(dist_mapped*vdist_mapped)
-			for mycr_i in len(my_craters):
-				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters)))
-		
-		elif craters_to_mountains: ### MOUNTAINS
-			var my_craters = []
-			for cr in crater_array:
-				var dist = vec.normalized().distance_squared_to(cr[0])
-				var crsize = 0.01 * crater_size_multiplier
-				if dist <= cr[1] * crsize:
-					var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
-					my_craters.append(dist_mapped)
-			for mycr_i in len(my_craters):
-				newvec *= 1.0 + (crater_height_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier)) * (1.0 + abs(mountain_noise.get_noise_3dv(newvec) * 5.0))
-	
-	if canyons: ### CANYONS
-		var my_canyons = []
-		for cn in canyon_array:
-			var dist = vec.normalized().distance_squared_to(cn[0])
-			var cnsize = 0.01 * canyon_size_multiplier
-			if dist <= cn[1] * cnsize:
-				var dist_mapped = remap(dist, 0.0, cn[1] * cnsize, 0.0, 1.0)
-				my_canyons.append(dist_mapped)
-		for mycn_i in len(my_canyons):
-			newvec *= 1.0 - (canyon_height_curve.sample_baked(remap(canyon_noise.get_noise_3dv(Vector3(vec.x * 0.4, vec.y, vec.z * 0.4).normalized()), 0.5, 1.0, 0.0, 1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
-	
-	### height boundaries
-	if newvec.length() < 1.02:
-		newvec = newvec.normalized() * 1.02
-	elif newvec.length() > 1.3:
-		newvec = newvec.normalized() * 1.3
+		newvec = vec.normalized() * 1.1
 	
 	return newvec
 
@@ -1706,20 +1868,25 @@ func venus_color_vary(vec: Vector3, colors: Array):
 
 func gas_color_vary(vec: Vector3, colors: Array, turbulence := 0.2):
 	var return_color: Color
-	var vlen = snapped(vec.length(), h_band_snap)
-	var maxlen = max_terrain_height_unclamped
-	var minlen = min_terrain_height_unclamped
-	#if manual_storm_color:
-	vlen = clamp(vlen, min_terrain_height_unclamped, max_terrain_height_unclamped)
-	var halfway = ((max_terrain_height_unclamped - min_terrain_height_unclamped) / 2.0) + min_terrain_height_unclamped
-	if vlen > halfway:
-		# bigger half
-		var tint_val = remap(vlen, halfway, maxlen, 0.0, 1.0)
-		return_color = colors[1].lerp(colors[0], tint_val)
+	var vec1 = Vector3(vec.x * turb1, vec.y, vec.z * turb1)
+	var vec2: Vector3
+	var nval: float
+	if planet_style == 6 or planet_style == 9:
+		vec2 = Vector3(vec.x * turb2, vec.y, vec.z * turb2)
+		nval = colornoise.get_noise_3dv(vec1) - colornoise2.get_noise_3dv(vec2)
 	else:
-		# smaller half
-		var tint_val = remap(vlen, minlen, halfway, 0.0, 1.0)
-		return_color = colors[2].lerp(colors[1], tint_val)
+		nval = colornoise.get_noise_3dv(vec1)
+	var darken = colornoise2.get_noise_3dv(vec1)
+	darken = clamp(remap(darken, -0.1, 0.1, 0.0, 0.3), 0.0, 0.3)
+	nval = remap(clamp(nval, -0.15, 0.15), -0.15, 0.15, 0.0, 1.0)
+	nval = gas_color_ease_curve.sample_baked(nval)
+	if nval > 0.5:
+		var final_val = remap(nval, 0.5, 1.0, 0.0, 1.0)
+		return_color = colors[1].lerp(colors[0], final_val)
+	elif nval <= 0.5:
+		var final_val = remap(nval, 0.0, 0.5, 0.0, 1.0)
+		return_color = colors[2].lerp(colors[1], final_val)
+	return_color = return_color.lerp(Color('black'), darken)
 	if craters and craters_to_storms and manual_storm_color:
 		var my_craters = []
 		for cr in crater_array:
@@ -1736,6 +1903,37 @@ func gas_color_vary(vec: Vector3, colors: Array, turbulence := 0.2):
 		for mycr_i in len(my_craters):
 			return_color = lerp(return_color, storm_color, storm_color_curve.sample_baked(my_craters[mycr_i]))
 	return return_color
+#	var return_color: Color
+#	var vlen = snapped(vec.length(), h_band_snap)
+#	var maxlen = max_terrain_height_unclamped
+#	var minlen = min_terrain_height_unclamped
+#	#if manual_storm_color:
+#	vlen = clamp(vlen, min_terrain_height_unclamped, max_terrain_height_unclamped)
+#	var halfway = ((max_terrain_height_unclamped - min_terrain_height_unclamped) / 2.0) + min_terrain_height_unclamped
+#	if vlen > halfway:
+#		# bigger half
+#		var tint_val = remap(vlen, halfway, maxlen, 0.0, 1.0)
+#		return_color = colors[1].lerp(colors[0], tint_val)
+#	else:
+#		# smaller half
+#		var tint_val = remap(vlen, minlen, halfway, 0.0, 1.0)
+#		return_color = colors[2].lerp(colors[1], tint_val)
+#	if craters and craters_to_storms and manual_storm_color:
+#		var my_craters = []
+#		for cr in crater_array:
+#			var dist = vec.normalized().distance_squared_to(cr[0])
+#			var crsize = 0.01 * crater_size_multiplier
+#			if dist <= cr[1] * crsize:
+#				var sideways = cr[0].cross(Vector3.UP).normalized()
+#				var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
+#				var vecproj = spl.project(vec).normalized()
+#				var vdist = vecproj.distance_squared_to(cr[0])
+#				var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
+#				var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+#				my_craters.append(pow(1.0 - clamp(dist_mapped*vdist_mapped, 0.0, 1.0), 2.0))
+#		for mycr_i in len(my_craters):
+#			return_color = lerp(return_color, storm_color, storm_color_curve.sample_baked(my_craters[mycr_i]))
+#	return return_color
 
 func color_vary(vec: Vector3, colors: Array):
 	var return_color: Color

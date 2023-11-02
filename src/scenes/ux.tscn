@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=58 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -24,6 +24,7 @@
 [ext_resource type="Script" path="res://scripts/VibrateButton.gd" id="13_0f10h"]
 [ext_resource type="Script" path="res://scripts/MusicButton.gd" id="13_g8tjt"]
 [ext_resource type="Script" path="res://scripts/DebugButton.gd" id="15_yt5gt"]
+[ext_resource type="Script" path="res://scripts/ProgressPanelContainer.gd" id="24_n51j8"]
 [ext_resource type="Script" path="res://scripts/StartGame.gd" id="25_n04pg"]
 [ext_resource type="AudioStream" uid="uid://dvfnrqw6dcraw" path="res://audio/placing pieces of planets intro.ogg" id="26_m7dch"]
 [ext_resource type="Script" path="res://scripts/MusicPlayer.gd" id="27_6vbsj"]
@@ -310,6 +311,7 @@ one_shot = true
 [node name="MenuButton" type="Button" parent="."]
 visible = false
 texture_filter = 1
+custom_minimum_size = Vector2(200, 80)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -409,7 +411,7 @@ custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 10
 alignment = 1
-item_count = 10
+item_count = 11
 selected = 0
 popup/item_0/text = "Mercury"
 popup/item_0/id = 0
@@ -431,6 +433,8 @@ popup/item_8/text = "Neptune"
 popup/item_8/id = 8
 popup/item_9/text = "Pluto"
 popup/item_9/id = 9
+popup/item_10/text = "Watermelon"
+popup/item_10/id = 10
 
 [node name="HSeparator" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -756,9 +760,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -40.0
+offset_top = -200.0
 offset_right = 200.0
-offset_bottom = 360.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
@@ -807,16 +811,17 @@ one_shot = true
 [node name="ProgressPanelContainer" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = 14
+anchor_top = 0.5
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -311.0
-offset_bottom = -227.0
+anchor_bottom = 0.5
+offset_top = -26.5
+offset_bottom = 26.5
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_omgwe")
+script = ExtResource("24_n51j8")
 
 [node name="MarginContainer" type="MarginContainer" parent="ProgressPanelContainer"]
 layout_mode = 2
