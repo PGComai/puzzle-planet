@@ -238,7 +238,7 @@ func _process(delta):
 			_place_piece()
 		if fit:
 			if !placed_signal:
-				current_piece.remove_from_group('pieces')
+				#current_piece.remove_from_group('pieces')
 				global.pieces_placed_so_far[0] += 1
 				print(global.pieces_placed_so_far)
 				global._save_puzzle_status()

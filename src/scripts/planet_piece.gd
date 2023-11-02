@@ -299,6 +299,7 @@ func _placement():
 	if global_position.is_equal_approx(direction):
 		global_position = direction
 		placement_finished = true
+		remove_from_group("pieces")
 		global.placed_cidx = circle_idx
 
 
