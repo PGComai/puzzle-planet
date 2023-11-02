@@ -159,7 +159,7 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 3.2)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('d4995a'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
-	elif type == 4 or type == 1:
+	elif type == 4 or type == 1 or type == 11:
 		atmosphere.visible = false
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('black'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('black'))

@@ -100,6 +100,7 @@ var venus_color_ease_curve: Curve = preload("res://tex/venus_color_ease_curve.tr
 var pluto_color_ease_curve: Curve = preload("res://tex/pluto_color_ease_curve.tres")
 var mars_color_ease_curve: Curve = preload("res://tex/mars_land_color_curve.tres")
 var earth_color_ease_curve: Curve = preload("res://tex/earth_land_color_curve.tres")
+var mantle_watermelon_material := preload("res://tex/mantle_watermelon_material.tres")
 
 var _draw_mode := false
 var manual_mountain_color := false
@@ -171,6 +172,7 @@ var canyon_fade_curve: Curve = preload("res://tex/canyon_fade_curve.tres")
 
 var turb1 := 0.2
 var turb2 := 0.2
+var vertical_turb := 1.0
 
 var jupiter_turbulence := 0.05
 var saturn_turbulence := 0.05
@@ -183,6 +185,7 @@ var jupiter_color_ease_curve := preload("res://tex/jupiter_color_ease_curve.tres
 var saturn_color_ease_curve := preload("res://tex/saturn_color_ease_curve.tres")
 var uranus_color_ease_curve := preload("res://tex/uranus_color_ease_curve.tres")
 var neptune_color_ease_curve := preload("res://tex/neptune_color_ease_curve.tres")
+var watermelon_color_ease_curve := preload("res://tex/watermelon_land_color_curve.tres")
 
 @onready var rings = $"../Rings"
 @onready var lava_lamp = $"../Lava Lamp"
@@ -965,14 +968,11 @@ func _set_parameters():
 		rings.visible = false
 	elif planet_style == 11:
 		## watermelon
-		mountain_noise.noise_type = 4
-		mountain_noise.frequency = 5.0
-		mountain_noise.fractal_weighted_strength = 0
 		general_noise_soft.noise_type = 4
 		general_noise_soft.frequency = 0.1
 		general_noise_soft.fractal_weighted_strength = 1
-		colornoise.noise_type = 4
-		colornoise.frequency = 2.0
+		colornoise.noise_type = 2
+		colornoise.frequency = 2.5
 		colornoise.domain_warp_enabled = false
 		colornoise.fractal_gain = 0.5
 		colornoise.fractal_lacunarity = 2
@@ -980,6 +980,16 @@ func _set_parameters():
 		colornoise.fractal_ping_pong_strength = 2
 		colornoise.fractal_type = 1
 		colornoise.fractal_weighted_strength = 0
+		colornoise2.noise_type = 4
+		colornoise2.frequency = 4.0
+		colornoise2.domain_warp_enabled = false
+		colornoise2.domain_warp_amplitude = 2.0
+		colornoise2.fractal_gain = 0.8
+		colornoise2.fractal_lacunarity = 2
+		colornoise2.fractal_octaves = 5
+		colornoise2.fractal_ping_pong_strength = 2
+		colornoise2.fractal_type = 1
+		colornoise2.fractal_weighted_strength = 0.5
 		noise3d.noise_type = 4
 		noise3d.frequency = 1.5
 		noise3d.domain_warp_enabled = false
@@ -989,47 +999,30 @@ func _set_parameters():
 		noise3d.fractal_ping_pong_strength = 2.0
 		noise3d.fractal_type = 1
 		noise3d.fractal_weighted_strength = 0.0
-		low_crust_color = Color('6e2e0c')
-		crust_color = Color('3f3227')
-		land_snow_color = Color('dbdbdb')
-		land_color = Color('ac5c22')
-		land_color_2 = Color('7e4e24')
-		land_color_3 = Color('b35639')
-		low_land_color = Color('5b2716')
-		low_land_bottom_threshold = 0.5
-		low_land_top_threshold = 0.9
-		sand_color = Color('9f876b')
-		water_color = Color('b59e87')
-		water_color_2 = Color('8f6f59')
-		water_color_3 = Color('c2aca0')
-		deep_water_color = Color('853403')
-		shallow_water_color = Color('b59e87')
-		sand_threshold = 1.1
-		water_offset = 1.2
-		ocean = true
-		snow_random_low = 0.7
-		snow_random_high = 0.8
+		low_crust_color = Color('eaf0b9')
+		land_color = Color('698c49')
+		land_color_2 = Color('9bad4b')
+		land_color_3 = Color('24330f')
+		ocean = false
 		max_terrain_height_unclamped = 1.2
 		global.planet_height_for_ufo = 0.0
 		min_terrain_height_unclamped = 0.75
-		craters = true
-		craters_to_mountains = true
-		crater_height_curve = earth_mountain_curve
-		mountain_shift_curve = earth_mountain_shift_curve
-		mountain_color_curve = earth_mountain_color_curve
-		land_color_ease_curve = venus_color_ease_curve
-		mountain_color = Color('ab8773')
-		manual_mountain_color = true
-		num_craters = 20
-		crater_size_multiplier = 2.0
-		crater_height_multiplier = 0.7
+		craters = false
+		craters_to_mountains = false
+		manual_mountain_color = false
 		snow = false
-		mantle.mesh.material = mantle_earth_2_material
+		mantle.mesh.material = mantle_watermelon_material
 		lava_lamp.light_color = lava_lamp_color_earth
-		lava_lamp.visible = true
-		h_bands = false
+		lava_lamp.visible = false
+		h_bands = true
+		h_band_snap = 0.001
+		h_band_wiggle = 0.01
+		turb1 = 1.0
+		turb2 = 1.0
+		vertical_turb = 0.01
 		craters_to_storms = false
 		rings.visible = false
+		gas_color_ease_curve = watermelon_color_ease_curve
 	parameters_set = true
 
 ### DONE ###
@@ -1868,12 +1861,16 @@ func venus_color_vary(vec: Vector3, colors: Array):
 
 func gas_color_vary(vec: Vector3, colors: Array, turbulence := 0.2):
 	var return_color: Color
-	var vec1 = Vector3(vec.x * turb1, vec.y, vec.z * turb1)
+	var vec1 = Vector3(vec.x * turb1, vec.y * vertical_turb, vec.z * turb1)
 	var vec2: Vector3
 	var nval: float
 	if planet_style == 6 or planet_style == 9:
-		vec2 = Vector3(vec.x * turb2, vec.y, vec.z * turb2)
+		vec2 = Vector3(vec.x * turb2, vec.y * vertical_turb, vec.z * turb2)
 		nval = colornoise.get_noise_3dv(vec1) - colornoise2.get_noise_3dv(vec2)
+	elif planet_style == 11:
+		vec1 = Vector3(vec.x, vec.y * vertical_turb, vec.z).normalized()
+		vec2 = Vector3(vec.x * turb2, vec.y * vertical_turb, vec.z * turb2)
+		nval = (colornoise.get_noise_3dv(vec1) * 0.25) - (colornoise2.get_noise_3dv(vec2) * 0.15)
 	else:
 		nval = colornoise.get_noise_3dv(vec1)
 	var darken = colornoise2.get_noise_3dv(vec1)
