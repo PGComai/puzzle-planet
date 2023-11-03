@@ -204,6 +204,7 @@ func _ready():
 	global = get_node('/root/Global')
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready)
+	shadow_light.make_piece_visible.connect(_on_shadow_light_make_piece_visible)
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	if !(planet_style == 0) and !debug:
 		planet_style = global.generate_type
@@ -2026,6 +2027,7 @@ func _on_ready_for_launch(_idx):
 	for p in _pieces:
 		if p.idx == _idx:
 			p.reparent(piece_target, false)
+			p.visible = false
 			current_piece = p
 			current_piece_mesh = current_piece.get_child(0)
 			p.position.y = -6.0
@@ -2169,3 +2171,7 @@ func _load_title_planet():
 		newpiece.remove_from_group("pieces")
 		newpiece.add_to_group("title_pieces")
 		pieces.add_child(newpiece)
+
+
+func _on_shadow_light_make_piece_visible():
+	current_piece.visible = true

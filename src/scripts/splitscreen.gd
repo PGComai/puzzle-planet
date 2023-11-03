@@ -13,7 +13,7 @@ func _ready():
 	global = get_node("/root/Global")
 	global.title_screen_signal.connect(_on_global_title_screen_signal)
 	TITLE_SPLIT = ux.size.y - 430
-	DEFAULT_SPLIT = min(ux.size.y - 560, ux.size.y / 2)
+	DEFAULT_SPLIT = max(ux.size.y - 600, ux.size.y / 2)
 	split_offset = TITLE_SPLIT
 
 
@@ -35,3 +35,15 @@ func _process(delta):
 func _on_global_title_screen_signal(status):
 	title_up = status
 	transition_complete = false
+
+
+func _on_ux_resized():
+	### ASPECT RATIOS
+	# 0.4285 - 21:9 - give more real estate to planet
+	# 0.5625 - 16:9 - half and half split is good
+	# 0.75 - 4:3 portrait
+	# 1.33 - 4:3 landscape
+	if ux:
+		print(ux.size.x / ux.size.y)
+		DEFAULT_SPLIT = max(ux.size.y - 600, ux.size.y / 2)
+		transition_complete = false

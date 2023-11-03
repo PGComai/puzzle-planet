@@ -24,7 +24,6 @@ Global="*res://scripts/global.gd"
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
-window/size/resizable=false
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
@@ -73,6 +72,10 @@ atmo_sunset={
 "value": Color(0.898039, 0.0823529, 0.164706, 1)
 }
 ez_mantle_effect={
+"type": "float",
+"value": 0.0
+}
+ez_mantle_roughness={
 "type": "float",
 "value": 0.0
 }

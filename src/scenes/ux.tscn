@@ -145,6 +145,7 @@ point_count = 2
 
 [node name="UX" type="Control"]
 texture_filter = 1
+clip_contents = true
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -258,9 +259,8 @@ script = ExtResource("6_dj3jp")
 [node name="UniverseRect" type="TextureRect" parent="MainBG/VSplitContainer"]
 texture_filter = 1
 layout_mode = 2
-size_flags_vertical = 4
 texture = SubResource("ViewportTexture_l2rlh")
-expand_mode = 4
+expand_mode = 1
 stretch_mode = 6
 script = ExtResource("5_an6gj")
 
@@ -278,6 +278,18 @@ stretch_mode = 6
 wait_time = 0.2
 one_shot = true
 
+[node name="ReferenceRect" type="ReferenceRect" parent="MainBG/VSplitContainer/UniverseRect"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+border_width = 5.0
+editor_only = false
+
 [node name="BrowserRect" type="TextureRect" parent="MainBG/VSplitContainer"]
 texture_filter = 1
 layout_mode = 2
@@ -293,6 +305,19 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_irt8n")
 stretch_mode = 6
+
+[node name="ReferenceRect" type="ReferenceRect" parent="MainBG/VSplitContainer/BrowserRect"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+border_color = Color(0.890196, 0.258824, 0.501961, 1)
+border_width = 5.0
+editor_only = false
 
 [node name="DebugLabel" type="Label" parent="MainBG"]
 visible = false
@@ -888,6 +913,7 @@ offset_bottom = 264.0
 grow_horizontal = 2
 script = ExtResource("28_l7cvt")
 
+[connection signal="resized" from="." to="MainBG/VSplitContainer" method="_on_ux_resized"]
 [connection signal="no_pitch_mod" from="SubViewportUniverse/Universe" to="MusicPlayer" method="_on_universe_no_pitch_mod"]
 [connection signal="piece_added" from="SubViewportUniverse/Universe" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_universe_piece_added"]
 [connection signal="rotation_music_multiplier" from="SubViewportUniverse/Universe" to="MusicPlayer" method="_on_universe_rotation_music_multiplier"]
