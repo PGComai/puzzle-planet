@@ -1,10 +1,11 @@
-[gd_scene load_steps=58 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=59 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
 [ext_resource type="PackedScene" uid="uid://ls26k2ueeeb3" path="res://scenes/puzzle ball.tscn" id="2_jvpmg"]
 [ext_resource type="PackedScene" uid="uid://dh4yuxiqdo80d" path="res://scenes/browser.tscn" id="3_j5u16"]
 [ext_resource type="Script" path="res://scripts/popup.gd" id="4_esiwd"]
+[ext_resource type="Script" path="res://scripts/SubViewportUniverse.gd" id="4_n7j6j"]
 [ext_resource type="Script" path="res://scripts/DebugLabel.gd" id="5_aeyxo"]
 [ext_resource type="Script" path="res://scripts/UniverseRect.gd" id="5_an6gj"]
 [ext_resource type="Script" path="res://scripts/Ghost.gd" id="5_guaq5"]
@@ -164,7 +165,7 @@ own_world_3d = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
 audio_listener_enable_3d = true
-size = Vector2i(180, 420)
+size = Vector2i(180, 180)
 render_target_update_mode = 4
 
 [node name="Browser" parent="SubViewportBrowser" instance=ExtResource("3_j5u16")]
@@ -173,8 +174,9 @@ render_target_update_mode = 4
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
 audio_listener_enable_3d = true
-size = Vector2i(180, 420)
+size = Vector2i(180, 320)
 render_target_update_mode = 4
+script = ExtResource("4_n7j6j")
 
 [node name="Universe" parent="SubViewportUniverse" instance=ExtResource("2_jvpmg")]
 
@@ -260,7 +262,7 @@ script = ExtResource("6_dj3jp")
 texture_filter = 1
 layout_mode = 2
 texture = SubResource("ViewportTexture_l2rlh")
-expand_mode = 1
+expand_mode = 4
 stretch_mode = 6
 script = ExtResource("5_an6gj")
 
@@ -272,7 +274,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_y501h")
-stretch_mode = 6
+expand_mode = 1
 
 [node name="Timer" type="Timer" parent="MainBG/VSplitContainer/UniverseRect"]
 wait_time = 0.2
@@ -304,7 +306,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_irt8n")
-stretch_mode = 6
+expand_mode = 1
 
 [node name="ReferenceRect" type="ReferenceRect" parent="MainBG/VSplitContainer/BrowserRect"]
 visible = false
@@ -803,6 +805,19 @@ mouse_filter = 2
 texture = SubResource("ViewportTexture_x0o0q")
 stretch_mode = 6
 
+[node name="ReferenceRect" type="ReferenceRect" parent="RotoWindow/RotoRect"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+border_color = Color(0.694118, 0.490196, 0.176471, 1)
+border_width = 5.0
+editor_only = false
+
 [node name="StartPuzzle" type="Button" parent="."]
 visible = false
 texture_filter = 1
@@ -868,6 +883,14 @@ script = ExtResource("10_qmupj")
 [node name="ProgressFullTimer" type="Timer" parent="ProgressPanelContainer/MarginContainer/PlanetProgress"]
 one_shot = true
 
+[node name="ReferenceRect" type="ReferenceRect" parent="ProgressPanelContainer"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+border_color = Color(0.384314, 0.607843, 0.172549, 1)
+border_width = 5.0
+editor_only = false
+
 [node name="StartGame" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 7
@@ -913,7 +936,12 @@ offset_bottom = 264.0
 grow_horizontal = 2
 script = ExtResource("28_l7cvt")
 
+[connection signal="resized" from="." to="." method="_on_resized"]
 [connection signal="resized" from="." to="MainBG/VSplitContainer" method="_on_ux_resized"]
+[connection signal="resized" from="." to="NewPlanetPopup" method="_on_ux_resized"]
+[connection signal="resized" from="." to="SettingsPopup" method="_on_ux_resized"]
+[connection signal="resized" from="." to="HowToPlayPopup" method="_on_ux_resized"]
+[connection signal="resized" from="." to="RotoWindow" method="_on_ux_resized"]
 [connection signal="no_pitch_mod" from="SubViewportUniverse/Universe" to="MusicPlayer" method="_on_universe_no_pitch_mod"]
 [connection signal="piece_added" from="SubViewportUniverse/Universe" to="ProgressPanelContainer/MarginContainer/PlanetProgress" method="_on_universe_piece_added"]
 [connection signal="rotation_music_multiplier" from="SubViewportUniverse/Universe" to="MusicPlayer" method="_on_universe_rotation_music_multiplier"]

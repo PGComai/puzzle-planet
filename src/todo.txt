@@ -1,6 +1,5 @@
 FEEDBACK:
 - better music
-- give gas giants the venus treatment
 - 
 
 HIGH PRIORITY:
@@ -10,6 +9,7 @@ HIGH PRIORITY:
 - icon art
 - figure out ufo dropoff issues
 - how to play
+- fast piece placements see delay
 
 LOW PRIORITY:
 - adjust ufo height per planet

@@ -12,6 +12,7 @@ config_version=5
 
 config/name="Star Puzzle"
 run/main_scene="res://scenes/ux.tscn"
+config/quit_on_go_back=false
 config/features=PackedStringArray("4.1", "Mobile")
 boot_splash/use_filter=false
 config/icon="res://icon.svg"

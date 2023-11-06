@@ -10,6 +10,10 @@ func _ready():
 	global = get_node("/root/Global")
 	global.menu_open_signal.connect(_on_global_menu_open_signal)
 	global.tablet_mode_signal.connect(_on_global_tablet_mode_signal)
+	if not global.tablet_mode:
+		expand_mode = TextureRect.EXPAND_FIT_HEIGHT
+	else:
+		expand_mode = TextureRect.EXPAND_FIT_WIDTH
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -33,6 +37,6 @@ func _on_timer_timeout():
 
 func _on_global_tablet_mode_signal(yes: bool):
 	if yes:
-		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		expand_mode = TextureRect.EXPAND_FIT_WIDTH
 	else:
-		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		expand_mode = TextureRect.EXPAND_FIT_HEIGHT

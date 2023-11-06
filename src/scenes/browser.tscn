@@ -1,7 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://dh4yuxiqdo80d"]
+[gd_scene load_steps=12 format=3 uid="uid://dh4yuxiqdo80d"]
 
 [ext_resource type="Script" path="res://scripts/browser.gd" id="1_n1lns"]
 [ext_resource type="ArrayMesh" uid="uid://jc8722fqtglo" path="res://models/wheel.obj" id="2_5ymt6"]
+[ext_resource type="Script" path="res://scripts/browsercam.gd" id="2_6jj64"]
 [ext_resource type="AudioStream" uid="uid://dpsh6dap1paog" path="res://audio/puzzle planet carousel click.wav" id="3_6n0dn"]
 [ext_resource type="Script" path="res://scripts/clicker.gd" id="4_v12kr"]
 [ext_resource type="Script" path="res://scripts/UFO_orbit.gd" id="5_cocbr"]
@@ -47,6 +48,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10.8)
 keep_aspect = 0
 fov = 90.0
 far = 100.0
+script = ExtResource("2_6jj64")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="camrot/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)

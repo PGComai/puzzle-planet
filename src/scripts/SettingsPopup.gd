@@ -45,3 +45,9 @@ func _on_debug_button_toggled(button_pressed):
 
 func _on_visibility_changed():
 	global.menu_open = visible
+
+
+func _on_ux_resized():
+	if ux:
+		size.x = ux.size.x
+		position.y = ux.size.y - size.y

@@ -63,6 +63,7 @@ func _on_generate_button_up():
 	global.debug_message = "Generate button pressed"
 	global.stop_music = true
 	global.atmo_type = global.generate_type
+	global.puzzle_finished = false
 
 
 func _on_resume_button_up():
@@ -72,6 +73,7 @@ func _on_resume_button_up():
 	resume.disabled = true
 	global.drawing_mode = false
 	global.stop_music = true
+	global.puzzle_finished = false
 
 
 func _on_piece_rotation_button_toggled(button_pressed):
@@ -98,3 +100,9 @@ func _on_global_puzzle_done():
 func _on_timer_timeout():
 	generate.disabled = false
 	resume.disabled = !global.unfinished_puzzle_exists
+
+
+func _on_ux_resized():
+	if ux:
+		size.x = ux.size.x
+		position.y = ux.size.y - size.y
