@@ -938,6 +938,7 @@ script = ExtResource("28_l7cvt")
 
 [connection signal="resized" from="." to="." method="_on_resized"]
 [connection signal="resized" from="." to="MainBG/VSplitContainer" method="_on_ux_resized"]
+[connection signal="resized" from="." to="MenuButton/PopupMenu" method="_on_ux_resized"]
 [connection signal="resized" from="." to="NewPlanetPopup" method="_on_ux_resized"]
 [connection signal="resized" from="." to="SettingsPopup" method="_on_ux_resized"]
 [connection signal="resized" from="." to="HowToPlayPopup" method="_on_ux_resized"]

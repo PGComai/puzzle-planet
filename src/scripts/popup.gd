@@ -37,3 +37,9 @@ func _on_visibility_changed():
 
 func _on_start_game_timer_timeout():
 	visible = true
+
+
+func _on_ux_resized():
+	if ux:
+		size.x = ux.size.x
+		position.y = ux.size.y - size.y
