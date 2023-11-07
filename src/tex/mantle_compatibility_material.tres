@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cglkpbsiiso0n"]
+
+[ext_resource type="Shader" uid="uid://bgjytvlroa1du" path="res://tex/mantle_compatibility.tres" id="1_1qmeq"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_1qmeq")
