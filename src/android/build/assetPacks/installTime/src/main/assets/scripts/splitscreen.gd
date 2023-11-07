@@ -12,8 +12,13 @@ var transition_complete := true
 func _ready():
 	global = get_node("/root/Global")
 	global.title_screen_signal.connect(_on_global_title_screen_signal)
-	TITLE_SPLIT = ux.size.y - 430
-	DEFAULT_SPLIT = max(ux.size.y - 600, ux.size.y / 2)
+	if not global.tablet_mode:
+		TITLE_SPLIT = ux.size.y - 430
+		DEFAULT_SPLIT = max(ux.size.y - 600, ux.size.y / 2)
+	else:
+		TITLE_SPLIT = ux.size.y / 1.5
+		DEFAULT_SPLIT = ux.size.y / 1.8
+	global.default_vsplit = DEFAULT_SPLIT
 	split_offset = TITLE_SPLIT
 
 
@@ -45,10 +50,10 @@ func _on_ux_resized():
 	# 1.33 - 4:3 landscape
 	if ux:
 		var ar = ux.size.x / ux.size.y
-		DEFAULT_SPLIT = max(ux.size.y - 600, ux.size.y / 2)
+		if ar < 0.6:
+			DEFAULT_SPLIT = max(ux.size.y - 600, ux.size.y / 2)
+		else:
+			DEFAULT_SPLIT = ux.size.y / 1.8
 		transition_complete = false
+		global.default_vsplit = DEFAULT_SPLIT
 		print(ar)
-		if ar > 0.6 and not global.tablet_mode:
-			global.tablet_mode = true
-		elif ar <= 0.6 and global.tablet_mode:
-			global.tablet_mode = false

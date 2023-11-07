@@ -28,4 +28,4 @@ func _process(delta):
 
 
 func _on_global_tablet_mode_signal(onoff):
-	pass#transition_complete = false
+	transition_complete = false

@@ -100,3 +100,9 @@ func _on_global_puzzle_done():
 func _on_timer_timeout():
 	generate.disabled = false
 	resume.disabled = !global.unfinished_puzzle_exists
+
+
+func _on_ux_resized():
+	if ux:
+		size.x = ux.size.x
+		position.y = ux.size.y - size.y

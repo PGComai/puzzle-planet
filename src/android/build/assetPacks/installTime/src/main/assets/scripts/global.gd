@@ -22,6 +22,7 @@ signal stop_the_music
 signal pause_the_music
 signal play_the_music
 signal tablet_mode_signal(onoff)
+signal default_vsplit_changed(split)
 
 var generate_type := 3
 var atmo_type: int:
@@ -153,6 +154,10 @@ var tablet_mode := false:
 	set(value):
 		tablet_mode = value
 		emit_signal("tablet_mode_signal", value)
+var default_vsplit: int:
+	set(value):
+		default_vsplit = value
+		emit_signal("default_vsplit_changed", value)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
