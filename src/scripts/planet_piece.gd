@@ -12,6 +12,7 @@ signal drop_off_sound
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
 @onready var wall_effect = $themesh/wall_effect
+@onready var transparent = $transparent
 
 var offset := 1.0
 
@@ -46,9 +47,11 @@ var picked = false
 var in_transit = false
 var good_pos = Vector3.ZERO
 var target_pos
-var in_space = false
+var in_space := false:
+	set(value):
+		in_space = value
+		_in_space_set()
 var time_to_return = false
-var back_from_space = false
 var angle = 0.0
 var rot_offset = 0.0
 var ax_offset = Vector3.ZERO
@@ -112,8 +115,10 @@ var oriented := false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	global.pieces.append(self)
 	global.ufo_abducting_signal.connect(_on_global_ufo_abducting_signal)
 	global.ufo_abduction_done_signal.connect(_on_global_ufo_abduction_done_signal)
+	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	ghostball = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall')
 	ghost = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost')
@@ -126,16 +131,25 @@ func _ready():
 #	zbasis_offset_ax = direction.normalized().cross(self.transform.basis.z).normalized()
 #	zbasis_offset = direction.normalized().signed_angle_to(self.transform.basis.z, zbasis_offset_ax)
 	var newmesh = ArrayMesh.new()
+#	var newmesh_transparent = ArrayMesh.new()
 	
 	var surface_array = []
 	surface_array.resize(Mesh.ARRAY_MAX)
+#	var surface_array_trans = []
+#	surface_array_trans.resize(Mesh.ARRAY_MAX)
 	
 	var temparr = Array(vertex)
 	temparr = temparr.map(func(v): return v - direction)
+#	var transarray = Array(color)
+#	transarray = transarray.map(func(c: Color): return Color(c, 0.5))
 	#vertex = PackedVector3Array(temparr)
 	surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array(temparr)
 	surface_array[Mesh.ARRAY_NORMAL] = normal
 	surface_array[Mesh.ARRAY_COLOR] = color
+	
+#	surface_array_trans[Mesh.ARRAY_VERTEX] = surface_array[Mesh.ARRAY_VERTEX]
+#	surface_array_trans[Mesh.ARRAY_NORMAL] = surface_array[Mesh.ARRAY_NORMAL]
+#	surface_array_trans[Mesh.ARRAY_COLOR] = PackedColorArray(transarray)
 	
 	if trees_on:
 		var mmi := MultiMeshInstance3D.new()
@@ -169,6 +183,7 @@ func _ready():
 #	themesh.add_child(t)
 	
 	newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+	#newmesh_transparent.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array_trans)
 	
 	if ocean:
 		surface_array = []
@@ -204,9 +219,8 @@ func _ready():
 			else:
 				water.material_overlay.roughness = 0.04
 	
-	newmesh.shadow_mesh = newmesh
-	
 	themesh.mesh = newmesh
+	#transparent.mesh = newmesh_transparent
 	if planet_style > 5 and planet_style < 10:
 		themesh.material_overlay.roughness = 0.65
 	else:
@@ -257,12 +271,12 @@ func _process(delta):
 			else:
 				self.rotation.y = lerp_angle(self.rotation.y, good_rot, 0.05)
 				found_spin = 0.0
-			if picked and in_transit:
-				found = false
-				_picked_animation()
-			elif !picked and in_transit:
-				found = false
-				_unpicked_animation()
+#			if picked and in_transit:
+#				found = false
+#				_picked_animation()
+#			elif !picked and in_transit:
+#				found = false
+#				_unpicked_animation()
 			if in_space:
 				#print(to_global(upright_vec).angle_to(Vector3.UP))
 				found = false
@@ -278,11 +292,11 @@ func _process(delta):
 				if position.y < -1.5:
 					emit_signal('take_me_home', idx)
 					time_to_return = false
-			if back_from_space:
-				position = Vector3.ZERO
-				position.y = 20.0
-				in_transit = true
-				back_from_space = false
+#			if back_from_space:
+#				position = Vector3.ZERO
+#				position.y = 20.0
+#				in_transit = true
+#				back_from_space = false
 	else:
 		if !placement_finished:
 			_placement()
@@ -350,47 +364,55 @@ func found_rotate(delta):
 
 
 func _on_picked_you(_idx):
-	if in_space:
-		time_to_return = true
-		if global.rotation and idx == _idx:
-			rotowindow.visible = false
-			#print('hide roto')
-	else:
-		if idx == _idx:
-			if global.rotation:
-				ghost.mesh = themesh.mesh
-				ghostwalls.mesh = walls.mesh
-				ghostwater.mesh = water.mesh
-				#ghostoutline.mesh = themesh.mesh
-				#ghostwallsoutline.mesh = walls.mesh
-				ghost.rotation = themesh.rotation
-				#ghostoutline.rotation = themesh.rotation
-				ghostball.rotation.z = rotation.z
-				rotowindow.visible = true
-				#print('show roto')
-			emit_signal('this_is_my_rotation', self.rotation.z)
-			picked = true
-			in_transit = true
-		else:
-			picked = false
+	if idx == _idx:
+		global.placing_piece = not global.placing_piece
+		print("placing piece: %s" % global.placing_piece)
+		global.chosen_piece = self
+#	if in_transit:
+#		pass
+#	else:
+#		if in_space:
+#			time_to_return = true
+#			global.placing_piece = false
+##			if global.rotation and idx == _idx:
+##				rotowindow.visible = false
+##				#print('hide roto')
+#		else:
+#			if idx == _idx:
+##				if global.rotation:
+##					ghost.mesh = themesh.mesh
+##					ghostwalls.mesh = walls.mesh
+##					ghostwater.mesh = water.mesh
+##					#ghostoutline.mesh = themesh.mesh
+##					#ghostwallsoutline.mesh = walls.mesh
+##					ghost.rotation = themesh.rotation
+##					#ghostoutline.rotation = themesh.rotation
+##					ghostball.rotation.z = rotation.z
+##					rotowindow.visible = true
+##					#print('show roto')
+#				emit_signal('this_is_my_rotation', self.rotation.z)
+#				picked = true
+#				in_transit = true
+#			else:
+#				picked = false
 
 
-func _picked_animation():
-	self.position.x = lerp(self.position.x, 0.0, 0.1)
-	self.position.z = lerp(self.position.z, 0.0, 0.1)
-	self.position.y = lerp(self.position.y, 15.0, 0.02)
-	if self.position.y > 7.0:
-		emit_signal("ready_for_launch", idx)
-		in_transit = false
-
-
-func _unpicked_animation():
-	self.position.x = lerp(self.position.x, good_pos.x, 0.02)
-	self.position.z = lerp(self.position.z, good_pos.z, 0.02)
-	self.position.y = lerp(self.position.y, 0.0, 0.1)
-	if self.position.is_equal_approx(Vector3(good_pos.x, 0.0, good_pos.z)):
-		self.position = Vector3(good_pos.x, 0.0, good_pos.z)
-		in_transit = false
+#func _picked_animation():
+#	self.position.x = lerp(self.position.x, 0.0, 0.1)
+#	self.position.z = lerp(self.position.z, 0.0, 0.1)
+#	self.position.y = lerp(self.position.y, 15.0, 0.02)
+#	if self.position.y > 7.0:
+#		emit_signal("ready_for_launch", idx)
+#		in_transit = false
+#
+#
+#func _unpicked_animation():
+#	self.position.x = lerp(self.position.x, good_pos.x, 0.02)
+#	self.position.z = lerp(self.position.z, good_pos.z, 0.02)
+#	self.position.y = lerp(self.position.y, 0.0, 0.1)
+#	if self.position.is_equal_approx(Vector3(good_pos.x, 0.0, good_pos.z)):
+#		self.position = Vector3(good_pos.x, 0.0, good_pos.z)
+#		in_transit = false
 
 
 func _abducted_animation():
@@ -458,3 +480,18 @@ func _dropped_off_animation():
 
 func _on_child_entered_tree(node):
 	node.owner = self
+
+
+func _on_global_wheel_rot_signal(rot):
+	pass
+
+
+func _in_space_set():
+	if not in_space:
+		position = Vector3(good_pos.x, 0.0, good_pos.z)
+#		themesh.visible = true
+#		transparent.visible = false
+	else:
+		pass
+#		themesh.visible = false
+#		transparent.visible = true

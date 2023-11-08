@@ -59,11 +59,11 @@ anti_aliasing/screen_space_roughness_limiter/enabled=false
 
 atmo_fresnel_power={
 "type": "float",
-"value": 2.178
+"value": 0.75
 }
 atmo_fresnel_max={
 "type": "float",
-"value": 0.553
+"value": 0.5
 }
 atmo_daylight={
 "type": "color",

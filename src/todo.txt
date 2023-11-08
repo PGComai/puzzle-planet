@@ -10,6 +10,8 @@ HIGH PRIORITY:
 - figure out ufo dropoff issues
 - how to play
 - fast piece placements see delay
+- one meshmaker per planet style - SPEED UP
+- move gameplay stuff from meshmaker to universe
 
 LOW PRIORITY:
 - adjust ufo height per planet

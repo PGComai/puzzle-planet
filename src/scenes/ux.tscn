@@ -17,7 +17,6 @@
 [ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
 [ext_resource type="Script" path="res://scripts/MenuButton.gd" id="9_xhe56"]
 [ext_resource type="Theme" uid="uid://ccaso356i774l" path="res://tex/toggle_buttons.tres" id="9_yt3th"]
-[ext_resource type="Script" path="res://scenes/PieceRotationButton.gd" id="10_4fljv"]
 [ext_resource type="Script" path="res://scripts/HowToPlayPopup.gd" id="10_kjmqd"]
 [ext_resource type="Script" path="res://scripts/PlanetProgress.gd" id="10_qmupj"]
 [ext_resource type="Script" path="res://scripts/SettingsPopup.gd" id="10_t8qcq"]
@@ -25,6 +24,7 @@
 [ext_resource type="Script" path="res://scripts/VibrateButton.gd" id="13_0f10h"]
 [ext_resource type="Script" path="res://scripts/MusicButton.gd" id="13_g8tjt"]
 [ext_resource type="Script" path="res://scripts/DebugButton.gd" id="15_yt5gt"]
+[ext_resource type="Script" path="res://scripts/PieceRotationButton.gd" id="16_1c00m"]
 [ext_resource type="Script" path="res://scripts/ProgressPanelContainer.gd" id="24_n51j8"]
 [ext_resource type="Script" path="res://scripts/StartGame.gd" id="25_n04pg"]
 [ext_resource type="AudioStream" uid="uid://dvfnrqw6dcraw" path="res://audio/placing pieces of planets intro.ogg" id="26_m7dch"]
@@ -526,7 +526,7 @@ layout_mode = 2
 theme = ExtResource("9_yt3th")
 toggle_mode = true
 text = "OFF"
-script = ExtResource("10_4fljv")
+script = ExtResource("16_1c00m")
 
 [node name="HSeparator7" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 visible = false

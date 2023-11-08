@@ -5,7 +5,6 @@ signal picked_you(idx)
 signal click(speed)
 signal ufo_at_angle(angle, pos)
 
-@onready var orbit = $Orbit
 @onready var camrot = $camrot
 @onready var camera_3d = $camrot/Camera3D
 @onready var wheel = $camrot/Camera3D/wheel
@@ -84,6 +83,7 @@ var light_toggle_complete := false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	global.browser_node = self
 	global.piece_placed.connect(_on_global_piece_placed)
 	global.ufo_done_signal.connect(_on_global_ufo_done_signal)
 	piece_rotation = global.rotation
@@ -129,9 +129,7 @@ func _process(delta):
 				front_piece = 0.0
 			if piecelocs.has(front_piece):
 				emit_signal("found_you", piecelocs[front_piece])
-		#dx_final = clamp(dx_final, -0.05, 0.05)
-		#print(dx_final)
-		if piece_in_space:
+		if global.placing_piece:
 			if global.rotation:
 				rotating = true
 				toggle_wheel('down')
@@ -152,8 +150,6 @@ func _process(delta):
 			rot_h = 2*PI-abs(rot_h)
 		if rot_h >= 2*PI:
 			rot_h -= 2*PI
-		#snap_to = snappedf(rot_h, 2*PI/rotosnaps)
-		#if how_close_to_piece < 0.2:
 		if !holding:
 			rot_h = lerp_angle(rot_h, snap_to, 0.03*snap_ease*(1.0-spin_speed))
 		camrot.rotation.y = rot_h
@@ -176,19 +172,9 @@ func _process(delta):
 		if spin_speed < 0.001:
 			spin_speed = 0.0
 		spin_speed = clamp(spin_speed, 0.0, 1.0)
-#		if how_close_to_piece < 10.0 and clicked:
-#			clicked = false
-#		if how_close_to_piece == 10.1 and !clicked:
-#			emit_signal("click", spin_speed)
-#			#print('click')
-#			#print(spin_speed)
-#			clicked = true
 		if !is_equal_approx(last_frame_snap_to, snap_to) and !(is_equal_approx(last_frame_snap_to, 2*PI) and is_equal_approx(snap_to, 0.0)) and !(is_equal_approx(snap_to, 2*PI) and is_equal_approx(last_frame_snap_to, 0.0)) and !disable_click:
 			var click_force = remap(clamp(abs(dx_final), 0.01, 0.1), 0.01, 0.1, 1.0, 1.2)
-			#print(click_force)
 			emit_signal("click", click_force)
-		
-		#print(how_close_to_piece)
 		drag = false
 		if is_equal_approx(dx, 0.0):
 			dx = 0.0
@@ -203,16 +189,17 @@ func _on_this_is_my_rotation(rot):
 func _on_i_am_here(idx, ang):
 	piecelocs[ang] = idx
 	
-func _on_take_me_home(idx):
-	if global.rotation:
-		wheel_moving = true
-	var pieces = get_tree().get_nodes_in_group('pieces')
-	for p in pieces:
-		if p.idx == idx:
-			p.reparent(self, false)
-			p.in_space = false
-			p.back_from_space = true
-			piece_in_space = false
+#func _on_take_me_home(idx):
+#	if global.rotation:
+#		wheel_moving = true
+#	var pieces = get_tree().get_nodes_in_group('pieces')
+#	for p in pieces:
+#		if p.idx == idx:
+#			p.reparent(self, false)
+#			p.in_space = false
+#			p.back_from_space = true
+#			piece_in_space = false
+#			global.placing_piece = false
 
 
 func _on_global_piece_placed(cidx):
@@ -310,7 +297,7 @@ func _on_global_ufo_done_signal():
 	for p in pieces:
 		p.reparent(self, false)
 		p.i_am_here.connect(_on_i_am_here)
-		p.take_me_home.connect(_on_take_me_home)
+		#p.take_me_home.connect(_on_take_me_home)
 		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
 		p.drop_off_original_dist = cam_dist
 		p.visible = true
@@ -357,43 +344,30 @@ func _on_browser_rect_gui_input(event):
 	if pieces_ready:
 		if event is InputEventScreenDrag:
 			disable_click = false
-#			if !holding and !holding_top:
-#				first_touch = (event.position.y / sub_viewport_container.size.y)
-#				if first_touch >= 0.9:
-#					first_touch_too_low = true
-#				else:
-#					first_touch_too_low = false
-			if true:#event.position.y > 0.0:
-				holding_top = false
-				holding = true
-				drag = true
-				if !rotating:
-					dx = event.relative.x * h_sensitivity
-				else:
-					dx = event.relative.x * og_sens
-				dy = event.relative.y * v_sensitivity
-				if abs(dx) > abs(dy):
-					dy = 0.0
-				elif abs(dx) <= abs(dy):
-					dx = 0.0
+			holding_top = false
+			holding = true
+			drag = true
+			if !rotating:
+				dx = event.relative.x * h_sensitivity
 			else:
-				holding_top = true
-				holding = false
-				drag = false
+				dx = event.relative.x * og_sens
+			dy = event.relative.y * v_sensitivity
+			if abs(dx) > abs(dy):
+				dy = 0.0
+			elif abs(dx) <= abs(dy):
+				dx = 0.0
 		if event is InputEventScreenTouch:
 			if event.pressed == false:
-				if !holding:# and !holding_top:
+				if !holding:
 					if piecelocs.has(front_piece):
-						piece_in_space = true
 						emit_signal("picked_you", piecelocs[front_piece])
 						stay_at_angle = front_piece
-				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space:# and !first_touch_too_low:
+				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !global.placing_piece:
 					# send to space
 					if piecelocs.has(front_piece):
-						piece_in_space = true
 						emit_signal("picked_you", piecelocs[front_piece])
 						stay_at_angle = front_piece
-				elif dy_final > 0.01 and abs(dx_final) < 0.02 and piece_in_space:# and first_touch > 0.0:
+				elif dy_final > 0.01 and abs(dx_final) < 0.02 and global.placing_piece:
 					# return from space
 					if piecelocs.has(front_piece):
 						emit_signal("picked_you", piecelocs[front_piece])

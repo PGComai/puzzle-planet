@@ -14,11 +14,12 @@ func _process(delta):
 	pass
 
 func _on_universe_piece_added():
-	pieces_made_so_far += 1
-	value = ((float(pieces_made_so_far) / float(global.total_pieces)) * 100.0)
-	#print(pieces_made_so_far)
-	if pieces_made_so_far == global.total_pieces:
-		progress_full_timer.start()
+	if global:
+		pieces_made_so_far += 1
+		value = ((float(pieces_made_so_far) / float(global.total_pieces)) * 100.0)
+		#print(pieces_made_so_far)
+		if pieces_made_so_far == global.total_pieces:
+			progress_full_timer.start()
 
 func _on_generate_button_up():
 	pieces_made_so_far = 0

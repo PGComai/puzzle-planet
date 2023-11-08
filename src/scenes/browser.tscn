@@ -38,9 +38,6 @@ script = ExtResource("1_n1lns")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_44v1c")
 
-[node name="Orbit" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.44511)
-
 [node name="camrot" type="Node3D" parent="."]
 
 [node name="Camera3D" type="Camera3D" parent="camrot"]

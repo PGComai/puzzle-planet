@@ -23,6 +23,19 @@ signal pause_the_music
 signal play_the_music
 signal tablet_mode_signal(onoff)
 signal default_vsplit_changed(split)
+signal new_chosen_piece(piece)
+
+var pieces: Array[Node3D]
+var chosen_piece: Node3D:
+	set(value):
+		chosen_piece = value
+		emit_signal("new_chosen_piece", value)
+		_transport_chosen_piece()
+var universe_node: Node3D
+var pieces_node: Node3D
+var browser_node: Node3D
+var piece_target_node: Node3D
+var placing_piece := false
 
 var generate_type := 3
 var atmo_type: int:
@@ -70,11 +83,11 @@ var change_ez_mantle_value := false:
 var ez_mantle_proxy := 0.0
 var ez_roughness_proxy := 0.0
 var ez_mantle_changed_during_placement := false
-var piece_in_space := false:
-	set(value):
-		piece_in_space = value
-		change_ez_mantle_value = true
-		emit_signal('piece_in_space_changed', value)
+#var piece_in_space := false:
+#	set(value):
+#		piece_in_space = value
+#		change_ez_mantle_value = true
+#		emit_signal('piece_in_space_changed', value)
 var debug_log := PackedStringArray()
 var debug_message: String:
 	set(value):
@@ -96,6 +109,7 @@ var puzzle_finished := false:
 		if value:
 			print("puzzle finished")
 			emit_signal("puzzle_done")
+			pieces = []
 		else:
 			print("puzzle unfinished")
 var ready_to_start := false:
@@ -108,6 +122,7 @@ var ufo_locations := Dictionary():
 var placed_cidx : int:
 	set(value):
 		emit_signal("piece_placed", value)
+		placing_piece = false
 var ufo_reset := false:
 	set(value):
 		if value:
@@ -194,7 +209,7 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if change_ez_mantle_value:
-		if piece_in_space:
+		if placing_piece:
 			ez_mantle_proxy = lerp(ez_mantle_proxy, 0.6, 0.03)
 			if is_equal_approx(ez_mantle_proxy, 0.6):
 				ez_mantle_proxy = 0.6
@@ -206,7 +221,7 @@ func _process(delta):
 				change_ez_mantle_value = false
 		RenderingServer.global_shader_parameter_set('ez_mantle_effect', ez_mantle_proxy)
 	if change_ez_mantle_roughness:
-		if piece_in_space:
+		if placing_piece:
 			ez_roughness_proxy = lerp(ez_roughness_proxy, 1.0, 0.15)
 			if is_equal_approx(ez_roughness_proxy, 1.0):
 				ez_roughness_proxy = 1.0
@@ -390,3 +405,10 @@ func _load_planet_for_title():
 	print(files)
 	title_planet = ResourceLoader.load("res://planets/%s" % files.pick_random())
 	atmo_type = title_planet.planet_style
+
+
+func _transport_chosen_piece():
+	if placing_piece:
+		chosen_piece.reparent(piece_target_node, false)
+	else:
+		chosen_piece.reparent(browser_node, false)

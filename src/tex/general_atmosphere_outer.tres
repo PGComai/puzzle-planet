@@ -73,7 +73,7 @@ operator = 2
 
 [resource]
 code = "shader_type spatial;
-render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx, shadows_disabled, ambient_light_disabled;
+render_mode blend_add, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx, shadows_disabled, ambient_light_disabled;
 
 global uniform vec4 atmo_daylight : source_color;
 global uniform vec4 atmo_sunset : source_color;
@@ -195,6 +195,7 @@ void light() {
 
 }
 "
+modes/blend = 1
 flags/shadows_disabled = true
 flags/ambient_light_disabled = true
 nodes/vertex/0/position = Vector2(700, 140)
