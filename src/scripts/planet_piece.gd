@@ -13,6 +13,9 @@ signal drop_off_sound
 @onready var water = $themesh/water
 @onready var wall_effect = $themesh/wall_effect
 @onready var transparent = $transparent
+@onready var multi_mesh_instance_3d = $themesh/MultiMeshInstance3D
+@onready var invis_timer = $InvisTimer
+@onready var placement_delay = $PlacementDelay
 
 var offset := 1.0
 
@@ -111,6 +114,7 @@ var tree_color_2 := Color(2.0, 2.0, 2.0)
 
 @export var built := false ### this will be handy for loading a saved game
 var oriented := false
+var remember_rotation_z: float
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -128,6 +132,7 @@ func _ready():
 	ghostwallsoutline = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/GhostOutline/GhostWallsOutline')
 	
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
+	remember_rotation_z = random_rotation_offset
 #	zbasis_offset_ax = direction.normalized().cross(self.transform.basis.z).normalized()
 #	zbasis_offset = direction.normalized().signed_angle_to(self.transform.basis.z, zbasis_offset_ax)
 	var newmesh = ArrayMesh.new()
@@ -152,12 +157,12 @@ func _ready():
 #	surface_array_trans[Mesh.ARRAY_COLOR] = PackedColorArray(transarray)
 	
 	if trees_on:
-		var mmi := MultiMeshInstance3D.new()
+		#var mmi := MultiMeshInstance3D.new()
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.mesh = treemesh
 		mm.use_colors = true
-		mmi.material_overlay = tree_material
+		#multi_mesh_instance_3d.material_overlay = tree_material
 		mm.instance_count = tree_positions.size()
 		for tp in tree_positions.size():
 			var bas := Basis().looking_at(-tree_positions[tp])
@@ -173,9 +178,9 @@ func _ready():
 #			t.spawn_position = tp - direction
 #			themesh.add_child(t)
 		mm.visible_instance_count = mm.instance_count
-		#mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mmi.multimesh = mm
-		themesh.add_child(mmi)
+		#multi_mesh_instance_3d.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		multi_mesh_instance_3d.multimesh = mm
+		#themesh.add_child(mmi)
 	
 #	var random_vertex = randi_range(0, vertex.size())
 #	var t := tree.instantiate()
@@ -262,6 +267,7 @@ func _process(delta):
 				good_global_rot = self.global_rotation
 				good_rot = good_global_rot.y
 				repositioning = false
+				global.num_pieces_arranged += 1
 #				if global.rotation:
 #					rotowindow.visible = false
 #					print('hide roto')
@@ -311,10 +317,12 @@ func _placement():
 	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
 	global_position = lerp(global_position, direction, placement_lerp_2)
 	if global_position.is_equal_approx(direction):
+		rotation.z = 0.0
 		global_position = direction
 		placement_finished = true
 		remove_from_group("pieces")
-		global.placed_cidx = circle_idx
+		print("placement finished")
+		placement_delay.start()
 
 
 func arrange(re = false):
@@ -348,6 +356,8 @@ func arrange(re = false):
 	if not orient_upright and not re:
 		self.rotate(good_pos.normalized(), random_rotation_offset)
 	emit_signal("i_am_here",idx ,snappedf(angle, 0.01))
+	if not re:
+		global.num_pieces_arranged += 1
 	drop_off_finished = true
 
 
@@ -368,6 +378,7 @@ func _on_picked_you(_idx):
 		global.placing_piece = not global.placing_piece
 		print("placing piece: %s" % global.placing_piece)
 		global.chosen_piece = self
+		global.wheel_target_rot = remember_rotation_z
 #	if in_transit:
 #		pass
 #	else:
@@ -483,15 +494,36 @@ func _on_child_entered_tree(node):
 
 
 func _on_global_wheel_rot_signal(rot):
-	pass
+	if global.chosen_piece == self and not placed:
+		rotation.z = rot
+		remember_rotation_z = rot
 
 
 func _in_space_set():
 	if not in_space:
 		position = Vector3(good_pos.x, 0.0, good_pos.z)
+#		themesh.material_overlay.no_depth_test = false
+#		water.material_overlay.no_depth_test = false
+#		multi_mesh_instance_3d.material_overlay.no_depth_test = false
 #		themesh.visible = true
 #		transparent.visible = false
 	else:
 		pass
+#		themesh.material_overlay.no_depth_test = true
+#		water.material_overlay.no_depth_test = true
+#		multi_mesh_instance_3d.material_overlay.no_depth_test = true
 #		themesh.visible = false
 #		transparent.visible = true
+
+
+func _disappear():
+	visible = false
+	invis_timer.start()
+
+
+func _on_invis_timer_timeout():
+	visible = true
+
+
+func _on_placement_delay_timeout():
+	global.placed_cidx = circle_idx

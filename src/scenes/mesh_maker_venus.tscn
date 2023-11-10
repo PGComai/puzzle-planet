@@ -1,19 +1,21 @@
-[gd_scene load_steps=18 format=3 uid="uid://dv0syeteumoy0"]
+[gd_scene load_steps=18 format=3 uid="uid://bhjvnureirbb4"]
 
-[ext_resource type="Script" path="res://scripts/mesh_maker.gd" id="1_fgw1b"]
-[ext_resource type="Curve" uid="uid://irv72c54rgc7" path="res://tex/earth_mountain_curve.tres" id="2_d1bs0"]
-[ext_resource type="Curve" uid="uid://bn4a4mky117e8" path="res://tex/earth_mountain_color_curve.tres" id="3_i5m5n"]
-[ext_resource type="Curve" uid="uid://dsdgatfwgcn2a" path="res://tex/earth_mountain_shift_curve.tres" id="4_yvj2h"]
-[ext_resource type="FastNoiseLite" uid="uid://b8oj2p5lxccqt" path="res://tex/tree_noise.tres" id="5_1xu18"]
-[ext_resource type="Material" uid="uid://b04g7132uvtsq" path="res://tex/mantle_earth_material.tres" id="6_niur6"]
+[ext_resource type="Script" path="res://scripts/mesh_maker.gd" id="1_4k5op"]
+[ext_resource type="Curve" uid="uid://irv72c54rgc7" path="res://tex/earth_mountain_curve.tres" id="2_fesde"]
+[ext_resource type="Curve" uid="uid://bn4a4mky117e8" path="res://tex/earth_mountain_color_curve.tres" id="3_0sya3"]
+[ext_resource type="Curve" uid="uid://dsdgatfwgcn2a" path="res://tex/earth_mountain_shift_curve.tres" id="4_qcaf7"]
+[ext_resource type="FastNoiseLite" uid="uid://b8oj2p5lxccqt" path="res://tex/tree_noise.tres" id="5_jyeff"]
+[ext_resource type="Material" uid="uid://b04g7132uvtsq" path="res://tex/mantle_earth_material.tres" id="6_ghq2v"]
 
 [sub_resource type="Gradient" id="Gradient_w8av6"]
-offsets = PackedFloat32Array(0, 0.5, 1)
-colors = PackedColorArray(0.290196, 0.423529, 0.247059, 1, 0.301961, 0.376471, 0.196078, 1, 0.701961, 0.505882, 0.298039, 1)
+offsets = PackedFloat32Array(0, 0.498485, 1)
+colors = PackedColorArray(0.67451, 0.360784, 0.133333, 1, 0.494118, 0.305882, 0.141176, 1, 0.701961, 0.337255, 0.223529, 1)
 
 [sub_resource type="Gradient" id="Gradient_tm2tu"]
 
 [sub_resource type="Gradient" id="Gradient_gfwob"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.709804, 0.619608, 0.529412, 1, 0.560784, 0.435294, 0.34902, 1, 0.760784, 0.67451, 0.627451, 1)
 
 [sub_resource type="Curve" id="Curve_sdhou"]
 
@@ -39,31 +41,34 @@ fractal_weighted_strength = 1.0
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_ekimj"]
 
 [node name="MeshMaker" type="Node3D"]
-script = ExtResource("1_fgw1b")
+script = ExtResource("1_4k5op")
+snow = false
 craters = true
-manual_crater_color = true
 craters_to_mountains = true
-mountain_snowcaps = true
-desert_belt = true
+lava_lamp = true
 snow_random_low = 0.7
 snow_random_high = 0.8
-min_terrain_height_unclamped = 0.65
-max_terrain_height_unclamped = 1.34
-crater_size_multiplier = 3.0
-crater_height_multiplier = 1.4
+min_terrain_height_unclamped = 0.75
+max_terrain_height_unclamped = 1.2
+crater_size_multiplier = 2.0
+crater_height_multiplier = 0.7
 num_craters = 20
 storm_flatness = 1.0
+turb1 = 0.2
+turb2 = 0.2
+water_offset = 1.2
 color_gradient = SubResource("Gradient_w8av6")
 tint_color_gradient = SubResource("Gradient_tm2tu")
 water_color_gradient = SubResource("Gradient_gfwob")
 low_crust_color = Color(0.431373, 0.180392, 0.0470588, 1)
 desert_color = Color(0.752941, 0.54902, 0.333333, 1)
+shallow_water_color = Color(0.709804, 0.619608, 0.529412, 1)
 crater_color = Color(0.556863, 0.54902, 0.556863, 1)
 lava_lamp_color = Color(0.945098, 0.341176, 0.184314, 1)
-deep_water_color = Color(0, 0.0392157, 0.290196, 1)
-crater_curve = ExtResource("2_d1bs0")
-crater_color_curve = ExtResource("3_i5m5n")
-mountain_shift_curve = ExtResource("4_yvj2h")
+deep_water_color = Color(0.521569, 0.203922, 0.0117647, 1)
+crater_curve = ExtResource("2_fesde")
+crater_color_curve = ExtResource("3_0sya3")
+mountain_shift_curve = ExtResource("4_qcaf7")
 canyon_height_curve = SubResource("Curve_sdhou")
 canyon_fade_curve = SubResource("Curve_a6axe")
 noise3d = SubResource("FastNoiseLite_edelf")
@@ -76,5 +81,5 @@ mountain_noise = SubResource("FastNoiseLite_lufvd")
 mountain_noise_freq_override = 5.0
 general_noise_soft = SubResource("FastNoiseLite_28c3m")
 canyon_noise = SubResource("FastNoiseLite_ekimj")
-tree_noise = ExtResource("5_1xu18")
-mantle_material = ExtResource("6_niur6")
+tree_noise = ExtResource("5_jyeff")
+mantle_material = ExtResource("6_ghq2v")

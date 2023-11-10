@@ -21,6 +21,7 @@ ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.06
 tonemap_mode = 2
+tonemap_white = 2.0
 fog_light_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
 fog_density = 0.2641
 fog_sky_affect = 0.0
@@ -49,7 +50,6 @@ script = ExtResource("2_6jj64")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="camrot/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)
-light_energy = 2.036
 light_cull_mask = 4294967231
 
 [node name="WheelLight" type="DirectionalLight3D" parent="camrot/Camera3D"]

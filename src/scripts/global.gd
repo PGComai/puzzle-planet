@@ -24,6 +24,8 @@ signal play_the_music
 signal tablet_mode_signal(onoff)
 signal default_vsplit_changed(split)
 signal new_chosen_piece(piece)
+signal num_pieces_arranged_changed(num)
+signal wheel_target_rot_set(rot)
 
 var pieces: Array[Node3D]
 var chosen_piece: Node3D:
@@ -173,6 +175,15 @@ var default_vsplit: int:
 	set(value):
 		default_vsplit = value
 		emit_signal("default_vsplit_changed", value)
+var num_pieces_arranged := 0:
+	set(value):
+		num_pieces_arranged = value
+		if value > 0:
+			emit_signal("num_pieces_arranged_changed", value)
+var wheel_target_rot := 0.0:
+	set(value):
+		wheel_target_rot = value
+		emit_signal("wheel_target_rot_set", value)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -409,6 +420,8 @@ func _load_planet_for_title():
 
 func _transport_chosen_piece():
 	if placing_piece:
+		chosen_piece._disappear()
 		chosen_piece.reparent(piece_target_node, false)
 	else:
+		chosen_piece._disappear()
 		chosen_piece.reparent(browser_node, false)

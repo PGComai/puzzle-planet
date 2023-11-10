@@ -1,17 +1,19 @@
-[gd_scene load_steps=18 format=3 uid="uid://dv0syeteumoy0"]
+[gd_scene load_steps=18 format=3 uid="uid://vyiwe6qs8cmo"]
 
-[ext_resource type="Script" path="res://scripts/mesh_maker.gd" id="1_fgw1b"]
-[ext_resource type="Curve" uid="uid://irv72c54rgc7" path="res://tex/earth_mountain_curve.tres" id="2_d1bs0"]
-[ext_resource type="Curve" uid="uid://bn4a4mky117e8" path="res://tex/earth_mountain_color_curve.tres" id="3_i5m5n"]
-[ext_resource type="Curve" uid="uid://dsdgatfwgcn2a" path="res://tex/earth_mountain_shift_curve.tres" id="4_yvj2h"]
-[ext_resource type="FastNoiseLite" uid="uid://b8oj2p5lxccqt" path="res://tex/tree_noise.tres" id="5_1xu18"]
-[ext_resource type="Material" uid="uid://b04g7132uvtsq" path="res://tex/mantle_earth_material.tres" id="6_niur6"]
+[ext_resource type="Script" path="res://scripts/mesh_maker.gd" id="1_c3bqn"]
+[ext_resource type="Curve" uid="uid://cxyokic1px4qa" path="res://tex/moon_crater_curve.tres" id="2_2g3dg"]
+[ext_resource type="Curve" uid="uid://bn4a4mky117e8" path="res://tex/earth_mountain_color_curve.tres" id="3_ege5i"]
+[ext_resource type="Curve" uid="uid://dsdgatfwgcn2a" path="res://tex/earth_mountain_shift_curve.tres" id="4_1eosv"]
+[ext_resource type="FastNoiseLite" uid="uid://b8oj2p5lxccqt" path="res://tex/tree_noise.tres" id="5_aer3d"]
+[ext_resource type="Material" uid="uid://v4sqk2s4ut1x" path="res://tex/mantle_moon_material.tres" id="6_evigs"]
 
 [sub_resource type="Gradient" id="Gradient_w8av6"]
 offsets = PackedFloat32Array(0, 0.5, 1)
-colors = PackedColorArray(0.290196, 0.423529, 0.247059, 1, 0.301961, 0.376471, 0.196078, 1, 0.701961, 0.505882, 0.298039, 1)
+colors = PackedColorArray(0.533333, 0.533333, 0.533333, 1, 0.415686, 0.415686, 0.415686, 1, 0.27451, 0.27451, 0.27451, 1)
 
-[sub_resource type="Gradient" id="Gradient_tm2tu"]
+[sub_resource type="Gradient" id="Gradient_sfrxv"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.402519, 0.479092, 0.679904, 1, 0.524496, 0.488919, 0.313516, 1, 0.781545, 0.504601, 0.379065, 1)
 
 [sub_resource type="Gradient" id="Gradient_gfwob"]
 
@@ -39,31 +41,29 @@ fractal_weighted_strength = 1.0
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_ekimj"]
 
 [node name="MeshMaker" type="Node3D"]
-script = ExtResource("1_fgw1b")
+script = ExtResource("1_c3bqn")
+ocean = false
+snow = false
 craters = true
-manual_crater_color = true
-craters_to_mountains = true
-mountain_snowcaps = true
-desert_belt = true
+has_tint = true
 snow_random_low = 0.7
 snow_random_high = 0.8
-min_terrain_height_unclamped = 0.65
-max_terrain_height_unclamped = 1.34
-crater_size_multiplier = 3.0
-crater_height_multiplier = 1.4
-num_craters = 20
+min_terrain_height_unclamped = 0.882
+crater_size_multiplier = 1.566
+crater_height_multiplier = 1.8
+num_craters = 50
 storm_flatness = 1.0
 color_gradient = SubResource("Gradient_w8av6")
-tint_color_gradient = SubResource("Gradient_tm2tu")
+tint_color_gradient = SubResource("Gradient_sfrxv")
 water_color_gradient = SubResource("Gradient_gfwob")
 low_crust_color = Color(0.431373, 0.180392, 0.0470588, 1)
 desert_color = Color(0.752941, 0.54902, 0.333333, 1)
 crater_color = Color(0.556863, 0.54902, 0.556863, 1)
 lava_lamp_color = Color(0.945098, 0.341176, 0.184314, 1)
 deep_water_color = Color(0, 0.0392157, 0.290196, 1)
-crater_curve = ExtResource("2_d1bs0")
-crater_color_curve = ExtResource("3_i5m5n")
-mountain_shift_curve = ExtResource("4_yvj2h")
+crater_curve = ExtResource("2_2g3dg")
+crater_color_curve = ExtResource("3_ege5i")
+mountain_shift_curve = ExtResource("4_1eosv")
 canyon_height_curve = SubResource("Curve_sdhou")
 canyon_fade_curve = SubResource("Curve_a6axe")
 noise3d = SubResource("FastNoiseLite_edelf")
@@ -76,5 +76,6 @@ mountain_noise = SubResource("FastNoiseLite_lufvd")
 mountain_noise_freq_override = 5.0
 general_noise_soft = SubResource("FastNoiseLite_28c3m")
 canyon_noise = SubResource("FastNoiseLite_ekimj")
-tree_noise = ExtResource("5_1xu18")
-mantle_material = ExtResource("6_niur6")
+tree_noise = ExtResource("5_aer3d")
+mantle_material = ExtResource("6_evigs")
+nval_ratio = Vector2(0.7, 0.3)

@@ -13,6 +13,9 @@ signal ufo_at_angle(angle, pos)
 @onready var ufo_orbit = $UFO_orbit
 @onready var directional_light_3d = $camrot/Camera3D/DirectionalLight3D
 
+const LIGHT_ENERGY := 1.0
+const BONUS_CAM_DIST := 1.0
+
 var global
 var piece_rotation := false
 
@@ -86,6 +89,8 @@ func _ready():
 	global.browser_node = self
 	global.piece_placed.connect(_on_global_piece_placed)
 	global.ufo_done_signal.connect(_on_global_ufo_done_signal)
+	global.num_pieces_arranged_changed.connect(_on_global_num_arranged_changed)
+	global.wheel_target_rot_set.connect(_on_global_wheel_target_rot_set)
 	piece_rotation = global.rotation
 	camera_3d.position.z = cam_dist
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -163,6 +168,7 @@ func _process(delta):
 			if is_equal_approx(camera_3d.position.z, cam_dist):
 				camera_3d.position.z = cam_dist
 				recam = false
+				print("recam ended")
 		snap_to = snappedf(rot_h, 2*PI/rotosnaps)
 		#print(snap_to)
 		how_close_to_piece = clamp(abs(rot_h-snap_to) * 50.0, 0.0, 10.1)
@@ -203,6 +209,9 @@ func _on_i_am_here(idx, ang):
 
 
 func _on_global_piece_placed(cidx):
+	print("browser piece placed func")
+	global.num_pieces_arranged = 0
+	pieces_ready = false
 	if global.rotation:
 		wheel_moving = true
 	disable_click = true
@@ -216,8 +225,7 @@ func _on_global_piece_placed(cidx):
 	else:
 		piecelocs = {}
 		h_sensitivity = og_sens * (float(max_rotosnaps)/float(rotosnaps))
-		cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
-		recam = true
+		cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST
 		var ang = (2*PI)/rotosnaps
 		for r in rotosnaps:
 			snaps.append(ang*(r))
@@ -285,7 +293,7 @@ func _on_global_ufo_done_signal():
 	h_sensitivity *= 15.0/float(rotosnaps)
 	#print(rotosnaps)
 	max_rotosnaps = rotosnaps
-	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8 ### FIX ME
+	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST ### FIX ME
 	#recam = true
 	camera_3d.position.z = cam_dist
 	var ang = (2*PI)/rotosnaps
@@ -302,7 +310,7 @@ func _on_global_ufo_done_signal():
 		p.drop_off_original_dist = cam_dist
 		p.visible = true
 		p.arrange()
-	pieces_ready = true
+	#pieces_ready = true
 #	ufo_come_drop_off = true
 #	var ufo = get_tree().get_first_node_in_group('ufo')
 #	ufo.reparent(ufo_orbit, false)
@@ -380,12 +388,24 @@ func _on_browser_rect_gui_input(event):
 
 func _toggle_light(tog: bool):
 	if tog:
-		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 2.036, 0.1)
-		if is_equal_approx(directional_light_3d.light_energy, 2.036):
-			directional_light_3d.light_energy = 2.036
+		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, LIGHT_ENERGY, 0.1)
+		if is_equal_approx(directional_light_3d.light_energy, LIGHT_ENERGY):
+			directional_light_3d.light_energy = LIGHT_ENERGY
 			light_toggle_complete = true
 	else:
 		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 0.5, 0.1)
 		if is_equal_approx(directional_light_3d.light_energy, 0.5):
 			directional_light_3d.light_energy = 0.5
 			light_toggle_complete = true
+
+
+func _on_global_num_arranged_changed(num):
+	if num == get_tree().get_nodes_in_group("pieces").size():
+		pieces_ready = true
+		print("pieces arranged")
+		recam = true
+		print("recam started")
+
+
+func _on_global_wheel_target_rot_set(rot):
+	wheelmesh.rotation.z = rot

@@ -15,5 +15,6 @@ func _process(delta):
 
 
 func _on_global_wheel_rot_signal(rot):
-	if get_child_count() > 0:
-		get_child(0).rotation.z = rot
+	pass
+#	if get_child_count() > 0:
+#		get_child(0).rotation.z = rot

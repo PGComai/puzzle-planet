@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=21 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
@@ -11,10 +11,14 @@ point_count = 6
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 resource_local_to_scene = true
+render_priority = 4
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
-roughness = 0.79
+roughness = 0.46
 emission = Color(0.813096, 0.883004, 0.71694, 1)
+rim_enabled = true
+rim = 0.79
+rim_tint = 0.14
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_4ibd5"]
 resource_local_to_scene = true
@@ -52,12 +56,15 @@ height = 0.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ofrj5"]
 resource_local_to_scene = true
+render_priority = 4
+diffuse_mode = 3
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
-roughness = 0.04
+roughness = 0.01
 emission = Color(0.813096, 0.883004, 0.71694, 1)
-rim = 0.28
-rim_tint = 0.0
+rim_enabled = true
+rim = 0.14
+rim_tint = 0.66
 clearcoat = 0.0
 anisotropy = -1.0
 texture_filter = 0
@@ -66,6 +73,14 @@ texture_repeat = false
 [sub_resource type="ArrayMesh" id="ArrayMesh_knalo"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_r2ohu"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rhrep"]
+resource_local_to_scene = true
+render_priority = 5
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(0.431373, 0.431373, 0.431373, 1)
+albedo_texture_force_srgb = true
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_du276"]
 albedo_color = Color(0.231373, 0.572549, 0.207843, 1)
@@ -76,8 +91,11 @@ radius = 0.05
 height = 0.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q6s22"]
+render_priority = 3
+no_depth_test = true
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
+albedo_color = Color(0.533333, 0.533333, 0.533333, 1)
 
 [node name="planet_piece" type="Node3D" groups=["persist", "pieces"]]
 script = ExtResource("1_jrwu8")
@@ -114,6 +132,9 @@ mesh = SubResource("ArrayMesh_knalo")
 [node name="wall_effect" type="MeshInstance3D" parent="themesh"]
 mesh = SubResource("ArrayMesh_r2ohu")
 
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="themesh"]
+material_overlay = SubResource("StandardMaterial3D_rhrep")
+
 [node name="up" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 visible = false
@@ -128,12 +149,21 @@ pitch_scale = 0.6
 max_polyphony = 3
 script = ExtResource("4_wo60a")
 
-[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="."]
-
 [node name="transparent" type="MeshInstance3D" parent="."]
 visible = false
 material_overlay = SubResource("StandardMaterial3D_q6s22")
+cast_shadow = 0
 skeleton = NodePath("../themesh")
+
+[node name="InvisTimer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
+[node name="PlacementDelay" type="Timer" parent="."]
+wait_time = 0.2
+one_shot = true
 
 [connection signal="child_entered_tree" from="." to="." method="_on_child_entered_tree"]
 [connection signal="drop_off_sound" from="." to="DropOffSound" method="_on_planet_piece_drop_off_sound"]
+[connection signal="timeout" from="InvisTimer" to="." method="_on_invis_timer_timeout"]
+[connection signal="timeout" from="PlacementDelay" to="." method="_on_placement_delay_timeout"]

@@ -21,10 +21,13 @@ extends Node3D
 @export var manual_crater_color := false
 @export var craters_to_storms := false
 @export var craters_to_mountains := false
+@export var mountain_snowcaps := false
 @export var canyons := false
 @export var gas_giant := false
 @export var desert_belt := false
 @export var is_pluto := false
+@export var has_tint := false
+@export var lava_lamp := false
 
 @export_category("Parameters")
 @export var snow_random_low := 0.85
@@ -49,12 +52,13 @@ extends Node3D
 
 @export_category("Color")
 @export var color_gradient: Gradient
+@export var tint_color_gradient: Gradient
 @export var water_color_gradient: Gradient
 @export var low_crust_color := Color('3f3227')
 @export var crust_color := Color('3f3227')
 @export var snow_color := Color('dbdbdb')
-@export var low_land_color := Color('74432e')
 @export var sand_color := Color('9f876b')
+@export var desert_color := Color('9f876b')
 @export var water_color := Color('0541ff')
 @export var shallow_water_color := Color('2091bf')
 @export var crater_color: Color
@@ -189,8 +193,6 @@ var uranus_color_ease_curve := preload("res://tex/uranus_color_ease_curve.tres")
 var neptune_color_ease_curve := preload("res://tex/neptune_color_ease_curve.tres")
 var watermelon_color_ease_curve := preload("res://tex/watermelon_land_color_curve.tres")
 
-@onready var rings = $"../Rings"
-@onready var lava_lamp = $"../Lava Lamp"
 @onready var piece_target = $"../h/v/Camera3D/piece_target"
 @onready var shadow_light = $"../h/v/Camera3D/ShadowLight"
 @onready var camera_3d = $"../h/v/Camera3D"
@@ -227,6 +229,8 @@ func _ready():
 	general_noise_soft.frequency = max(general_noise_soft_freq_override, general_noise_soft.frequency)
 	canyon_noise.frequency = max(canyon_noise_freq_override, canyon_noise.frequency)
 	tree_noise.frequency = max(tree_noise_freq_override, tree_noise.frequency)
+	
+	mantle.mesh.material = mantle_material
 	
 	thread = Thread.new()
 #	if global.title_screen: ### MOVED TO UNIVERSE
@@ -537,22 +541,19 @@ func _sub_triangle(
 		
 		var too_far_north := false
 		
-#		if ocean or snow:
+		if snow:
 #			if p1.length_squared() < pow(sand_threshold, 2) and ocean:
 #				p1_color = sand_color
-#			elif p1_lat > snow_start and snow:
-#				too_far_north = true
-#				p1_color = p1_color.lerp(land_snow_color, clamp(remap(p1_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
+			if p1_lat > snow_start:
+				too_far_north = true
 #			if p2.length_squared() < pow(sand_threshold, 2) and ocean:
 #				p2_color = sand_color
-#			elif p2_lat > snow_start and snow:
-#				too_far_north = true
-#				p2_color = p2_color.lerp(land_snow_color, clamp(remap(p2_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
+			if p2_lat > snow_start:
+				too_far_north = true
 #			if p3.length_squared() < pow(sand_threshold, 2) and ocean:
 #				p3_color = sand_color
-#			elif p3_lat > snow_start and snow:
-#				too_far_north = true
-#				p3_color = p3_color.lerp(land_snow_color, clamp(remap(p3_lat, snow_start, snow_random_high, 0.0, 1.0), 0.0, 1.0))
+			if p3_lat > snow_start:
+				too_far_north = true
 		
 		if ocean:
 			# water height
@@ -570,9 +571,9 @@ func _sub_triangle(
 			var p2w_color: Color
 			var p3w_color: Color
 			if planet_style == 2:
-				p1w_color = colorize(p1w)
-				p2w_color = colorize(p2w)
-				p3w_color = colorize(p3w)
+				p1w_color = colorize(p1w, true)
+				p2w_color = colorize(p2w, true)
+				p3w_color = colorize(p3w, true)
 			else:
 				var depth_start = 0.001
 				var depth_end = 0.05
@@ -699,8 +700,14 @@ func make_walls(og_verts: PackedVector3Array,
 		var depth_end = 0.05
 		var underwater_depth_start = 0.001
 		var underwater_depth_end = 0.03
-		var v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
-		var v1pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		var v0pw_color: Color
+		var v1pw_color: Color
+		if planet_style != 2:
+			v0pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+			v1pw_color = shallow_water_color.lerp(water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), depth_start, depth_end, 0.0, 1.0), 0.0, 1.0))
+		else:
+			v0pw_color = colorize(v0pw, true)
+			v1pw_color = colorize(v1pw, true)
 		var n: Vector3
 		
 		## PIECE WALLS BEGIN ## -----------------------------
@@ -1226,7 +1233,7 @@ func terraform_wall(vec: Vector3):
 #	return newvec
 
 
-func colorize(vec: Vector3):
+func colorize(vec: Vector3, doing_water := false):
 	var return_color: Color
 	var vec1 := Vector3(vec.x * turb1, vec.y * vturb1, vec.z * turb1)
 	var vec2 := Vector3(vec.x * turb2, vec.y * vturb2, vec.z * turb2)
@@ -1234,28 +1241,46 @@ func colorize(vec: Vector3):
 	var nval2 := colornoise2.get_noise_3dv(vec2)
 	nval1 = remap(clamp(nval1, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
 	nval2 = remap(clamp(nval2, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
+	var gentle_nval2 = remap(nval2, 0.0, 1.0, 0.0, 0.1)
 	var darken = colornoise2.get_noise_3dv(vec1)
 	darken = clamp(remap(darken, -0.1, 0.1, 0.0, 0.3), 0.0, 0.3)
 	var snowflag := float(snow)
 	var desertflag := float(desert_belt)
 	var cratercolorflag := float(manual_crater_color)
+	var oceanflag := float(ocean)
+	var tintflag := float(has_tint)
 	var lat := asin(abs(vec.normalized().y)) / (PI/2)
+	var desert_lat := clampf(1.0 - remap(lat, 0.1, 0.2, 0.0, 1.0), 0.0, 1.0)
 	var sand_coloring := clampf(remap(pow(sand_threshold, 2.0) - vec.length_squared(),
 										-0.01,
 										0.01,
 										0.0,
 										1.0),
 											0.0,
-											1.0)
-	var snow_coloring := clampf(remap(lat - snow_start,
+											1.0) * oceanflag
+	var snow_coloring := clampf(remap((lat + (nval2 / 10.0)) - snow_start,
 									0.0,
 									0.05,
 									0.0,
 									1.0),
 										0.0,
-										1.0)
-	
-	return_color = color_gradient.sample((nval1 * nval_ratio.x) + (nval2 * nval_ratio.y))
+										1.0) * snowflag
+	var snowcap_flag := float(mountain_snowcaps)
+	var snowcap_factor := snowcap_flag * clampf(remap(vec.length_squared(),
+													1.2,
+													1.3,
+													0.0,
+													1.0),
+														0.0,
+														1.0)
+	var sampling_sampler: float = (nval1 * nval_ratio.x) + (nval2 * nval_ratio.y)
+	var sampling_sampler_backwards: float = (nval1 * nval_ratio.y) + (nval2 * nval_ratio.x)
+	if not doing_water:
+		return_color = color_gradient.sample(sampling_sampler)
+	else:
+		return_color = water_color_gradient.sample(sampling_sampler)
+	return_color = return_color.lerp(tint_color_gradient.sample(sampling_sampler_backwards), 0.05 * tintflag)
+	return_color = return_color.lerp(desert_color, desert_lat * desertflag * nval2)
 	
 	var my_canyons = []
 	for cn in canyon_array:
@@ -1277,8 +1302,9 @@ func colorize(vec: Vector3):
 			my_craters.append(dist_mapped)
 	for mycr_i in len(my_craters):
 		#var l = clamp(clamp(crater_color_curve.sample_baked(my_craters[mycr_i]), 0.0, 0.6) * clamp(abs(mountain_noise.get_noise_3dv(vec) * 10.0), 0.5, 1.0), 0.0, 1.0)
-		var l = crater_color_curve.sample_baked(my_craters[mycr_i]) * cratercolorflag
-		return_color = lerp(return_color, crater_color, l)
+		var l = crater_color_curve.sample_baked(my_craters[mycr_i] + gentle_nval2) * cratercolorflag
+		var mountain_color := crater_color.lerp(snow_color, snowcap_factor)
+		return_color = lerp(return_color, mountain_color, l)
 	
 	if is_pluto and pluto_heart_center.distance_to(vec) < 1.0:
 		var heart_proj := pluto_heart_plane.project(vec)
