@@ -16,6 +16,8 @@ signal drop_off_sound
 @onready var multi_mesh_instance_3d = $themesh/MultiMeshInstance3D
 @onready var invis_timer = $InvisTimer
 @onready var placement_delay = $PlacementDelay
+@onready var placement_click = $PlacementClick
+@onready var click_delay = $ClickDelay
 
 var offset := 1.0
 
@@ -61,7 +63,13 @@ var ax_offset = Vector3.ZERO
 var good_global_rot: Vector3
 var rad = 10
 #var staying = false
-var placed = false
+var placed := false:
+	set(value):
+		placed = value
+		if value:
+			remove_from_group("pieces")
+			global.num_pieces_arranged = 0
+			placement_delay.start()
 #var particle_edges: PackedVector3Array
 #var rearrange_offset: int
 var repos: Vector3
@@ -103,6 +111,7 @@ var placement_finished := false
 var sound_playing := false
 var placement_lerp_1 := 0.0
 var placement_lerp_2 := 0.0
+var placement_wind_up := false
 
 var tree := preload("res://scenes/tree.tscn")
 var treemesh := preload("res://tex/tree_mesh_1.tres")
@@ -123,6 +132,7 @@ func _ready():
 	global.ufo_abducting_signal.connect(_on_global_ufo_abducting_signal)
 	global.ufo_abduction_done_signal.connect(_on_global_ufo_abduction_done_signal)
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
+	global.piece_placed.connect(_on_global_piece_placed)
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	ghostball = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall')
 	ghost = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost')
@@ -166,9 +176,7 @@ func _ready():
 		mm.instance_count = tree_positions.size()
 		for tp in tree_positions.size():
 			var bas := Basis().looking_at(-tree_positions[tp])
-			var altbas := Basis(Vector3(1.0, 0.0, 0.0),
-								Vector3(0.0, 1.0, 0.0),
-								Vector3(0.0, 0.0, 1.0))
+			bas = bas.rotated(tree_positions[tp].normalized(), randf_range(0.0, PI))
 			var tf := Transform3D(bas,
 								tree_positions[tp] - direction)
 			mm.set_instance_transform(tp, tf)
@@ -267,7 +275,7 @@ func _process(delta):
 				good_global_rot = self.global_rotation
 				good_rot = good_global_rot.y
 				repositioning = false
-				global.num_pieces_arranged += 1
+				#global.num_pieces_arranged += 1
 #				if global.rotation:
 #					rotowindow.visible = false
 #					print('hide roto')
@@ -309,20 +317,24 @@ func _process(delta):
 
 
 func _placement():
-	if placement_lerp_1 > 0.92 and !sound_playing:
-		if global.sound:
-			#note_player.play()
-			sound_playing = true
-	placement_lerp_1 = lerp(placement_lerp_1, 1.0, 0.03)
-	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
-	global_position = lerp(global_position, direction, placement_lerp_2)
-	if global_position.is_equal_approx(direction):
-		rotation.z = 0.0
-		global_position = direction
-		placement_finished = true
-		remove_from_group("pieces")
-		print("placement finished")
-		placement_delay.start()
+	if not placement_wind_up:
+		global_position = lerp(global_position, direction * 1.1, 0.2)
+		if global_position.is_equal_approx(direction * 1.1):
+			placement_wind_up = true
+			click_delay.start()
+	else:
+		global_position = lerp(global_position, direction, 0.3)
+		if global_position.is_equal_approx(direction):
+			rotation.z = 0.0
+			global_position = direction
+			placement_finished = true
+#	if placement_lerp_1 > 0.92 and !sound_playing:
+#		if global.sound:
+#			#note_player.play()
+#			print("click")
+#			sound_playing = true
+#	placement_lerp_1 = lerp(placement_lerp_1, 1.0, 0.03)
+#	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
 
 
 func arrange(re = false):
@@ -356,8 +368,8 @@ func arrange(re = false):
 	if not orient_upright and not re:
 		self.rotate(good_pos.normalized(), random_rotation_offset)
 	emit_signal("i_am_here",idx ,snappedf(angle, 0.01))
-	if not re:
-		global.num_pieces_arranged += 1
+	#if not re:
+	global.num_pieces_arranged += 1
 	drop_off_finished = true
 
 
@@ -375,6 +387,12 @@ func found_rotate(delta):
 
 func _on_picked_you(_idx):
 	if idx == _idx:
+		if repositioning:
+			self.position = repos
+			self.look_at(Vector3(0.0, self.global_position.y, 0.0), new_up)
+			good_global_rot = self.global_rotation
+			good_rot = good_global_rot.y
+			repositioning = false
 		global.placing_piece = not global.placing_piece
 		print("placing piece: %s" % global.placing_piece)
 		global.chosen_piece = self
@@ -527,3 +545,18 @@ func _on_invis_timer_timeout():
 
 func _on_placement_delay_timeout():
 	global.placed_cidx = circle_idx
+
+
+func _on_global_piece_placed(cidx):
+	if is_in_group("pieces"):
+		if circle_idx > cidx:
+			circle_idx -= 1
+		arrange(true)
+
+
+func _on_click_delay_timeout():
+	if global.sound:
+		placement_click.pitch_scale = randfn(1.0, 0.01)
+		placement_click.play()
+	if global.vibration:
+		Input.vibrate_handheld(5)

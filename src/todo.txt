@@ -34,6 +34,7 @@ GLITCHES:
 - rendered planet without one chunk of ocean on IOS
 - crashes if another planet requested while generating planet (temporarily fixed)
 - jupiter freeze
+- gas giant black mantle on oneplus 5
 
 NAMES:
 - Puzzle Space Program
@@ -41,8 +42,6 @@ NAMES:
 - Puzzle Worlds
 - Puzzle Astronomica
 - Puzzle Atlas
-- Astro Puzzle
 - PuzzleNaut
 - Puzzlenaut
-- Puzzleverse
 - Puzzle Planetarium

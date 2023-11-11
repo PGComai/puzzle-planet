@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://586ykcyd0bj2"
+path="res://.godot/imported/click with reverb and drum.ogg-77a4a9bf5961869b64f0824829ebb6f3.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/click with reverb and drum.ogg"
+dest_files=["res://.godot/imported/click with reverb and drum.ogg-77a4a9bf5961869b64f0824829ebb6f3.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

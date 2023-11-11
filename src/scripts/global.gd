@@ -414,8 +414,11 @@ func _load_planet_for_title():
 	var files := Array(DirAccess.get_files_at("res://planets/"))
 	files.erase("title_planet_resource.tres")
 	print(files)
-	title_planet = ResourceLoader.load("res://planets/%s" % files.pick_random())
-	atmo_type = title_planet.planet_style
+	if files.size() == 0:
+		pass
+	else:
+		title_planet = ResourceLoader.load("res://planets/%s" % files.pick_random())
+		atmo_type = title_planet.planet_style
 
 
 func _transport_chosen_piece():

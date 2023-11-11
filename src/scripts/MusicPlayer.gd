@@ -30,25 +30,26 @@ func _ready():
 	global.pause_the_music.connect(_on_global_pause_the_music)
 	global.play_the_music.connect(_on_global_play_the_music)
 	album = [day_night_cycle_loop, moonwalk_air_loop, warp_drive_diagnostics_loop, gravity_assist]
-	if global.music:
-		play()
+#	if global.music:
+#		play()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	if fade_and_stop:
-		fade_counter += delta
-		fade_counter = clamp(fade_counter, 0.0, fade_time)
-		var fade_remapped = remap(fade_counter, 0.0, fade_time, 0.0, 1.0)
-		volume_db = lerp(default_db, faded_db, fade_curve.sample_baked(fade_remapped))
-		if is_equal_approx(fade_counter, fade_time):
-			stop()
-			volume_db = default_db
-			fade_and_stop = false
-			fade_counter = 0.0
-			print("music stopped")
-	elif song_queued:
-		_pick_new_song()
+	pass
+#	if fade_and_stop:
+#		fade_counter += delta
+#		fade_counter = clamp(fade_counter, 0.0, fade_time)
+#		var fade_remapped = remap(fade_counter, 0.0, fade_time, 0.0, 1.0)
+#		volume_db = lerp(default_db, faded_db, fade_curve.sample_baked(fade_remapped))
+#		if is_equal_approx(fade_counter, fade_time):
+#			stop()
+#			volume_db = default_db
+#			fade_and_stop = false
+#			fade_counter = 0.0
+#			print("music stopped")
+#	elif song_queued:
+#		_pick_new_song()
 
 
 func _on_finished():
@@ -80,13 +81,13 @@ func _on_start_puzzle_button_up():
 	if fade_and_stop:
 		song_queued = true
 	else:
-		_pick_new_song()
+		pass#_pick_new_song()
 
 
 func _pick_new_song():
 	stream = album.pick_random()
 	if global.music:
-		play()
+		pass#play()
 	song_queued = false
 
 
@@ -106,4 +107,4 @@ func _on_global_play_the_music():
 		stop()
 	stream_paused = false
 	if not playing and music_mode:
-		play()
+		pass#play()

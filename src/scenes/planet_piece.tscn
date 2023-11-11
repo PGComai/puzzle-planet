@@ -1,9 +1,10 @@
-[gd_scene load_steps=21 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=22 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
 [ext_resource type="AudioStream" uid="uid://d0dcs5p5din0n" path="res://audio/ufo-abduct-one.wav" id="3_p3cpx"]
 [ext_resource type="Script" path="res://scripts/DropOffSound.gd" id="4_wo60a"]
+[ext_resource type="AudioStream" uid="uid://586ykcyd0bj2" path="res://audio/click with reverb and drum.ogg" id="5_kjry7"]
 
 [sub_resource type="Curve" id="Curve_wdrif"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.739696, 0.145907), 0.267847, 0.267847, 0, 0, Vector2(0.789588, 0), 0.0, 0.0, 0, 0, Vector2(0.893709, 0), 0.0, 0.0, 0, 0, Vector2(0.91974, 0.195729), 0.440153, 0.0, 0, 0, Vector2(1, 1), 36.2599, 0.0, 0, 0]
@@ -160,10 +161,18 @@ wait_time = 0.1
 one_shot = true
 
 [node name="PlacementDelay" type="Timer" parent="."]
-wait_time = 0.2
+one_shot = true
+
+[node name="PlacementClick" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_kjry7")
+volume_db = -11.957
+
+[node name="ClickDelay" type="Timer" parent="."]
+wait_time = 0.05
 one_shot = true
 
 [connection signal="child_entered_tree" from="." to="." method="_on_child_entered_tree"]
 [connection signal="drop_off_sound" from="." to="DropOffSound" method="_on_planet_piece_drop_off_sound"]
 [connection signal="timeout" from="InvisTimer" to="." method="_on_invis_timer_timeout"]
 [connection signal="timeout" from="PlacementDelay" to="." method="_on_placement_delay_timeout"]
+[connection signal="timeout" from="ClickDelay" to="." method="_on_click_delay_timeout"]

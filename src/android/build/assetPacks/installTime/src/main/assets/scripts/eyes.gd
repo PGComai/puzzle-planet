@@ -11,13 +11,13 @@ signal no_pitch_mod
 @onready var piece_target = $h/v/Camera3D/piece_target
 @onready var mesh_maker = $MeshMaker
 @onready var pieces = $Pieces
-@onready var new_mesh_maker = preload("res://scenes/mesh_maker.tscn")
 @onready var sun = $Sun
 @onready var space = $Space
 @onready var shadow_light = $h/v/Camera3D/ShadowLight
 @onready var roto_window = $"../../RotoWindow"
 @onready var atmosphere = $Atmosphere
 @onready var error_sound = $ErrorSound
+@onready var rings = $Rings
 
 var rot_h = 0.0
 var rot_v = 0.0
@@ -52,10 +52,29 @@ var global
 var last_rot_h_tick := 0.0
 var last_rot_v_tick := 0.0
 
+var piece = preload("res://scenes/planet_piece.tscn")
+var current_piece: Node3D
+var current_piece_mesh: MeshInstance3D
+var looking := false
+var correct_rotation := false
+var fit_timer: float = 0.0
+var fit: bool = false
+var placed_signal := false
+
+var new_mesh_maker = preload("res://scenes/mesh_maker.tscn")
+var earth_mesh_maker = preload("res://scenes/mesh_maker_earth.tscn")
+var moon_mesh_maker = preload("res://scenes/mesh_maker_moon.tscn")
+var mars_mesh_maker = preload("res://scenes/mesh_maker_mars.tscn")
+var venus_mesh_maker = preload("res://scenes/mesh_maker_venus.tscn")
+var mercury_mesh_maker = preload("res://scenes/mesh_maker_mercury.tscn")
+
 func _ready():
 	global = get_node('/root/Global')
+	global.universe_node = self
 	global.drawing_mode_changed.connect(_on_global_drawing_mode_changed)
 	global.redo_atmosphere.connect(_on_global_redo_atmosphere)
+	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
+	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready)
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	#h = sub_viewport.size.y
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -65,6 +84,7 @@ func _ready():
 	#generate_type = global.generate_type
 	if global.title_screen:
 		_atmo_change()
+		_load_title_planet()
 
 func _process(delta):
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
@@ -139,6 +159,22 @@ func _process(delta):
 	
 	$h.rotation.y = rot_h
 	$h/v.rotation.x = rot_v
+	
+	### PIECE MANAGEMENT
+	
+	if looking:
+		_piece_fit(delta)
+	if fit_timer > 1.5:
+		_place_piece()
+	if fit:
+		if !placed_signal:
+			#current_piece.remove_from_group('pieces')
+			global.pieces_placed_so_far[0] += 1
+			print(global.pieces_placed_so_far)
+			global._save_puzzle_status()
+			placed_signal = true
+			#placed_counting = true
+			fit = false
 
 
 func _atmo_change():
@@ -146,41 +182,49 @@ func _atmo_change():
 	print("new atmosphere: %s" % type)
 	if type == 3:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
+		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
 	elif type == 2:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.178)
+		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('b89679'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('b89679'))
 	elif type == 5:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 3.2)
+		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('d4995a'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
 	elif type == 4 or type == 1 or type == 11:
 		atmosphere.visible = false
+		rings.visible = false
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('black'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('black'))
 	elif type == 6:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
+		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
 	elif type == 7:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
+		rings.visible = true
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
 	elif type == 8 or type == 9:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 2.3)
+		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7a9cae'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7a9cae'))
 	elif type == 10:
 		atmosphere.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 4.0)
+		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('81cfff'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
 
@@ -197,7 +241,7 @@ func _on_generate_button_up():
 	global.ufo_reset = true
 	shadow_light._on = false
 	sun._on = true
-	global.piece_in_space = false
+	#global.piece_in_space = false
 	space._on = false
 	roto_window.visible = false
 	mesh_maker.queue_free()
@@ -209,7 +253,19 @@ func _on_generate_button_up():
 		n.queue_free()
 	#if global.generate_type != generate_type:
 	_atmo_change()
-	var nmm = new_mesh_maker.instantiate()
+	var nmm
+	if global.generate_type == 3:
+		nmm = earth_mesh_maker.instantiate()
+	elif global.generate_type == 4:
+		nmm = moon_mesh_maker.instantiate()
+	elif global.generate_type == 5:
+		nmm = mars_mesh_maker.instantiate()
+	elif global.generate_type == 2:
+		nmm = venus_mesh_maker.instantiate()
+	elif global.generate_type == 1:
+		nmm = mercury_mesh_maker.instantiate()
+	else:
+		nmm = new_mesh_maker.instantiate()
 	nmm.build_planet = true
 	mesh_maker = nmm ### why did i do it like this? why does this work?
 	ready_for_nmm = true
@@ -225,7 +281,7 @@ func _on_resume_button_up():
 	global.ufo_reset = true
 	shadow_light._on = false
 	sun._on = true
-	global.piece_in_space = false
+	#global.piece_in_space = false
 	space._on = false
 	roto_window.visible = false
 	for n in get_tree().get_nodes_in_group('pieces'):
@@ -245,6 +301,7 @@ func _on_ufo_ufo_take_me_home():
 func _on_pieces_child_entered_tree(node):
 	if node.get_parent() == pieces:
 		emit_signal("piece_added")
+		#node.ready_for_launch.connect(_on_ready_for_launch)
 
 
 func _on_universe_rect_gui_input(event):
@@ -293,3 +350,172 @@ func _on_universe_rect_gui_input(event):
 
 func _on_global_redo_atmosphere():
 	_atmo_change()
+
+
+func _on_global_loaded_pieces_ready(data):
+	global.atmo_type = global.generate_type
+	if global.generate_type == 7:
+		rings.visible = true
+	else:
+		rings.visible = false
+	var pieces_tracked: Dictionary = data[0]
+	var loaded_pieces_data: Dictionary = data[1]
+	var ufo_locations = {}
+	var new_circle_idx := 0
+	
+	for i in loaded_pieces_data.keys():
+		var newpiece = piece.instantiate()
+		var piece_dict = loaded_pieces_data[i]
+		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
+		newpiece.vertex = piece_dict["vertex"]
+		newpiece.normal = piece_dict["normal"]
+		newpiece.color = piece_dict["color"]
+		newpiece.direction = piece_dict["direction"]
+		newpiece.trees_on = piece_dict["trees_on"]
+		newpiece.tree_positions = piece_dict["tree_positions"]
+		newpiece.ocean = piece_dict["ocean"]
+		newpiece.vertex_cw = piece_dict["vertex_cw"]
+		newpiece.normal_cw = piece_dict["normal_cw"]
+		newpiece.color_cw = piece_dict["color_cw"]
+		newpiece.vertex_w = piece_dict["vertex_w"]
+		newpiece.normal_w = piece_dict["normal_w"]
+		newpiece.color_w = piece_dict["color_w"]
+		newpiece.planet_style = piece_dict["planet_style"]
+		newpiece.wall_vertex = piece_dict["wall_vertex"]
+		newpiece.wall_normal = piece_dict["wall_normal"]
+		newpiece.wall_color = piece_dict["wall_color"]
+		newpiece.offset = piece_dict["offset"]
+		newpiece.lat = piece_dict["lat"]
+		newpiece.lon = piece_dict["lon"]
+		newpiece.orient_upright = piece_dict["orient_upright"]
+		newpiece.idx = piece_dict["idx"]
+		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
+		
+		if not pieces_tracked[i]:
+			newpiece.remove_from_group("pieces")
+		else:
+			newpiece.circle_idx = new_circle_idx
+			new_circle_idx += 1
+			ufo_locations[i] = piece_dict["direction"]
+		
+		pieces.add_child(newpiece)
+		#pieces.call_deferred("add_child", newpiece)
+	global.ufo_locations = ufo_locations
+	global.ready_to_start = true
+
+
+#func _on_ready_for_launch(_idx):
+#	var _pieces = get_tree().get_nodes_in_group('pieces')
+#	for p in _pieces:
+#		if p.idx == _idx:
+#			p.reparent(piece_target, false)
+#			#p.visible = false
+#			current_piece = p
+#			current_piece_mesh = current_piece.get_child(0)
+#			p.position.y = -6.0
+#			p.in_space = true
+#			if !p.is_connected('take_me_home', _on_piece_take_me_home):
+#				p.take_me_home.connect(_on_piece_take_me_home)
+#			#shadow_light._on = true
+#			#space._on = true
+#			#sun._on = false
+#			#sun_2._on = false
+#			looking = true
+
+
+#func _on_piece_take_me_home(_idx):
+#	#shadow_light._on = false
+#	#space._on = false
+#	#sun._on = true
+#	#sun_2._on = true
+#	looking = false
+
+
+func _on_global_wheel_rot_signal(rot):
+	var the_rot = fmod(abs(rot), 2*PI)
+	if the_rot < (0.0 + (PI/32)) or the_rot > ((2*PI) - (PI/32)):
+		correct_rotation = true
+	else:
+		correct_rotation = false
+
+
+func _piece_fit(delta):
+	if current_piece.global_position.normalized().angle_to(current_piece.direction.normalized()) < PI/32:
+		if global.rotation:
+			if correct_rotation:
+				fit_timer += delta
+			else:
+				fit_timer = 0.0
+		else:
+			fit_timer += delta
+	else:
+		fit_timer = 0.0
+
+
+func _place_piece():
+	current_piece.reparent(pieces, false)
+	current_piece.position = Vector3.ZERO
+	current_piece.rotation = Vector3.ZERO
+	current_piece_mesh.rotation = Vector3.ZERO
+	current_piece.global_position = piece_target.global_position
+	current_piece.placed = true
+	fit = true
+	looking = false
+	fit_timer = 0.0
+	#shadow_light._on = false
+	#sun._on = true
+	#space._on = false
+	#rotowindow.visible = false
+
+
+func _load_title_planet():
+	var node_data: Dictionary = global.title_planet.node_data
+	var new_circle_idx := 0
+	if global.title_planet.planet_style == 7:
+		rings.visible = true
+	for i in node_data.keys():
+		var newpiece = piece.instantiate()
+		var piece_dict = node_data[i]
+		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
+		newpiece.vertex = piece_dict["vertex"]
+		newpiece.normal = piece_dict["normal"]
+		newpiece.color = piece_dict["color"]
+		newpiece.direction = piece_dict["direction"]
+		newpiece.trees_on = piece_dict["trees_on"]
+		newpiece.tree_positions = piece_dict["tree_positions"]
+		newpiece.ocean = piece_dict["ocean"]
+		newpiece.vertex_cw = piece_dict["vertex_cw"]
+		newpiece.normal_cw = piece_dict["normal_cw"]
+		newpiece.color_cw = piece_dict["color_cw"]
+		newpiece.vertex_w = piece_dict["vertex_w"]
+		newpiece.normal_w = piece_dict["normal_w"]
+		newpiece.color_w = piece_dict["color_w"]
+		newpiece.planet_style = piece_dict["planet_style"]
+		newpiece.wall_vertex = piece_dict["wall_vertex"]
+		newpiece.wall_normal = piece_dict["wall_normal"]
+		newpiece.wall_color = piece_dict["wall_color"]
+		newpiece.offset = piece_dict["offset"]
+		newpiece.lat = piece_dict["lat"]
+		newpiece.lon = piece_dict["lon"]
+		newpiece.orient_upright = piece_dict["orient_upright"]
+		newpiece.idx = piece_dict["idx"]
+		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
+		newpiece.remove_from_group("pieces")
+		newpiece.add_to_group("title_pieces")
+		pieces.add_child(newpiece)
+
+
+func _on_piece_target_child_entered_tree(node):
+	if node.is_in_group("pieces"):
+		current_piece = node
+		current_piece_mesh = current_piece.get_child(0)
+		current_piece.in_space = true
+		looking = true
+		print("piece_target child entered")
+
+
+func _on_piece_target_child_exiting_tree(node):
+	if node.is_in_group("pieces"):
+		current_piece.in_space = false
+		looking = false
+		print("piece_target child exited")

@@ -1,4 +1,4 @@
-[gd_resource type="VisualShader" load_steps=23 format=3 uid="uid://cbmc4pc5f7j3d"]
+[gd_resource type="VisualShader" load_steps=15 format=3 uid="uid://cbmc4pc5f7j3d"]
 
 [sub_resource type="VisualShaderNodeUVFunc" id="VisualShaderNodeUVFunc_tkba7"]
 default_input_values = [1, Vector2(-1, -1), 2, Vector2(0, 0)]
@@ -31,34 +31,6 @@ noise = SubResource("FastNoiseLite_2d5mu")
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_3w6b8"]
 texture = SubResource("NoiseTexture2D_8w1w4")
-
-[sub_resource type="VisualShaderNodeFresnel" id="VisualShaderNodeFresnel_3v668"]
-default_input_values = [2, true, 3, 1.5]
-
-[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_2gdy5"]
-operator = 2
-
-[sub_resource type="VisualShaderNodeMix" id="VisualShaderNodeMix_3fiy5"]
-default_input_values = [0, Quaternion(0, 0, 0, 0), 1, Quaternion(1, 1, 1, 1), 2, 0.5]
-op_type = 6
-
-[sub_resource type="VisualShaderNodeColorConstant" id="VisualShaderNodeColorConstant_n3rxb"]
-constant = Color(0.476578, 0.476578, 0.476578, 1)
-
-[sub_resource type="VisualShaderNodeColorConstant" id="VisualShaderNodeColorConstant_42x3n"]
-constant = Color(0, 0, 0, 1)
-
-[sub_resource type="VisualShaderNodeMix" id="VisualShaderNodeMix_t6i1u"]
-default_input_values = [0, Quaternion(0, 0, 0, 0), 1, Quaternion(1, 1, 1, 1), 2, 0.5]
-op_type = 6
-
-[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_odn8g"]
-size = Vector2(635.903, 392.493)
-expression = "output1 = ez_mantle_effect;"
-
-[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_sdpfk"]
-size = Vector2(617.583, 187.65)
-expression = "global uniform float ez_mantle_effect;"
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_3hqpp"]
 texture = SubResource("NoiseTexture2D_8w1w4")
@@ -104,8 +76,6 @@ uniform sampler2D tex_frg_11;
 uniform sampler2D tex_frg_9;
 
 
-// GlobalExpression:0
-	global uniform float ez_mantle_effect;
 
 void fragment() {
 // Input:4
@@ -148,42 +118,9 @@ void fragment() {
 	vec3 n_out8p0 = mix(vec3(n_out2p0.xyz), vec3(n_out11p0.xyz), vec3(n_out9p0.xyz));
 
 
-// ColorConstant:15
-	vec4 n_out15p0 = vec4(0.476578, 0.476578, 0.476578, 1.000000);
-
-
-	float n_out18p0;
-// Expression:18
-	n_out18p0 = 0.0;
-	{
-		n_out18p0 = ez_mantle_effect;
-	}
-
-
-// Fresnel:12
-	float n_in12p3 = 1.50000;
-	float n_out12p0 = pow(clamp(dot(NORMAL, VIEW), 0.0, 1.0), n_in12p3);
-
-
-// FloatOp:13
-	float n_out13p0 = n_out18p0 * n_out12p0;
-
-
-// Mix:14
-	vec4 n_out14p0 = mix(vec4(n_out8p0, 0.0), n_out15p0, n_out13p0);
-
-
-// ColorConstant:16
-	vec4 n_out16p0 = vec4(0.000000, 0.000000, 0.000000, 1.000000);
-
-
-// Mix:17
-	vec4 n_out17p0 = mix(vec4(n_out8p0, 0.0), n_out16p0, n_out13p0);
-
-
 // Output:0
-	ALBEDO = vec3(n_out14p0.xyz);
-	EMISSION = vec3(n_out17p0.xyz);
+	ALBEDO = n_out8p0;
+	EMISSION = n_out8p0;
 
 
 }
@@ -207,28 +144,4 @@ nodes/fragment/10/node = SubResource("VisualShaderNodeUVFunc_tkba7")
 nodes/fragment/10/position = Vector2(-120, 780)
 nodes/fragment/11/node = SubResource("VisualShaderNodeTexture_3w6b8")
 nodes/fragment/11/position = Vector2(420, 280)
-nodes/fragment/12/node = SubResource("VisualShaderNodeFresnel_3v668")
-nodes/fragment/12/position = Vector2(680, -240)
-nodes/fragment/13/node = SubResource("VisualShaderNodeFloatOp_2gdy5")
-nodes/fragment/13/position = Vector2(1240, -520)
-nodes/fragment/14/node = SubResource("VisualShaderNodeMix_3fiy5")
-nodes/fragment/14/position = Vector2(1980, -480)
-nodes/fragment/15/node = SubResource("VisualShaderNodeColorConstant_n3rxb")
-nodes/fragment/15/position = Vector2(1140, -240)
-nodes/fragment/16/node = SubResource("VisualShaderNodeColorConstant_42x3n")
-nodes/fragment/16/position = Vector2(1140, -100)
-nodes/fragment/17/node = SubResource("VisualShaderNodeMix_t6i1u")
-nodes/fragment/17/position = Vector2(1980, -240)
-nodes/fragment/18/node = SubResource("VisualShaderNodeExpression_odn8g")
-nodes/fragment/18/position = Vector2(220, -720)
-nodes/fragment/18/size = Vector2(635.903, 392.493)
-nodes/fragment/18/input_ports = ""
-nodes/fragment/18/output_ports = "0,0,output1;"
-nodes/fragment/18/expression = "output1 = ez_mantle_effect;"
-nodes/fragment/19/node = SubResource("VisualShaderNodeGlobalExpression_sdpfk")
-nodes/fragment/19/position = Vector2(-560, -660)
-nodes/fragment/19/size = Vector2(617.583, 187.65)
-nodes/fragment/19/input_ports = ""
-nodes/fragment/19/output_ports = ""
-nodes/fragment/19/expression = "global uniform float ez_mantle_effect;"
-nodes/fragment/connections = PackedInt32Array(3, 0, 2, 0, 4, 0, 5, 0, 5, 0, 3, 2, 5, 0, 7, 2, 2, 0, 8, 0, 9, 0, 8, 2, 5, 0, 10, 2, 10, 0, 9, 0, 7, 0, 11, 0, 11, 0, 8, 1, 12, 0, 13, 1, 13, 0, 14, 2, 13, 0, 17, 2, 15, 0, 14, 1, 16, 0, 17, 1, 18, 0, 13, 0, 8, 0, 14, 0, 8, 0, 17, 0, 17, 0, 0, 5, 14, 0, 0, 0)
+nodes/fragment/connections = PackedInt32Array(3, 0, 2, 0, 4, 0, 5, 0, 5, 0, 3, 2, 5, 0, 7, 2, 2, 0, 8, 0, 9, 0, 8, 2, 5, 0, 10, 2, 10, 0, 9, 0, 7, 0, 11, 0, 11, 0, 8, 1, 8, 0, 0, 0, 8, 0, 0, 5)

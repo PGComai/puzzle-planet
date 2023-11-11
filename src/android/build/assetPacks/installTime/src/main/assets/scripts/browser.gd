@@ -5,7 +5,6 @@ signal picked_you(idx)
 signal click(speed)
 signal ufo_at_angle(angle, pos)
 
-@onready var orbit = $Orbit
 @onready var camrot = $camrot
 @onready var camera_3d = $camrot/Camera3D
 @onready var wheel = $camrot/Camera3D/wheel
@@ -13,6 +12,9 @@ signal ufo_at_angle(angle, pos)
 @onready var audio_stream_player = $AudioStreamPlayer
 @onready var ufo_orbit = $UFO_orbit
 @onready var directional_light_3d = $camrot/Camera3D/DirectionalLight3D
+
+const LIGHT_ENERGY := 1.0
+const BONUS_CAM_DIST := 1.0
 
 var global
 var piece_rotation := false
@@ -84,8 +86,11 @@ var light_toggle_complete := false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	global = get_node('/root/Global')
+	global.browser_node = self
 	global.piece_placed.connect(_on_global_piece_placed)
 	global.ufo_done_signal.connect(_on_global_ufo_done_signal)
+	global.num_pieces_arranged_changed.connect(_on_global_num_arranged_changed)
+	global.wheel_target_rot_set.connect(_on_global_wheel_target_rot_set)
 	piece_rotation = global.rotation
 	camera_3d.position.z = cam_dist
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -100,7 +105,12 @@ func _process(delta):
 		if !wheel_up:
 			toggle_wheel('up')
 	elif !pieces_ready:
-		pass
+		if recam:
+			camera_3d.position.z = lerp(camera_3d.position.z, cam_dist, 0.05)
+			if is_equal_approx(camera_3d.position.z, cam_dist):
+				camera_3d.position.z = cam_dist
+				recam = false
+				print("recam ended")
 	else:
 		if drag:
 			if abs(dx) < 0.01:
@@ -129,9 +139,7 @@ func _process(delta):
 				front_piece = 0.0
 			if piecelocs.has(front_piece):
 				emit_signal("found_you", piecelocs[front_piece])
-		#dx_final = clamp(dx_final, -0.05, 0.05)
-		#print(dx_final)
-		if piece_in_space:
+		if global.placing_piece:
 			if global.rotation:
 				rotating = true
 				toggle_wheel('down')
@@ -152,8 +160,6 @@ func _process(delta):
 			rot_h = 2*PI-abs(rot_h)
 		if rot_h >= 2*PI:
 			rot_h -= 2*PI
-		#snap_to = snappedf(rot_h, 2*PI/rotosnaps)
-		#if how_close_to_piece < 0.2:
 		if !holding:
 			rot_h = lerp_angle(rot_h, snap_to, 0.03*snap_ease*(1.0-spin_speed))
 		camrot.rotation.y = rot_h
@@ -167,6 +173,7 @@ func _process(delta):
 			if is_equal_approx(camera_3d.position.z, cam_dist):
 				camera_3d.position.z = cam_dist
 				recam = false
+				print("recam ended")
 		snap_to = snappedf(rot_h, 2*PI/rotosnaps)
 		#print(snap_to)
 		how_close_to_piece = clamp(abs(rot_h-snap_to) * 50.0, 0.0, 10.1)
@@ -176,19 +183,10 @@ func _process(delta):
 		if spin_speed < 0.001:
 			spin_speed = 0.0
 		spin_speed = clamp(spin_speed, 0.0, 1.0)
-#		if how_close_to_piece < 10.0 and clicked:
-#			clicked = false
-#		if how_close_to_piece == 10.1 and !clicked:
-#			emit_signal("click", spin_speed)
-#			#print('click')
-#			#print(spin_speed)
-#			clicked = true
 		if !is_equal_approx(last_frame_snap_to, snap_to) and !(is_equal_approx(last_frame_snap_to, 2*PI) and is_equal_approx(snap_to, 0.0)) and !(is_equal_approx(snap_to, 2*PI) and is_equal_approx(last_frame_snap_to, 0.0)) and !disable_click:
+			print("click")
 			var click_force = remap(clamp(abs(dx_final), 0.01, 0.1), 0.01, 0.1, 1.0, 1.2)
-			#print(click_force)
 			emit_signal("click", click_force)
-		
-		#print(how_close_to_piece)
 		drag = false
 		if is_equal_approx(dx, 0.0):
 			dx = 0.0
@@ -203,19 +201,23 @@ func _on_this_is_my_rotation(rot):
 func _on_i_am_here(idx, ang):
 	piecelocs[ang] = idx
 	
-func _on_take_me_home(idx):
-	if global.rotation:
-		wheel_moving = true
-	var pieces = get_tree().get_nodes_in_group('pieces')
-	for p in pieces:
-		if p.idx == idx:
-			p.reparent(self, false)
-			p.in_space = false
-			p.back_from_space = true
-			piece_in_space = false
+#func _on_take_me_home(idx):
+#	if global.rotation:
+#		wheel_moving = true
+#	var pieces = get_tree().get_nodes_in_group('pieces')
+#	for p in pieces:
+#		if p.idx == idx:
+#			p.reparent(self, false)
+#			p.in_space = false
+#			p.back_from_space = true
+#			piece_in_space = false
+#			global.placing_piece = false
 
 
 func _on_global_piece_placed(cidx):
+	print("browser piece placed func")
+	#global.num_pieces_arranged = 0
+	pieces_ready = false
 	if global.rotation:
 		wheel_moving = true
 	disable_click = true
@@ -229,15 +231,16 @@ func _on_global_piece_placed(cidx):
 	else:
 		piecelocs = {}
 		h_sensitivity = og_sens * (float(max_rotosnaps)/float(rotosnaps))
-		cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8
-		recam = true
+		cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST
 		var ang = (2*PI)/rotosnaps
 		for r in rotosnaps:
 			snaps.append(ang*(r))
-		for p in pieces:
-			if p.circle_idx > cidx:
-				p.circle_idx -= 1
-			p.arrange(true)
+		recam = true
+		print("recam started")
+#		for p in pieces:
+#			if p.circle_idx > cidx:
+#				p.circle_idx -= 1
+#			p.arrange(true)
 
 
 func _resetti_spaghetti(set_rot := true):
@@ -298,7 +301,7 @@ func _on_global_ufo_done_signal():
 	h_sensitivity *= 15.0/float(rotosnaps)
 	#print(rotosnaps)
 	max_rotosnaps = rotosnaps
-	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + 0.8 ### FIX ME
+	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST ### FIX ME
 	#recam = true
 	camera_3d.position.z = cam_dist
 	var ang = (2*PI)/rotosnaps
@@ -310,12 +313,12 @@ func _on_global_ufo_done_signal():
 	for p in pieces:
 		p.reparent(self, false)
 		p.i_am_here.connect(_on_i_am_here)
-		p.take_me_home.connect(_on_take_me_home)
+		#p.take_me_home.connect(_on_take_me_home)
 		p.this_is_my_rotation.connect(_on_this_is_my_rotation)
 		p.drop_off_original_dist = cam_dist
 		p.visible = true
 		p.arrange()
-	pieces_ready = true
+	#pieces_ready = true
 #	ufo_come_drop_off = true
 #	var ufo = get_tree().get_first_node_in_group('ufo')
 #	ufo.reparent(ufo_orbit, false)
@@ -357,43 +360,30 @@ func _on_browser_rect_gui_input(event):
 	if pieces_ready:
 		if event is InputEventScreenDrag:
 			disable_click = false
-#			if !holding and !holding_top:
-#				first_touch = (event.position.y / sub_viewport_container.size.y)
-#				if first_touch >= 0.9:
-#					first_touch_too_low = true
-#				else:
-#					first_touch_too_low = false
-			if true:#event.position.y > 0.0:
-				holding_top = false
-				holding = true
-				drag = true
-				if !rotating:
-					dx = event.relative.x * h_sensitivity
-				else:
-					dx = event.relative.x * og_sens
-				dy = event.relative.y * v_sensitivity
-				if abs(dx) > abs(dy):
-					dy = 0.0
-				elif abs(dx) <= abs(dy):
-					dx = 0.0
+			holding_top = false
+			holding = true
+			drag = true
+			if !rotating:
+				dx = event.relative.x * h_sensitivity
 			else:
-				holding_top = true
-				holding = false
-				drag = false
+				dx = event.relative.x * og_sens
+			dy = event.relative.y * v_sensitivity
+			if abs(dx) > abs(dy):
+				dy = 0.0
+			elif abs(dx) <= abs(dy):
+				dx = 0.0
 		if event is InputEventScreenTouch:
 			if event.pressed == false:
-				if !holding:# and !holding_top:
+				if !holding:
 					if piecelocs.has(front_piece):
-						piece_in_space = true
 						emit_signal("picked_you", piecelocs[front_piece])
 						stay_at_angle = front_piece
-				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !piece_in_space:# and !first_touch_too_low:
+				elif dy_final < -0.01 and abs(dx_final) < 0.02 and !global.placing_piece:
 					# send to space
 					if piecelocs.has(front_piece):
-						piece_in_space = true
 						emit_signal("picked_you", piecelocs[front_piece])
 						stay_at_angle = front_piece
-				elif dy_final > 0.01 and abs(dx_final) < 0.02 and piece_in_space:# and first_touch > 0.0:
+				elif dy_final > 0.01 and abs(dx_final) < 0.02 and global.placing_piece:
 					# return from space
 					if piecelocs.has(front_piece):
 						emit_signal("picked_you", piecelocs[front_piece])
@@ -406,12 +396,22 @@ func _on_browser_rect_gui_input(event):
 
 func _toggle_light(tog: bool):
 	if tog:
-		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 2.036, 0.1)
-		if is_equal_approx(directional_light_3d.light_energy, 2.036):
-			directional_light_3d.light_energy = 2.036
+		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, LIGHT_ENERGY, 0.1)
+		if is_equal_approx(directional_light_3d.light_energy, LIGHT_ENERGY):
+			directional_light_3d.light_energy = LIGHT_ENERGY
 			light_toggle_complete = true
 	else:
 		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 0.5, 0.1)
 		if is_equal_approx(directional_light_3d.light_energy, 0.5):
 			directional_light_3d.light_energy = 0.5
 			light_toggle_complete = true
+
+
+func _on_global_num_arranged_changed(num):
+	if num == get_tree().get_nodes_in_group("pieces").size():
+		pieces_ready = true
+		print("pieces arranged")
+
+
+func _on_global_wheel_target_rot_set(rot):
+	wheelmesh.rotation.z = rot

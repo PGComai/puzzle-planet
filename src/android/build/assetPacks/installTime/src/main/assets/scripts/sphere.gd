@@ -75,13 +75,13 @@ var color_fractal_ping_pong_strength := 2.0
 var color_fractal_type: FastNoiseLite.FractalType = 1
 var color_fractal_weighted_strength := 0.0
 
-var piece = preload("res://scenes/planet_piece.tscn")
+var piece = preload("res://scenes/planet_piece.tscn") ### MOVED TO UNIVERSE
 var save_template = preload("res://scripts/save_template.gd")
 var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
 var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
 var mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
-var mantle_earth_2_material = preload("res://tex/mantle_earth_2_material.tres")
-var mantle_mars_2_material = preload("res://tex/mantle_mars_2_material.tres")
+#var mantle_earth_2_material = preload("res://tex/mantle_earth_2_material.tres")
+#var mantle_mars_2_material = preload("res://tex/mantle_mars_2_material.tres")
 var moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
 var moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
 var jupiter_storm_curve = preload("res://tex/jupiter_storm_curve.tres")
@@ -100,7 +100,8 @@ var venus_color_ease_curve: Curve = preload("res://tex/venus_color_ease_curve.tr
 var pluto_color_ease_curve: Curve = preload("res://tex/pluto_color_ease_curve.tres")
 var mars_color_ease_curve: Curve = preload("res://tex/mars_land_color_curve.tres")
 var earth_color_ease_curve: Curve = preload("res://tex/earth_land_color_curve.tres")
-var mantle_watermelon_material := preload("res://tex/mantle_watermelon_material.tres")
+#var mantle_watermelon_material := preload("res://tex/mantle_watermelon_material.tres")
+var mantle_compatibility_material := preload("res://tex/mantle_compatibility_material.tres")
 
 var _draw_mode := false
 var manual_mountain_color := false
@@ -119,13 +120,13 @@ var general_noise_soft = FastNoiseLite.new()
 var saver = ResourceSaver
 var loader = ResourceLoader
 var load_failed: bool = false
-var looking: bool = false
-var current_piece: Node3D
-var current_piece_mesh: MeshInstance3D
-var fit_timer: float = 0.0
-var fit: bool = false
+#var looking: bool = false ### MOVED TO UNIVERSE
+#var current_piece: Node3D ### MOVED TO UNIVERSE
+#var current_piece_mesh: MeshInstance3D ### MOVED TO UNIVERSE
+#var fit_timer: float = 0.0 ### MOVED TO UNIVERSE
+#var fit: bool = false ### MOVED TO UNIVERSE
 var puzzle_fits: Dictionary
-var placed_signal := false
+#var placed_signal := false ### mOVED TO UNIVERSE
 var placed_timer := 0.0
 var placed_counting := false
 var snow_start: float
@@ -141,7 +142,7 @@ var treesnap: Vector3
 var treestep := 0.2
 var vsnap := 0.00005
 
-var correct_rotation := false
+#var correct_rotation := false ### MOVED TO UNIVERSE
 
 var rotowindow
 
@@ -203,9 +204,9 @@ func _ready():
 	piece_place_lerp_curve = piece_place_lerp_brick_audio_one
 	treesnap = Vector3(treestep, treestep, treestep)
 	global = get_node('/root/Global')
-	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
-	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready)
-	shadow_light.make_piece_visible.connect(_on_shadow_light_make_piece_visible)
+#	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal) ### MOVED TO UNIVERSE
+#	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready) ### MOVED TO UNIVERSE
+#	shadow_light.make_piece_visible.connect(_on_shadow_light_make_piece_visible)
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	if !(planet_style == 0) and !debug:
 		planet_style = global.generate_type
@@ -222,8 +223,8 @@ func _ready():
 	
 	_set_parameters()
 	thread = Thread.new()
-	if global.title_screen:
-		_load_title_planet()
+#	if global.title_screen: ### MOVED TO UNIVERSE
+#		_load_title_planet() ### MOVED TO UNIVERSE
 
 func _process(delta):
 	var result = false
@@ -236,20 +237,20 @@ func _process(delta):
 			build_planet = false
 			global.ufo_locations = ufo_locations
 			global.ready_to_start = true
-	else:
-		if looking:
-			_piece_fit(delta)
-		if fit_timer > 1.5:
-			_place_piece()
-		if fit:
-			if !placed_signal:
-				#current_piece.remove_from_group('pieces')
-				global.pieces_placed_so_far[0] += 1
-				print(global.pieces_placed_so_far)
-				global._save_puzzle_status()
-				placed_signal = true
-				#placed_counting = true
-				fit = false
+#	else:
+#		if looking:
+#			_piece_fit(delta)
+#		if fit_timer > 1.5:
+#			_place_piece()
+#		if fit:
+#			if !placed_signal:
+#				#current_piece.remove_from_group('pieces')
+#				global.pieces_placed_so_far[0] += 1
+#				print(global.pieces_placed_so_far)
+#				global._save_puzzle_status()
+#				placed_signal = true
+#				#placed_counting = true
+#				fit = false
 #		if placed_counting:
 #			placed_timer += delta
 #			if placed_timer > 0.2:
@@ -259,20 +260,20 @@ func _process(delta):
 #				placed_timer = 0.0
 
 ### DONE ###
-func _place_piece():
-	current_piece.reparent(pieces, false)
-	current_piece.position = Vector3.ZERO
-	current_piece.rotation = Vector3.ZERO
-	current_piece_mesh.rotation = Vector3.ZERO
-	current_piece.global_position = piece_target.global_position
-	current_piece.placed = true
-	fit = true
-	looking = false
-	fit_timer = 0.0
-	shadow_light._on = false
-	sun._on = true
-	space._on = false
-	rotowindow.visible = false
+#func _place_piece(): ### MOVED TO UNIVERSE
+#	current_piece.reparent(pieces, false)
+#	current_piece.position = Vector3.ZERO
+#	current_piece.rotation = Vector3.ZERO
+#	current_piece_mesh.rotation = Vector3.ZERO
+#	current_piece.global_position = piece_target.global_position
+#	current_piece.placed = true
+#	fit = true
+#	looking = false
+#	fit_timer = 0.0
+#	#shadow_light._on = false
+#	#sun._on = true
+#	#space._on = false
+#	rotowindow.visible = false
 
 func _generate_mesh(userdata = null):
 	var verts := PackedVector3Array()
@@ -453,7 +454,7 @@ func _set_parameters():
 		crater_size_multiplier = 2.0
 		crater_height_multiplier = 0.7
 		snow = false
-		mantle.mesh.material = mantle_earth_2_material
+		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -518,7 +519,7 @@ func _set_parameters():
 		crater_size_multiplier = 3.0
 		crater_height_multiplier = 1.2
 		snow = true
-		mantle.mesh.material = mantle_earth_2_material
+		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -582,7 +583,7 @@ func _set_parameters():
 		water_color = Color('0541ff')
 		shallow_water_color = Color('2091bf')
 		snow = true
-		mantle.mesh.material = mantle_mars_2_material
+		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_mars
 		lava_lamp.visible = true
 		h_bands = false
@@ -1016,7 +1017,7 @@ func _set_parameters():
 		craters_to_mountains = false
 		manual_mountain_color = false
 		snow = false
-		mantle.mesh.material = mantle_watermelon_material
+		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = false
 		h_bands = true
@@ -1188,7 +1189,7 @@ func _generate_terrain(
 		puzzle_fits[bak] = og_verts[bak]
 		newpiece.idx = bak
 		#newpiece.siblings = len(og_verts)
-		newpiece.ready_for_launch.connect(_on_ready_for_launch)
+		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
 		#newpiece.upright_vec = up.normalized()
 		newpiece.orient_upright = !global.rotation
 		#newpiece.thickness = crust_thickness - 1.0
@@ -1809,7 +1810,6 @@ func mm(vec: Vector3):
 					var dist = vec.normalized().distance_squared_to(cr[0])
 					var crsize = 0.01 * crater_size_multiplier
 					if dist <= cr[1] * crsize:
-						var sideways = cr[0].cross(Vector3.UP).normalized()
 						var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
 						var vecproj = spl.project(vec).normalized()
 						var vdist = vecproj.distance_squared_to(cr[0])
@@ -1898,7 +1898,6 @@ func gas_color_vary(vec: Vector3, colors: Array, turbulence := 0.2):
 			var dist = vec.normalized().distance_squared_to(cr[0])
 			var crsize = 0.01 * crater_size_multiplier
 			if dist <= cr[1] * crsize:
-				var sideways = cr[0].cross(Vector3.UP).normalized()
 				var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
 				var vecproj = spl.project(vec).normalized()
 				var vdist = vecproj.distance_squared_to(cr[0])
@@ -2022,104 +2021,104 @@ func pluto_heart_bottom(x: float):
 
 
 ### DONE ###
-func _piece_fit(delta):
-	if current_piece.global_position.normalized().angle_to(current_piece.direction.normalized()) < PI/32:
-		if global.rotation:
-			if correct_rotation:
-				fit_timer += delta
-			else:
-				fit_timer = 0.0
-		else:
-			fit_timer += delta
-	else:
-		fit_timer = 0.0
+#func _piece_fit(delta): ### MOVED TO UNIVERSE
+#	if current_piece.global_position.normalized().angle_to(current_piece.direction.normalized()) < PI/32:
+#		if global.rotation:
+#			if correct_rotation:
+#				fit_timer += delta
+#			else:
+#				fit_timer = 0.0
+#		else:
+#			fit_timer += delta
+#	else:
+#		fit_timer = 0.0
 
 ### DONE ###
-func _on_ready_for_launch(_idx):
-	var _pieces = get_tree().get_nodes_in_group('pieces')
-	for p in _pieces:
-		if p.idx == _idx:
-			p.reparent(piece_target, false)
-			p.visible = false
-			current_piece = p
-			current_piece_mesh = current_piece.get_child(0)
-			p.position.y = -6.0
-			p.in_space = true
-			if !p.is_connected('take_me_home', _on_piece_take_me_home):
-				p.take_me_home.connect(_on_piece_take_me_home)
-			shadow_light._on = true
-			space._on = true
-			sun._on = false
-			#sun_2._on = false
-			looking = true
+#func _on_ready_for_launch(_idx): ### MOVED TO UNIVERSE
+#	var _pieces = get_tree().get_nodes_in_group('pieces')
+#	for p in _pieces:
+#		if p.idx == _idx:
+#			p.reparent(piece_target, false)
+#			#p.visible = false
+#			current_piece = p
+#			current_piece_mesh = current_piece.get_child(0)
+#			p.position.y = -6.0
+#			p.in_space = true
+#			if !p.is_connected('take_me_home', _on_piece_take_me_home):
+#				p.take_me_home.connect(_on_piece_take_me_home)
+#			#shadow_light._on = true
+#			#space._on = true
+#			#sun._on = false
+#			#sun_2._on = false
+#			looking = true
 
 ### DONE ###
-func _on_piece_take_me_home(_idx):
-	shadow_light._on = false
-	space._on = false
-	sun._on = true
-	#sun_2._on = true
-	looking = false
+#func _on_piece_take_me_home(_idx): ### MOVED TO UNIVERSE
+#	#shadow_light._on = false
+#	#space._on = false
+#	#sun._on = true
+#	#sun_2._on = true
+#	looking = false
 
 
-func _on_global_wheel_rot_signal(rot):
-	var the_rot = fmod(abs(rot), 2*PI)
-	if the_rot < (0.0 + (PI/32)) or the_rot > ((2*PI) - (PI/32)):
-		correct_rotation = true
-	else:
-		correct_rotation = false
+#func _on_global_wheel_rot_signal(rot): ### MOVED TO UNIVERSE
+#	var the_rot = fmod(abs(rot), 2*PI)
+#	if the_rot < (0.0 + (PI/32)) or the_rot > ((2*PI) - (PI/32)):
+#		correct_rotation = true
+#	else:
+#		correct_rotation = false
 
 
-func _on_global_loaded_pieces_ready(data):
-	global.atmo_type = global.generate_type
-	if global.generate_type == 7:
-		rings.visible = true
-	else:
-		rings.visible = false
-	var pieces_tracked: Dictionary = data[0]
-	var loaded_pieces_data: Dictionary = data[1]
-	ufo_locations = {}
-	var new_circle_idx := 0
-	
-	for i in loaded_pieces_data.keys():
-		var newpiece = piece.instantiate()
-		var piece_dict = loaded_pieces_data[i]
-		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
-		newpiece.vertex = piece_dict["vertex"]
-		newpiece.normal = piece_dict["normal"]
-		newpiece.color = piece_dict["color"]
-		newpiece.direction = piece_dict["direction"]
-		newpiece.trees_on = piece_dict["trees_on"]
-		newpiece.tree_positions = piece_dict["tree_positions"]
-		newpiece.ocean = piece_dict["ocean"]
-		newpiece.vertex_cw = piece_dict["vertex_cw"]
-		newpiece.normal_cw = piece_dict["normal_cw"]
-		newpiece.color_cw = piece_dict["color_cw"]
-		newpiece.vertex_w = piece_dict["vertex_w"]
-		newpiece.normal_w = piece_dict["normal_w"]
-		newpiece.color_w = piece_dict["color_w"]
-		newpiece.planet_style = piece_dict["planet_style"]
-		newpiece.wall_vertex = piece_dict["wall_vertex"]
-		newpiece.wall_normal = piece_dict["wall_normal"]
-		newpiece.wall_color = piece_dict["wall_color"]
-		newpiece.offset = piece_dict["offset"]
-		newpiece.lat = piece_dict["lat"]
-		newpiece.lon = piece_dict["lon"]
-		newpiece.orient_upright = piece_dict["orient_upright"]
-		newpiece.idx = piece_dict["idx"]
-		newpiece.ready_for_launch.connect(_on_ready_for_launch)
-		
-		if not pieces_tracked[i]:
-			newpiece.remove_from_group("pieces")
-		else:
-			newpiece.circle_idx = new_circle_idx
-			new_circle_idx += 1
-			ufo_locations[i] = piece_dict["direction"]
-		
-		pieces.add_child(newpiece)
-		#pieces.call_deferred("add_child", newpiece)
-	global.ufo_locations = ufo_locations
-	global.ready_to_start = true
+#func _on_global_loaded_pieces_ready(data): ### MOVED TO UNIVERSE
+#	global.atmo_type = global.generate_type
+#	if global.generate_type == 7:
+#		rings.visible = true
+#	else:
+#		rings.visible = false
+#	var pieces_tracked: Dictionary = data[0]
+#	var loaded_pieces_data: Dictionary = data[1]
+#	ufo_locations = {}
+#	var new_circle_idx := 0
+#
+#	for i in loaded_pieces_data.keys():
+#		var newpiece = piece.instantiate()
+#		var piece_dict = loaded_pieces_data[i]
+#		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
+#		newpiece.vertex = piece_dict["vertex"]
+#		newpiece.normal = piece_dict["normal"]
+#		newpiece.color = piece_dict["color"]
+#		newpiece.direction = piece_dict["direction"]
+#		newpiece.trees_on = piece_dict["trees_on"]
+#		newpiece.tree_positions = piece_dict["tree_positions"]
+#		newpiece.ocean = piece_dict["ocean"]
+#		newpiece.vertex_cw = piece_dict["vertex_cw"]
+#		newpiece.normal_cw = piece_dict["normal_cw"]
+#		newpiece.color_cw = piece_dict["color_cw"]
+#		newpiece.vertex_w = piece_dict["vertex_w"]
+#		newpiece.normal_w = piece_dict["normal_w"]
+#		newpiece.color_w = piece_dict["color_w"]
+#		newpiece.planet_style = piece_dict["planet_style"]
+#		newpiece.wall_vertex = piece_dict["wall_vertex"]
+#		newpiece.wall_normal = piece_dict["wall_normal"]
+#		newpiece.wall_color = piece_dict["wall_color"]
+#		newpiece.offset = piece_dict["offset"]
+#		newpiece.lat = piece_dict["lat"]
+#		newpiece.lon = piece_dict["lon"]
+#		newpiece.orient_upright = piece_dict["orient_upright"]
+#		newpiece.idx = piece_dict["idx"]
+#		newpiece.ready_for_launch.connect(_on_ready_for_launch)
+#
+#		if not pieces_tracked[i]:
+#			newpiece.remove_from_group("pieces")
+#		else:
+#			newpiece.circle_idx = new_circle_idx
+#			new_circle_idx += 1
+#			ufo_locations[i] = piece_dict["direction"]
+#
+#		pieces.add_child(newpiece)
+#		#pieces.call_deferred("add_child", newpiece)
+#	global.ufo_locations = ufo_locations
+#	global.ready_to_start = true
 
 ### LOADED PIECES DATA STRUCTURE
 #	var return_dict := {
@@ -2149,42 +2148,42 @@ func _on_global_loaded_pieces_ready(data):
 #		"idx": n.idx,
 #	}
 
-func _load_title_planet():
-	var node_data: Dictionary = global.title_planet.node_data
-	var new_circle_idx := 0
-	if global.title_planet.planet_style == 7:
-		rings.visible = true
-	for i in node_data.keys():
-		var newpiece = piece.instantiate()
-		var piece_dict = node_data[i]
-		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
-		newpiece.vertex = piece_dict["vertex"]
-		newpiece.normal = piece_dict["normal"]
-		newpiece.color = piece_dict["color"]
-		newpiece.direction = piece_dict["direction"]
-		newpiece.trees_on = piece_dict["trees_on"]
-		newpiece.tree_positions = piece_dict["tree_positions"]
-		newpiece.ocean = piece_dict["ocean"]
-		newpiece.vertex_cw = piece_dict["vertex_cw"]
-		newpiece.normal_cw = piece_dict["normal_cw"]
-		newpiece.color_cw = piece_dict["color_cw"]
-		newpiece.vertex_w = piece_dict["vertex_w"]
-		newpiece.normal_w = piece_dict["normal_w"]
-		newpiece.color_w = piece_dict["color_w"]
-		newpiece.planet_style = piece_dict["planet_style"]
-		newpiece.wall_vertex = piece_dict["wall_vertex"]
-		newpiece.wall_normal = piece_dict["wall_normal"]
-		newpiece.wall_color = piece_dict["wall_color"]
-		newpiece.offset = piece_dict["offset"]
-		newpiece.lat = piece_dict["lat"]
-		newpiece.lon = piece_dict["lon"]
-		newpiece.orient_upright = piece_dict["orient_upright"]
-		newpiece.idx = piece_dict["idx"]
-		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
-		newpiece.remove_from_group("pieces")
-		newpiece.add_to_group("title_pieces")
-		pieces.add_child(newpiece)
+#func _load_title_planet(): ### MOVED TO UNIVERSE
+#	var node_data: Dictionary = global.title_planet.node_data
+#	var new_circle_idx := 0
+#	if global.title_planet.planet_style == 7:
+#		rings.visible = true
+#	for i in node_data.keys():
+#		var newpiece = piece.instantiate()
+#		var piece_dict = node_data[i]
+#		newpiece.random_rotation_offset = piece_dict["random_rotation_offset"]
+#		newpiece.vertex = piece_dict["vertex"]
+#		newpiece.normal = piece_dict["normal"]
+#		newpiece.color = piece_dict["color"]
+#		newpiece.direction = piece_dict["direction"]
+#		newpiece.trees_on = piece_dict["trees_on"]
+#		newpiece.tree_positions = piece_dict["tree_positions"]
+#		newpiece.ocean = piece_dict["ocean"]
+#		newpiece.vertex_cw = piece_dict["vertex_cw"]
+#		newpiece.normal_cw = piece_dict["normal_cw"]
+#		newpiece.color_cw = piece_dict["color_cw"]
+#		newpiece.vertex_w = piece_dict["vertex_w"]
+#		newpiece.normal_w = piece_dict["normal_w"]
+#		newpiece.color_w = piece_dict["color_w"]
+#		newpiece.planet_style = piece_dict["planet_style"]
+#		newpiece.wall_vertex = piece_dict["wall_vertex"]
+#		newpiece.wall_normal = piece_dict["wall_normal"]
+#		newpiece.wall_color = piece_dict["wall_color"]
+#		newpiece.offset = piece_dict["offset"]
+#		newpiece.lat = piece_dict["lat"]
+#		newpiece.lon = piece_dict["lon"]
+#		newpiece.orient_upright = piece_dict["orient_upright"]
+#		newpiece.idx = piece_dict["idx"]
+#		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
+#		newpiece.remove_from_group("pieces")
+#		newpiece.add_to_group("title_pieces")
+#		pieces.add_child(newpiece)
 
 
-func _on_shadow_light_make_piece_visible():
-	current_piece.visible = true
+#func _on_shadow_light_make_piece_visible():
+#	current_piece.visible = true

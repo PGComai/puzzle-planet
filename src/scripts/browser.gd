@@ -105,7 +105,12 @@ func _process(delta):
 		if !wheel_up:
 			toggle_wheel('up')
 	elif !pieces_ready:
-		pass
+		if recam:
+			camera_3d.position.z = lerp(camera_3d.position.z, cam_dist, 0.05)
+			if is_equal_approx(camera_3d.position.z, cam_dist):
+				camera_3d.position.z = cam_dist
+				recam = false
+				print("recam ended")
 	else:
 		if drag:
 			if abs(dx) < 0.01:
@@ -179,6 +184,7 @@ func _process(delta):
 			spin_speed = 0.0
 		spin_speed = clamp(spin_speed, 0.0, 1.0)
 		if !is_equal_approx(last_frame_snap_to, snap_to) and !(is_equal_approx(last_frame_snap_to, 2*PI) and is_equal_approx(snap_to, 0.0)) and !(is_equal_approx(snap_to, 2*PI) and is_equal_approx(last_frame_snap_to, 0.0)) and !disable_click:
+			print("click")
 			var click_force = remap(clamp(abs(dx_final), 0.01, 0.1), 0.01, 0.1, 1.0, 1.2)
 			emit_signal("click", click_force)
 		drag = false
@@ -210,7 +216,7 @@ func _on_i_am_here(idx, ang):
 
 func _on_global_piece_placed(cidx):
 	print("browser piece placed func")
-	global.num_pieces_arranged = 0
+	#global.num_pieces_arranged = 0
 	pieces_ready = false
 	if global.rotation:
 		wheel_moving = true
@@ -229,10 +235,12 @@ func _on_global_piece_placed(cidx):
 		var ang = (2*PI)/rotosnaps
 		for r in rotosnaps:
 			snaps.append(ang*(r))
-		for p in pieces:
-			if p.circle_idx > cidx:
-				p.circle_idx -= 1
-			p.arrange(true)
+		recam = true
+		print("recam started")
+#		for p in pieces:
+#			if p.circle_idx > cidx:
+#				p.circle_idx -= 1
+#			p.arrange(true)
 
 
 func _resetti_spaghetti(set_rot := true):
@@ -403,8 +411,6 @@ func _on_global_num_arranged_changed(num):
 	if num == get_tree().get_nodes_in_group("pieces").size():
 		pieces_ready = true
 		print("pieces arranged")
-		recam = true
-		print("recam started")
 
 
 func _on_global_wheel_target_rot_set(rot):

@@ -1,5 +1,7 @@
 [gd_resource type="VisualShader" load_steps=21 format=3 uid="uid://bfhha54hfnntl"]
 
+[ext_resource type="Curve" uid="uid://cv2qw21fkqfr3" path="res://tex/saturn_rings_curve.tres" id="1_ggi8u"]
+
 [sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_5x3bv"]
 operator = 7
 
@@ -52,12 +54,8 @@ input_name = "vertex"
 [sub_resource type="VisualShaderNodeVaryingSetter" id="VisualShaderNodeVaryingSetter_5tbol"]
 varying_name = "alphav"
 
-[sub_resource type="Curve" id="Curve_qwh1f"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.00319234, 0.0368098), 0.0, 0.0, 0, 0, Vector2(0.111732, 0.0552148), 0.0, 0.0, 0, 0, Vector2(0.118915, 0.134969), 0.0, 0.0, 0, 0, Vector2(0.234637, 0.177914), 0.0, 0.0, 0, 0, Vector2(0.241022, 0.269939), 0.0, 0.0, 0, 0, Vector2(0.371109, 0.312883), 0.0, 0.0, 0, 0, Vector2(0.374302, 0.380368), 0.0, 0.0, 0, 0, Vector2(0.48763, 0.423313), 0.0, 0.0, 0, 0, Vector2(0.493216, 0.472393), 0.0, 0.0, 0, 0, Vector2(0.585794, 0.478528), 0.0, 0.0, 0, 0, Vector2(0.591381, 0.392638), 0.0, 0.0, 0, 0, Vector2(0.666401, 0.380368), 0.0, 0.0, 0, 0, Vector2(0.683959, 0), -22.3625, -22.3625, 0, 0, Vector2(0.727853, 0), 20.7716, 20.7716, 0, 0, Vector2(0.735036, 0.306749), 0.0, 0.0, 0, 0, Vector2(0.743017, 0.306749), 0.0, 0.0, 0, 0, Vector2(0.749402, 0.128834), 0.0, 0.0, 0, 0, Vector2(1, 0.141104), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
-point_count = 20
-
 [sub_resource type="CurveTexture" id="CurveTexture_acbm6"]
-curve = SubResource("Curve_qwh1f")
+curve = ExtResource("1_ggi8u")
 
 [sub_resource type="VisualShaderNodeCurveTexture" id="VisualShaderNodeCurveTexture_wohg3"]
 texture = SubResource("CurveTexture_acbm6")
@@ -206,4 +204,4 @@ nodes/fragment/10/node = SubResource("VisualShaderNodeFloatOp_5x3bv")
 nodes/fragment/10/position = Vector2(980, 100)
 nodes/fragment/11/node = SubResource("VisualShaderNodeColorParameter_p5qsa")
 nodes/fragment/11/position = Vector2(780, -240)
-nodes/fragment/connections = PackedInt32Array(2, 0, 3, 0, 3, 0, 4, 0, 3, 2, 4, 1, 4, 0, 5, 0, 5, 0, 8, 0, 8, 0, 7, 0, 7, 0, 10, 0, 9, 0, 10, 1, 10, 0, 0, 1, 11, 0, 0, 0)
+nodes/fragment/connections = PackedInt32Array(2, 0, 3, 0, 3, 0, 4, 0, 3, 2, 4, 1, 4, 0, 5, 0, 5, 0, 8, 0, 8, 0, 7, 0, 11, 0, 0, 0, 7, 0, 10, 0, 9, 0, 10, 1, 10, 0, 0, 1)
