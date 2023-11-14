@@ -62,7 +62,7 @@ texture = SubResource("CurveTexture_acbm6")
 
 [resource]
 code = "shader_type spatial;
-render_mode blend_add, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx;
+render_mode blend_add, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx, unshaded;
 
 
 // Varyings
@@ -168,6 +168,7 @@ void fragment() {
 }
 "
 modes/blend = 1
+flags/unshaded = true
 varyings/alphav = "0,0"
 nodes/vertex/0/position = Vector2(1760, 360)
 nodes/vertex/2/node = SubResource("VisualShaderNodeVectorCompose_nradg")

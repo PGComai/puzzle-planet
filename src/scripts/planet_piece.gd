@@ -7,7 +7,8 @@ signal this_is_my_rotation(rot)
 signal drop_off_sound
 
 @export var placement_curve: Curve
-#@export_node_path("MeshInstance3D") var themesh: NodePath
+@export var scan_bump_curve: Curve
+
 @onready var themesh = $themesh
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
@@ -121,9 +122,14 @@ var trees_on := false
 var tree_color_1 := Color(1.5, 1.5, 1.5)
 var tree_color_2 := Color(2.0, 2.0, 2.0)
 
-@export var built := false ### this will be handy for loading a saved game
+#@export var built := false ### this will be handy for loading a saved game
 var oriented := false
 var remember_rotation_z: float
+
+var been_scanned := false
+var scanimation := false
+var scan_counter := 0.0
+var scan_bump_size := 1.2
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -133,6 +139,7 @@ func _ready():
 	global.ufo_abduction_done_signal.connect(_on_global_ufo_abduction_done_signal)
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	global.piece_placed.connect(_on_global_piece_placed)
+	global.universe_node.vscan.connect(_on_universe_vscan)
 	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	ghostball = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall')
 	ghost = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost')
@@ -314,6 +321,8 @@ func _process(delta):
 	else:
 		if !placement_finished:
 			_placement()
+		if scanimation:
+			_scanimate(delta)
 
 
 func _placement():
@@ -393,6 +402,7 @@ func _on_picked_you(_idx):
 			good_global_rot = self.global_rotation
 			good_rot = good_global_rot.y
 			repositioning = false
+			print("repositioning hurried up")
 		global.placing_piece = not global.placing_piece
 		print("placing piece: %s" % global.placing_piece)
 		global.chosen_piece = self
@@ -560,3 +570,20 @@ func _on_click_delay_timeout():
 		placement_click.play()
 	if global.vibration:
 		Input.vibrate_handheld(5)
+
+
+func _on_universe_vscan(y):
+	if not been_scanned and y < global_position.y:
+		scanimation = true
+		been_scanned = true
+
+
+func _scanimate(delta):
+	scan_counter += delta
+	scan_counter = clamp(scan_counter, 0.0, 1.0)
+	var l: float = scan_bump_curve.sample_baked(scan_counter)
+	global_position = lerp(direction, direction * scan_bump_size, l)
+	if is_equal_approx(scan_counter, 1.0):
+		scanimation = false
+		scan_counter = 0.0
+		global_position = direction

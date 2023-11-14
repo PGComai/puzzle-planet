@@ -12,6 +12,7 @@ signal ufo_at_angle(angle, pos)
 @onready var audio_stream_player = $AudioStreamPlayer
 @onready var ufo_orbit = $UFO_orbit
 @onready var directional_light_3d = $camrot/Camera3D/DirectionalLight3D
+@onready var pieces_ready_timer = $PiecesReadyTimer
 
 const LIGHT_ENERGY := 1.0
 const BONUS_CAM_DIST := 1.0
@@ -217,7 +218,7 @@ func _on_i_am_here(idx, ang):
 func _on_global_piece_placed(cidx):
 	print("browser piece placed func")
 	#global.num_pieces_arranged = 0
-	pieces_ready = false
+#	pieces_ready = false
 	if global.rotation:
 		wheel_moving = true
 	disable_click = true
@@ -364,10 +365,10 @@ func _on_browser_rect_gui_input(event):
 			holding = true
 			drag = true
 			if !rotating:
-				dx = event.relative.x * h_sensitivity
+				dx = event.relative.x * h_sensitivity * global.sensitivity_multiplier
 			else:
-				dx = event.relative.x * og_sens
-			dy = event.relative.y * v_sensitivity
+				dx = event.relative.x * og_sens * global.sensitivity_multiplier
+			dy = event.relative.y * v_sensitivity * global.sensitivity_multiplier
 			if abs(dx) > abs(dy):
 				dy = 0.0
 			elif abs(dx) <= abs(dy):
@@ -409,9 +410,13 @@ func _toggle_light(tog: bool):
 
 func _on_global_num_arranged_changed(num):
 	if num == get_tree().get_nodes_in_group("pieces").size():
-		pieces_ready = true
+		pieces_ready = true#pieces_ready_timer.start()
 		print("pieces arranged")
 
 
 func _on_global_wheel_target_rot_set(rot):
 	wheelmesh.rotation.z = rot
+
+
+func _on_pieces_ready_timer_timeout():
+	pieces_ready = true

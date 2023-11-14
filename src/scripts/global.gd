@@ -184,6 +184,11 @@ var wheel_target_rot := 0.0:
 	set(value):
 		wheel_target_rot = value
 		emit_signal("wheel_target_rot_set", value)
+var sensitivity_multiplier := 1.0:
+	set(value):
+		sensitivity_multiplier = value
+		if preferences_have_been_read:
+			_write_preferences_dict()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -206,6 +211,7 @@ func _ready():
 			'sound': sound,
 			'vibration': vibration,
 			'music': music,
+			"sensitivity_multiplier": sensitivity_multiplier,
 		}
 		save_preferences.store_var(preferences_dict, true)
 		save_preferences.close()
@@ -372,6 +378,7 @@ func _write_preferences_dict():
 		'sound': sound,
 		'vibration': vibration,
 		'music': music,
+		"sensitivity_multiplier": sensitivity_multiplier,
 	}
 	save_preferences.store_var(preferences_dict, true)
 	save_preferences.close()
@@ -389,6 +396,8 @@ func _read_preferences_dict():
 	sound = preferences_dict['sound']
 	vibration = preferences_dict['vibration']
 	music = preferences_dict['music']
+	if preferences_dict.has("sensitivity_multiplier"):
+		sensitivity_multiplier = preferences_dict["sensitivity_multiplier"]
 	print("reading save_preferences file")
 	print(preferences_dict)
 	save_preferences.close()

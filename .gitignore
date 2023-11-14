@@ -21,4 +21,3 @@ windows/
 src/android/
 src/android/build/libs/debug/godot-lib.template_debug.aar
 src/android/build/libs/release/godot-lib.template_release.aar
-src/android/build/libs/debug/godot-lib.template_debug.aar

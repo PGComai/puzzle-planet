@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=23 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
@@ -9,6 +9,10 @@
 [sub_resource type="Curve" id="Curve_wdrif"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.739696, 0.145907), 0.267847, 0.267847, 0, 0, Vector2(0.789588, 0), 0.0, 0.0, 0, 0, Vector2(0.893709, 0), 0.0, 0.0, 0, 0, Vector2(0.91974, 0.195729), 0.440153, 0.0, 0, 0, Vector2(1, 1), 36.2599, 0.0, 0, 0]
 point_count = 6
+
+[sub_resource type="Curve" id="Curve_8fl2o"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.501385, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 resource_local_to_scene = true
@@ -101,6 +105,7 @@ albedo_color = Color(0.533333, 0.533333, 0.533333, 1)
 [node name="planet_piece" type="Node3D" groups=["persist", "pieces"]]
 script = ExtResource("1_jrwu8")
 placement_curve = SubResource("Curve_wdrif")
+scan_bump_curve = SubResource("Curve_8fl2o")
 
 [node name="themesh" type="MeshInstance3D" parent="."]
 layers = 9

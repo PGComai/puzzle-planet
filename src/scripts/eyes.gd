@@ -3,6 +3,7 @@ extends Node3D
 signal piece_added
 signal rotation_music_multiplier(multi)
 signal no_pitch_mod
+signal vscan(y)
 
 @export var h_sensitivity = 0.001
 @export var v_sensitivity = 0.001
@@ -18,6 +19,7 @@ signal no_pitch_mod
 @onready var atmosphere = $Atmosphere
 @onready var error_sound = $ErrorSound
 @onready var rings = $Rings
+@onready var puzzle_done_effect = $PuzzleDoneEffect
 
 var rot_h = 0.0
 var rot_v = 0.0
@@ -68,6 +70,9 @@ var mars_mesh_maker = preload("res://scenes/mesh_maker_mars.tscn")
 var venus_mesh_maker = preload("res://scenes/mesh_maker_venus.tscn")
 var mercury_mesh_maker = preload("res://scenes/mesh_maker_mercury.tscn")
 
+var vertical_scan := 1.0
+var scanning := false
+
 func _ready():
 	global = get_node('/root/Global')
 	global.universe_node = self
@@ -75,6 +80,7 @@ func _ready():
 	global.redo_atmosphere.connect(_on_global_redo_atmosphere)
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready)
+	global.puzzle_done.connect(_on_global_puzzle_done)
 	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	#h = sub_viewport.size.y
 	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
@@ -175,6 +181,9 @@ func _process(delta):
 			placed_signal = true
 			#placed_counting = true
 			fit = false
+	
+	if scanning:
+		_scan_v(delta)
 
 
 func _atmo_change():
@@ -310,8 +319,8 @@ func _on_universe_rect_gui_input(event):
 		#var touchborder = h# + v_split.split_offset - 15
 		#print(touchborder)
 		if true:#event.position.y < touchborder:
-			dx = event.relative.x * h_sensitivity
-			dy = event.relative.y * v_sensitivity
+			dx = event.relative.x * h_sensitivity * global.sensitivity_multiplier
+			dy = event.relative.y * v_sensitivity * global.sensitivity_multiplier
 			if !drag:
 				#first touch
 				pass
@@ -453,6 +462,7 @@ func _piece_fit(delta):
 
 
 func _place_piece():
+	global.browser_node.pieces_ready = false
 	current_piece.reparent(pieces, false)
 	current_piece.position = Vector3.ZERO
 	current_piece.rotation = Vector3.ZERO
@@ -519,3 +529,19 @@ func _on_piece_target_child_exiting_tree(node):
 		current_piece.in_space = false
 		looking = false
 		print("piece_target child exited")
+
+
+func _scan_v(delta, speed := 1.0):
+	vertical_scan -= delta * speed
+	emit_signal("vscan", vertical_scan)
+	if vertical_scan <= -1.0:
+		scanning = false
+		vertical_scan = 1.0
+
+
+func _on_global_puzzle_done():
+	puzzle_done_effect.start()
+
+
+func _on_puzzle_done_effect_timeout():
+	scanning = true

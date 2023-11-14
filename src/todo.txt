@@ -1,6 +1,6 @@
 FEEDBACK:
-- better music
-- 
+- add competition / timing
+- more POP in gas giant walls
 
 HIGH PRIORITY:
 - finalize sounds and music
@@ -10,14 +10,11 @@ HIGH PRIORITY:
 - figure out ufo dropoff issues
 - how to play
 - one meshmaker per planet style - SPEED UP
-- carousel rearrange too slow
+- sensitivity adjustment
 
 LOW PRIORITY:
 - adjust ufo height per planet
-- implement fast graphics option
 - optimize snap_to_existing function
-- fix earth desert weirdness
-- gas giants are too close to carousel camera
 - volcanoes
 - triangle normal dot gravity is cliff steepness
 - planet builder
@@ -26,15 +23,12 @@ LOW PRIORITY:
 - icebergs
 - palm trees
 - planet construction animation
-- gentler mantle option
-- spice up gas giants
+- add fun loading comments past loading time threshold
 
 GLITCHES:
-- piece shadow appears and lines up but actual piece never goes in and carousel is stuck
 - rendered planet without one chunk of ocean on IOS
-- crashes if another planet requested while generating planet (temporarily fixed)
-- jupiter freeze
 - gas giant black mantle on oneplus 5
+- piece stuck in carousel even after new planet
 
 NAMES:
 - Puzzle Space Program

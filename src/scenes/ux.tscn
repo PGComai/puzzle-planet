@@ -1,4 +1,4 @@
-[gd_scene load_steps=59 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=61 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -25,6 +25,8 @@
 [ext_resource type="Script" path="res://scripts/MusicButton.gd" id="13_g8tjt"]
 [ext_resource type="Script" path="res://scripts/DebugButton.gd" id="15_yt5gt"]
 [ext_resource type="Script" path="res://scripts/PieceRotationButton.gd" id="16_1c00m"]
+[ext_resource type="Theme" uid="uid://bumainmrcuw5b" path="res://tex/non_toggle_buttons.tres" id="21_7jta7"]
+[ext_resource type="Script" path="res://scripts/SensButton.gd" id="22_1ij71"]
 [ext_resource type="Script" path="res://scripts/ProgressPanelContainer.gd" id="24_n51j8"]
 [ext_resource type="Script" path="res://scripts/StartGame.gd" id="25_n04pg"]
 [ext_resource type="AudioStream" uid="uid://dvfnrqw6dcraw" path="res://audio/placing pieces of planets intro.ogg" id="26_m7dch"]
@@ -579,14 +581,14 @@ one_shot = true
 
 [node name="SettingsPopup" type="PopupPanel" parent="."]
 canvas_item_default_texture_filter = 0
-size = Vector2i(620, 800)
+size = Vector2i(628, 800)
 theme_override_styles/panel = ExtResource("6_qwkga")
 script = ExtResource("10_t8qcq")
 
 [node name="MarginContainer" type="MarginContainer" parent="SettingsPopup"]
 offset_left = 6.0
 offset_top = 6.0
-offset_right = 614.0
+offset_right = 622.0
 offset_bottom = 794.0
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
@@ -666,11 +668,8 @@ button_pressed = true
 text = "ON"
 script = ExtResource("12_7nn8l")
 
-[node name="HSeparator2" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
 [node name="MusicHBox" type="HBoxContainer" parent="SettingsPopup/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 
 [node name="MusicLabel" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer/MusicHBox"]
@@ -711,6 +710,27 @@ toggle_mode = true
 button_pressed = true
 text = "ON"
 script = ExtResource("13_0f10h")
+
+[node name="HSeparator2" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="SensHBox" type="HBoxContainer" parent="SettingsPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SensLabel" type="Label" parent="SettingsPopup/MarginContainer/VBoxContainer/SensHBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"HeaderMedium"
+text = "Sensitivity"
+
+[node name="SensButton" type="Button" parent="SettingsPopup/MarginContainer/VBoxContainer/SensHBox"]
+custom_minimum_size = Vector2(150, 54)
+layout_mode = 2
+size_flags_horizontal = 10
+theme = ExtResource("21_7jta7")
+text = "1x"
+script = ExtResource("22_1ij71")
 
 [node name="HSeparator4" type="HSeparator" parent="SettingsPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -979,6 +999,7 @@ script = ExtResource("28_l7cvt")
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/MusicHBox/MusicButton" to="SettingsPopup/MarginContainer/VBoxContainer/MusicHBox/MusicButton" method="_on_toggled"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox/VibrateButton" to="SettingsPopup" method="_on_vibrate_button_toggled"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox/VibrateButton" to="SettingsPopup/MarginContainer/VBoxContainer/VibrateHBox/VibrateButton" method="_on_toggled"]
+[connection signal="button_up" from="SettingsPopup/MarginContainer/VBoxContainer/SensHBox/SensButton" to="SettingsPopup/MarginContainer/VBoxContainer/SensHBox/SensButton" method="_on_button_up"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/DebugHBox/DebugButton" to="SettingsPopup" method="_on_debug_button_toggled"]
 [connection signal="toggled" from="SettingsPopup/MarginContainer/VBoxContainer/DebugHBox/DebugButton" to="SettingsPopup/MarginContainer/VBoxContainer/DebugHBox/DebugButton" method="_on_toggled"]
 [connection signal="button_up" from="SettingsPopup/MarginContainer/VBoxContainer/Close" to="SettingsPopup" method="_on_close_button_up"]
