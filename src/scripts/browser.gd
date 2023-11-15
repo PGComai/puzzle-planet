@@ -12,7 +12,6 @@ signal ufo_at_angle(angle, pos)
 @onready var audio_stream_player = $AudioStreamPlayer
 @onready var ufo_orbit = $UFO_orbit
 @onready var directional_light_3d = $camrot/Camera3D/DirectionalLight3D
-@onready var pieces_ready_timer = $PiecesReadyTimer
 
 const LIGHT_ENERGY := 1.0
 const BONUS_CAM_DIST := 1.0
@@ -94,10 +93,6 @@ func _ready():
 	global.wheel_target_rot_set.connect(_on_global_wheel_target_rot_set)
 	piece_rotation = global.rotation
 	camera_3d.position.z = cam_dist
-	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
-	#v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
-	#print(self.get_viewport().get_visible_rect().size.x)
-	#h_sensitivity *= global.pieces_at_start/15.0
 	og_sens = h_sensitivity
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -196,23 +191,13 @@ func _process(delta):
 		
 		last_frame_snap_to = snap_to
 
+
 func _on_this_is_my_rotation(rot):
 	wheelmesh.rotation.z = rot
 
+
 func _on_i_am_here(idx, ang):
 	piecelocs[ang] = idx
-	
-#func _on_take_me_home(idx):
-#	if global.rotation:
-#		wheel_moving = true
-#	var pieces = get_tree().get_nodes_in_group('pieces')
-#	for p in pieces:
-#		if p.idx == idx:
-#			p.reparent(self, false)
-#			p.in_space = false
-#			p.back_from_space = true
-#			piece_in_space = false
-#			global.placing_piece = false
 
 
 func _on_global_piece_placed(cidx):
@@ -296,13 +281,14 @@ func _on_picked_you(idx):
 
 
 func _on_global_ufo_done_signal():
+	global.num_pieces_arranged = 0
 	#pieces_ready = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	rotosnaps = len(pieces)
 	h_sensitivity *= 15.0/float(rotosnaps)
 	#print(rotosnaps)
 	max_rotosnaps = rotosnaps
-	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST ### FIX ME
+	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST
 	#recam = true
 	camera_3d.position.z = cam_dist
 	var ang = (2*PI)/rotosnaps
@@ -319,17 +305,6 @@ func _on_global_ufo_done_signal():
 		p.drop_off_original_dist = cam_dist
 		p.visible = true
 		p.arrange()
-	#pieces_ready = true
-#	ufo_come_drop_off = true
-#	var ufo = get_tree().get_first_node_in_group('ufo')
-#	ufo.reparent(ufo_orbit, false)
-#	if !ufo.is_connected('ufo_take_me_home', _on_ufo_take_me_home):
-#		ufo.ufo_take_me_home.connect(_on_ufo_take_me_home)
-#	ufo.in_browser = true
-#	ufo.browser_drop_off_begin = true
-#	ufo.drop_off_cam_dist = cam_dist
-#	ufo.drop_off_cam_pos = camera_3d.position
-#	ufo_orbit._connect_to_UFO()
 
 
 func _on_generate_button_up():
@@ -409,14 +384,12 @@ func _toggle_light(tog: bool):
 
 
 func _on_global_num_arranged_changed(num):
+	#var numstr := str(num)
+	#print(numstr + " pieces arranged out of %s" %get_tree().get_nodes_in_group("pieces").size())
 	if num == get_tree().get_nodes_in_group("pieces").size():
-		pieces_ready = true#pieces_ready_timer.start()
+		pieces_ready = true
 		print("pieces arranged")
 
 
 func _on_global_wheel_target_rot_set(rot):
 	wheelmesh.rotation.z = rot
-
-
-func _on_pieces_ready_timer_timeout():
-	pieces_ready = true

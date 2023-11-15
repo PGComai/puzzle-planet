@@ -25,6 +25,7 @@ LOW PRIORITY:
 
 GLITCHES:
 - rendered planet without one chunk of ocean on IOS
+- generate planet -> place no pieces -> generate new planet -> carousel frozen
 
 NAMES:
 - Puzzle Space Program

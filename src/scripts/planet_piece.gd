@@ -98,13 +98,6 @@ var drop_off_original_position: Vector3
 var drop_off_start_pos: Vector3
 var planet_style: int
 
-var ghostball
-var ghost
-var ghostwalls
-var ghostwater
-var ghostoutline
-var ghostwallsoutline
-var rotowindow
 
 var global
 var placement_finished := false
@@ -140,13 +133,6 @@ func _ready():
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	global.piece_placed.connect(_on_global_piece_placed)
 	global.universe_node.vscan.connect(_on_universe_vscan)
-	rotowindow = get_tree().root.get_node('UX/RotoWindow')
-	ghostball = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall')
-	ghost = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost')
-	ghostwalls = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost/GhostWalls')
-	ghostwater = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost/GhostWater')
-	ghostoutline = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/Ghost/GhostWater')
-	ghostwallsoutline = get_tree().root.get_node('UX/SubViewportRoto/PieceView/Camera3D/GhostBall/GhostOutline/GhostWallsOutline')
 	
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
 	remember_rotation_z = random_rotation_offset

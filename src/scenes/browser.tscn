@@ -80,12 +80,7 @@ script = ExtResource("4_v12kr")
 script = ExtResource("5_cocbr")
 spinny_curve = SubResource("Curve_pddqo")
 
-[node name="PiecesReadyTimer" type="Timer" parent="."]
-wait_time = 0.2
-one_shot = true
-
 [connection signal="click" from="." to="AudioStreamPlayer" method="_on_browser_click"]
 [connection signal="picked_you" from="." to="." method="_on_picked_you"]
 [connection signal="at_angle" from="UFO_orbit" to="." method="_on_ufo_orbit_at_angle"]
 [connection signal="drop_off_done" from="UFO_orbit" to="." method="_on_ufo_orbit_drop_off_done"]
-[connection signal="timeout" from="PiecesReadyTimer" to="." method="_on_pieces_ready_timer_timeout"]
