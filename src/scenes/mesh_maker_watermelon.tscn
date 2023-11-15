@@ -1,15 +1,15 @@
-[gd_scene load_steps=18 format=3 uid="uid://vyiwe6qs8cmo"]
+[gd_scene load_steps=18 format=3 uid="uid://3sbnjrdq76xj"]
 
-[ext_resource type="Script" path="res://scripts/mesh_maker.gd" id="1_c3bqn"]
-[ext_resource type="Curve" uid="uid://cxyokic1px4qa" path="res://tex/moon_crater_curve.tres" id="2_2g3dg"]
-[ext_resource type="Curve" uid="uid://bn4a4mky117e8" path="res://tex/earth_mountain_color_curve.tres" id="3_ege5i"]
-[ext_resource type="Curve" uid="uid://dsdgatfwgcn2a" path="res://tex/earth_mountain_shift_curve.tres" id="4_1eosv"]
-[ext_resource type="FastNoiseLite" uid="uid://b8oj2p5lxccqt" path="res://tex/tree_noise.tres" id="5_aer3d"]
-[ext_resource type="Material" uid="uid://v4sqk2s4ut1x" path="res://tex/mantle_moon_material.tres" id="6_evigs"]
+[ext_resource type="Script" path="res://scripts/mesh_maker.gd" id="1_hlh11"]
+[ext_resource type="Curve" uid="uid://haynw5csxnqd" path="res://tex/mercury_crater_curve.tres" id="2_iwokk"]
+[ext_resource type="Curve" uid="uid://bn4a4mky117e8" path="res://tex/earth_mountain_color_curve.tres" id="3_138nl"]
+[ext_resource type="Curve" uid="uid://dsdgatfwgcn2a" path="res://tex/earth_mountain_shift_curve.tres" id="4_ti5n3"]
+[ext_resource type="FastNoiseLite" uid="uid://b8oj2p5lxccqt" path="res://tex/tree_noise.tres" id="5_k4c6q"]
+[ext_resource type="Material" uid="uid://b5o6e4387h7ie" path="res://tex/mantle_watermelon_material.tres" id="6_gqbv7"]
 
 [sub_resource type="Gradient" id="Gradient_w8av6"]
-offsets = PackedFloat32Array(0, 0.5, 1)
-colors = PackedColorArray(0.533333, 0.533333, 0.533333, 1, 0.415686, 0.415686, 0.415686, 1, 0.27451, 0.27451, 0.27451, 1)
+offsets = PackedFloat32Array(0, 0.186364, 0.227273, 0.354545, 0.406061, 0.625758, 0.665152, 0.748485, 0.780303, 0.915152, 0.95303)
+colors = PackedColorArray(0.411765, 0.54902, 0.286275, 1, 0.443177, 0.569752, 0.287531, 1, 0.141176, 0.2, 0.0588235, 1, 0.141176, 0.2, 0.0588235, 1, 0.536602, 0.631413, 0.291268, 1, 0.559125, 0.646278, 0.292169, 1, 0.141176, 0.2, 0.0588235, 1, 0.141176, 0.2, 0.0588235, 1, 0.591274, 0.667496, 0.293455, 1, 0.607843, 0.678431, 0.294118, 1, 0.141176, 0.2, 0.0588235, 1)
 
 [sub_resource type="Gradient" id="Gradient_sfrxv"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -25,10 +25,12 @@ colors = PackedColorArray(0.402519, 0.479092, 0.679904, 1, 0.524496, 0.488919, 0
 noise_type = 4
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_5ruvi"]
-noise_type = 4
+noise_type = 2
+domain_warp_amplitude = 2.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_4msem"]
 noise_type = 4
+fractal_weighted_strength = 0.74
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_lufvd"]
 noise_type = 4
@@ -41,41 +43,47 @@ fractal_weighted_strength = 1.0
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_ekimj"]
 
 [node name="MeshMaker" type="Node3D"]
-script = ExtResource("1_c3bqn")
+script = ExtResource("1_hlh11")
 ocean = false
 snow = false
-craters = true
-has_tint = true
+gas_giant = true
+is_watermelon = true
 snow_random_low = 0.7
 snow_random_high = 0.8
 min_terrain_height_unclamped = 0.882
-crater_size_multiplier = 1.566
-crater_height_multiplier = 1.8
-num_craters = 50
+max_terrain_height_unclamped = 1.2
+crater_size_multiplier = 1.5
+crater_height_multiplier = 0.4
+num_craters = 0
 storm_flatness = 1.0
+turb1 = 0.5
+turb2 = 0.5
+vturb1 = 0.01
+vturb2 = 0.02
 color_gradient = SubResource("Gradient_w8av6")
 tint_color_gradient = SubResource("Gradient_sfrxv")
 water_color_gradient = SubResource("Gradient_gfwob")
-low_crust_color = Color(0.270588, 0.180392, 0.152941, 1)
+low_crust_color = Color(0.917647, 0.941176, 0.72549, 1)
+crust_color = Color(0.164706, 0.164706, 0.164706, 1)
 desert_color = Color(0.752941, 0.54902, 0.333333, 1)
 crater_color = Color(0.556863, 0.54902, 0.556863, 1)
 lava_lamp_color = Color(0.945098, 0.341176, 0.184314, 1)
 deep_water_color = Color(0, 0.0392157, 0.290196, 1)
-crater_curve = ExtResource("2_2g3dg")
-crater_color_curve = ExtResource("3_ege5i")
-mountain_shift_curve = ExtResource("4_1eosv")
+crater_curve = ExtResource("2_iwokk")
+crater_color_curve = ExtResource("3_138nl")
+mountain_shift_curve = ExtResource("4_ti5n3")
 canyon_height_curve = SubResource("Curve_sdhou")
 canyon_fade_curve = SubResource("Curve_a6axe")
 noise3d = SubResource("FastNoiseLite_edelf")
 noise3d_freq_override = 1.5
 colornoise = SubResource("FastNoiseLite_5ruvi")
-colornoise_freq_override = 2.0
+colornoise_freq_override = 4.5
 colornoise2 = SubResource("FastNoiseLite_4msem")
-colornoise2_freq_override = 4.0
+colornoise2_freq_override = 5.0
 mountain_noise = SubResource("FastNoiseLite_lufvd")
 mountain_noise_freq_override = 5.0
 general_noise_soft = SubResource("FastNoiseLite_28c3m")
 canyon_noise = SubResource("FastNoiseLite_ekimj")
-tree_noise = ExtResource("5_aer3d")
-mantle_material = ExtResource("6_evigs")
+tree_noise = ExtResource("5_k4c6q")
+mantle_material = ExtResource("6_gqbv7")
 nval_ratio = Vector2(0.7, 0.3)

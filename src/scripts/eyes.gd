@@ -65,6 +65,12 @@ var moon_mesh_maker = preload("res://scenes/mesh_maker_moon.tscn")
 var mars_mesh_maker = preload("res://scenes/mesh_maker_mars.tscn")
 var venus_mesh_maker = preload("res://scenes/mesh_maker_venus.tscn")
 var mercury_mesh_maker = preload("res://scenes/mesh_maker_mercury.tscn")
+var jupiter_mesh_maker = preload("res://scenes/mesh_maker_jupiter.tscn")
+var saturn_mesh_maker = preload("res://scenes/mesh_maker_saturn.tscn")
+var uranus_mesh_maker = preload("res://scenes/mesh_maker_uranus.tscn")
+var neptune_mesh_maker = preload("res://scenes/mesh_maker_neptune.tscn")
+var pluto_mesh_maker = preload("res://scenes/mesh_maker_pluto.tscn")
+var watermelon_mesh_maker = preload("res://scenes/mesh_maker_watermelon.tscn")
 
 var vertical_scan := 1.0
 var scanning := false
@@ -212,12 +218,18 @@ func _atmo_change():
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
-	elif type == 8 or type == 9:
+	elif type == 8:
 		atmosphere.visible = true
 		rings.visible = false
 		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7a9cae'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7a9cae'))
+	elif type == 9:
+		atmosphere.visible = true
+		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
+		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7199c9'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7199c9'))
 	elif type == 10:
 		atmosphere.visible = true
 		rings.visible = false
@@ -256,6 +268,18 @@ func _on_generate_button_up():
 		nmm = venus_mesh_maker.instantiate()
 	elif global.generate_type == 1:
 		nmm = mercury_mesh_maker.instantiate()
+	elif global.generate_type == 6:
+		nmm = jupiter_mesh_maker.instantiate()
+	elif global.generate_type == 7:
+		nmm = saturn_mesh_maker.instantiate()
+	elif global.generate_type == 8:
+		nmm = uranus_mesh_maker.instantiate()
+	elif global.generate_type == 9:
+		nmm = neptune_mesh_maker.instantiate()
+	elif global.generate_type == 10:
+		nmm = pluto_mesh_maker.instantiate()
+	elif global.generate_type == 11:
+		nmm = watermelon_mesh_maker.instantiate()
 	else:
 		nmm = new_mesh_maker.instantiate()
 	nmm.build_planet = true

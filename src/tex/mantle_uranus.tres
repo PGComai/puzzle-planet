@@ -3,9 +3,9 @@
 [sub_resource type="VisualShaderNodeUVFunc" id="VisualShaderNodeUVFunc_er2pv"]
 default_input_values = [1, Vector2(-1, -1), 2, Vector2(0, 0)]
 
-[sub_resource type="Gradient" id="Gradient_edkmx"]
+[sub_resource type="Gradient" id="Gradient_u142y"]
 interpolation_mode = 2
-colors = PackedColorArray(0.258824, 0.298039, 0.356863, 1, 0.0352941, 0.0392157, 0.0823529, 1)
+colors = PackedColorArray(0.413037, 0.52153, 0.57951, 1, 0.192349, 0.308445, 0.380458, 1)
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_etlrd"]
 noise_type = 3
@@ -25,15 +25,15 @@ width = 256
 height = 256
 in_3d_space = true
 seamless = true
-color_ramp = SubResource("Gradient_edkmx")
+color_ramp = SubResource("Gradient_u142y")
 noise = SubResource("FastNoiseLite_etlrd")
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_1ljx5"]
 texture = SubResource("NoiseTexture2D_07iqx")
 
-[sub_resource type="Gradient" id="Gradient_rupuu"]
+[sub_resource type="Gradient" id="Gradient_3mmcq"]
 interpolation_mode = 2
-colors = PackedColorArray(0.258824, 0.298039, 0.356863, 1, 0.0352941, 0.0392157, 0.0823529, 1)
+colors = PackedColorArray(0.413037, 0.52153, 0.57951, 1, 0.192349, 0.308445, 0.380458, 1)
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_ip50h"]
 noise_type = 4
@@ -53,7 +53,7 @@ width = 256
 height = 256
 in_3d_space = true
 seamless = true
-color_ramp = SubResource("Gradient_rupuu")
+color_ramp = SubResource("Gradient_3mmcq")
 noise = SubResource("FastNoiseLite_ip50h")
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_vhowg"]
@@ -150,6 +150,7 @@ void fragment() {
 
 }
 "
+graph_offset = Vector2(-221.771, -163.848)
 nodes/fragment/0/position = Vector2(2960, -140)
 nodes/fragment/2/node = SubResource("VisualShaderNodeTexture_vhowg")
 nodes/fragment/2/position = Vector2(400, -100)

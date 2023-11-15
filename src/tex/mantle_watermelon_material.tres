@@ -1,7 +1,8 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://yuk8eihhkpwy"]
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://b5o6e4387h7ie"]
 
-[ext_resource type="Shader" uid="uid://daqyqsjkebgkf" path="res://tex/mantle_watermelon.tres" id="1_x8ivt"]
+[ext_resource type="Shader" uid="uid://c607r6nvhub1h" path="res://tex/mantle_watermelon.tres" id="1_x8ivt"]
 
 [resource]
 render_priority = 0
 shader = ExtResource("1_x8ivt")
+shader_parameter/emission_color = Color(0.298039, 0, 0.00392157, 1)

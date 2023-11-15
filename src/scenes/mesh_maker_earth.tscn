@@ -45,6 +45,7 @@ manual_crater_color = true
 craters_to_mountains = true
 mountain_snowcaps = true
 desert_belt = true
+has_lava_lamp = true
 snow_random_low = 0.7
 snow_random_high = 0.8
 min_terrain_height_unclamped = 0.65

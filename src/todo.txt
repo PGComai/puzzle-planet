@@ -8,7 +8,6 @@ HIGH PRIORITY:
 - icon art
 - figure out ufo dropoff issues
 - how to play
-- one meshmaker per planet style - SPEED UP
 
 LOW PRIORITY:
 - adjust ufo height per planet
@@ -24,8 +23,7 @@ LOW PRIORITY:
 - add fun loading comments past loading time threshold
 
 GLITCHES:
-- rendered planet without one chunk of ocean on IOS
-- generate planet -> place no pieces -> generate new planet -> carousel frozen
+- rendered planet without one chunk of ocean on IOS - a while ago
 
 NAMES:
 - Puzzle Space Program

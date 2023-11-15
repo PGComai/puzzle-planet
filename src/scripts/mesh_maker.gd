@@ -27,7 +27,8 @@ extends Node3D
 @export var desert_belt := false
 @export var is_pluto := false
 @export var has_tint := false
-@export var lava_lamp := false
+@export var has_lava_lamp := false
+@export var is_watermelon := false
 
 @export_category("Parameters")
 @export var snow_random_low := 0.85
@@ -175,6 +176,7 @@ var watermelon_color_ease_curve := preload("res://tex/watermelon_land_color_curv
 @onready var camera_3d = $"../h/v/Camera3D"
 @onready var mantle = $"../Mantle"
 @onready var pieces = $"../Pieces"
+@onready var lava_lamp = $"../Lava Lamp"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -202,6 +204,11 @@ func _ready():
 	tree_noise.frequency = max(tree_noise_freq_override, tree_noise.frequency)
 	
 	mantle.mesh.material = mantle_material
+	if has_lava_lamp:
+		lava_lamp.light_color = lava_lamp_color
+		lava_lamp.visible = true
+	else:
+		lava_lamp.visible = false
 	
 	thread = Thread.new()
 
@@ -1047,7 +1054,7 @@ func terraform(vec: Vector3):
 																1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
 	
 	newlength = clamp(newlength, 1.02, 1.3)
-	newlength = lerp(newlength, 1.1, float(gas_giant))
+	newlength = lerp(newlength, max_terrain_height_unclamped, float(gas_giant))
 	
 	return vec.normalized() * newlength
 
@@ -1093,7 +1100,7 @@ func terraform_wall(vec: Vector3):
 																1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
 	
 	newlength = clamp(newlength, 1.02, 1.3)
-	newlength = lerp(newlength, 1.1, float(gas_giant))
+	newlength = lerp(newlength, max_terrain_height_unclamped, float(gas_giant))
 	
 	return vec.normalized() * newlength
 
@@ -1102,6 +1109,9 @@ func colorize(vec: Vector3, doing_water := false):
 	var return_color: Color
 	var vec1 := Vector3(vec.x * turb1, vec.y * vturb1, vec.z * turb1)
 	var vec2 := Vector3(vec.x * turb2, vec.y * vturb2, vec.z * turb2)
+	if is_watermelon:
+		vec1 = vec1.normalized()
+		vec2 = vec2.normalized()
 	var nval1 := colornoise.get_noise_3dv(vec1)
 	var nval2 := colornoise2.get_noise_3dv(vec2)
 	nval1 = remap(clamp(nval1, -0.1, 0.1), -0.1, 0.1, 0.0, 1.0)
@@ -1163,8 +1173,12 @@ func colorize(vec: Vector3, doing_water := false):
 		var dist = vec.normalized().distance_squared_to(cr[0])
 		var crsize = 0.01 * crater_size_multiplier
 		if dist <= cr[1] * crsize:
+			var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
+			var vecproj = spl.project(vec).normalized()
+			var vdist = vecproj.distance_squared_to(cr[0])
+			var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
 			var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
-			my_craters.append(dist_mapped)
+			my_craters.append(dist_mapped * vdist_mapped)
 	for mycr_i in len(my_craters):
 		#var l = clamp(clamp(crater_color_curve.sample_baked(my_craters[mycr_i]), 0.0, 0.6) * clamp(abs(mountain_noise.get_noise_3dv(vec) * 10.0), 0.5, 1.0), 0.0, 1.0)
 		var l = crater_color_curve.sample_baked(my_craters[mycr_i] + gentle_nval2) * cratercolorflag
