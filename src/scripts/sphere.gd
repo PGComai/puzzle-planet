@@ -80,8 +80,6 @@ var save_template = preload("res://scripts/save_template.gd")
 var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
 var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
 var mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
-#var mantle_earth_2_material = preload("res://tex/mantle_earth_2_material.tres")
-#var mantle_mars_2_material = preload("res://tex/mantle_mars_2_material.tres")
 var moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
 var moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
 var jupiter_storm_curve = preload("res://tex/jupiter_storm_curve.tres")
@@ -100,8 +98,6 @@ var venus_color_ease_curve: Curve = preload("res://tex/venus_color_ease_curve.tr
 var pluto_color_ease_curve: Curve = preload("res://tex/pluto_color_ease_curve.tres")
 var mars_color_ease_curve: Curve = preload("res://tex/mars_land_color_curve.tres")
 var earth_color_ease_curve: Curve = preload("res://tex/earth_land_color_curve.tres")
-#var mantle_watermelon_material := preload("res://tex/mantle_watermelon_material.tres")
-var mantle_compatibility_material := preload("res://tex/mantle_compatibility_material.tres")
 
 var _draw_mode := false
 var manual_mountain_color := false
@@ -120,13 +116,7 @@ var general_noise_soft = FastNoiseLite.new()
 var saver = ResourceSaver
 var loader = ResourceLoader
 var load_failed: bool = false
-#var looking: bool = false ### MOVED TO UNIVERSE
-#var current_piece: Node3D ### MOVED TO UNIVERSE
-#var current_piece_mesh: MeshInstance3D ### MOVED TO UNIVERSE
-#var fit_timer: float = 0.0 ### MOVED TO UNIVERSE
-#var fit: bool = false ### MOVED TO UNIVERSE
 var puzzle_fits: Dictionary
-#var placed_signal := false ### mOVED TO UNIVERSE
 var placed_timer := 0.0
 var placed_counting := false
 var snow_start: float
@@ -142,9 +132,6 @@ var treesnap: Vector3
 var treestep := 0.2
 var vsnap := 0.00005
 
-#var correct_rotation := false ### MOVED TO UNIVERSE
-
-var rotowindow
 
 var thread: Thread
 
@@ -192,10 +179,7 @@ var watermelon_color_ease_curve := preload("res://tex/watermelon_land_color_curv
 @onready var rings = $"../Rings"
 @onready var lava_lamp = $"../Lava Lamp"
 @onready var piece_target = $"../h/v/Camera3D/piece_target"
-@onready var shadow_light = $"../h/v/Camera3D/ShadowLight"
 @onready var camera_3d = $"../h/v/Camera3D"
-@onready var sun = $"../Sun"
-@onready var space = $"../Space"
 @onready var mantle = $"../Mantle"
 @onready var pieces = $"../Pieces"
 
@@ -204,10 +188,6 @@ func _ready():
 	piece_place_lerp_curve = piece_place_lerp_brick_audio_one
 	treesnap = Vector3(treestep, treestep, treestep)
 	global = get_node('/root/Global')
-#	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal) ### MOVED TO UNIVERSE
-#	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready) ### MOVED TO UNIVERSE
-#	shadow_light.make_piece_visible.connect(_on_shadow_light_make_piece_visible)
-	rotowindow = get_tree().root.get_node('UX/RotoWindow')
 	if !(planet_style == 0) and !debug:
 		planet_style = global.generate_type
 		pieces_at_start = global.pieces_at_start
@@ -223,8 +203,7 @@ func _ready():
 	
 	_set_parameters()
 	thread = Thread.new()
-#	if global.title_screen: ### MOVED TO UNIVERSE
-#		_load_title_planet() ### MOVED TO UNIVERSE
+
 
 func _process(delta):
 	var result = false
@@ -237,43 +216,7 @@ func _process(delta):
 			build_planet = false
 			global.ufo_locations = ufo_locations
 			global.ready_to_start = true
-#	else:
-#		if looking:
-#			_piece_fit(delta)
-#		if fit_timer > 1.5:
-#			_place_piece()
-#		if fit:
-#			if !placed_signal:
-#				#current_piece.remove_from_group('pieces')
-#				global.pieces_placed_so_far[0] += 1
-#				print(global.pieces_placed_so_far)
-#				global._save_puzzle_status()
-#				placed_signal = true
-#				#placed_counting = true
-#				fit = false
-#		if placed_counting:
-#			placed_timer += delta
-#			if placed_timer > 0.2:
-#				global.placed_cidx = current_piece.circle_idx
-#				placed_signal = false
-#				placed_counting = false
-#				placed_timer = 0.0
 
-### DONE ###
-#func _place_piece(): ### MOVED TO UNIVERSE
-#	current_piece.reparent(pieces, false)
-#	current_piece.position = Vector3.ZERO
-#	current_piece.rotation = Vector3.ZERO
-#	current_piece_mesh.rotation = Vector3.ZERO
-#	current_piece.global_position = piece_target.global_position
-#	current_piece.placed = true
-#	fit = true
-#	looking = false
-#	fit_timer = 0.0
-#	#shadow_light._on = false
-#	#sun._on = true
-#	#space._on = false
-#	rotowindow.visible = false
 
 func _generate_mesh(userdata = null):
 	var verts := PackedVector3Array()
@@ -454,7 +397,6 @@ func _set_parameters():
 		crater_size_multiplier = 2.0
 		crater_height_multiplier = 0.7
 		snow = false
-		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -519,7 +461,6 @@ func _set_parameters():
 		crater_size_multiplier = 3.0
 		crater_height_multiplier = 1.2
 		snow = true
-		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -583,7 +524,6 @@ func _set_parameters():
 		water_color = Color('0541ff')
 		shallow_water_color = Color('2091bf')
 		snow = true
-		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_mars
 		lava_lamp.visible = true
 		h_bands = false
@@ -1017,7 +957,6 @@ func _set_parameters():
 		craters_to_mountains = false
 		manual_mountain_color = false
 		snow = false
-		mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = false
 		h_bands = true

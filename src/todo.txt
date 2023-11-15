@@ -3,14 +3,12 @@ FEEDBACK:
 - more POP in gas giant walls
 
 HIGH PRIORITY:
-- finalize sounds and music
 - splash screen
 - figure out planet size
 - icon art
 - figure out ufo dropoff issues
 - how to play
 - one meshmaker per planet style - SPEED UP
-- sensitivity adjustment
 
 LOW PRIORITY:
 - adjust ufo height per planet
@@ -27,8 +25,6 @@ LOW PRIORITY:
 
 GLITCHES:
 - rendered planet without one chunk of ocean on IOS
-- gas giant black mantle on oneplus 5
-- piece stuck in carousel even after new planet
 
 NAMES:
 - Puzzle Space Program

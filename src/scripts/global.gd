@@ -218,37 +218,12 @@ func _ready():
 	else:
 		_read_preferences_dict()
 	preferences_have_been_read = true
-	RenderingServer.global_shader_parameter_set('ez_mantle_effect', 0.0)
-	RenderingServer.global_shader_parameter_set('ez_mantle_roughness', 0.0)
 	_load_planet_for_title()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	if change_ez_mantle_value:
-		if placing_piece:
-			ez_mantle_proxy = lerp(ez_mantle_proxy, 0.6, 0.03)
-			if is_equal_approx(ez_mantle_proxy, 0.6):
-				ez_mantle_proxy = 0.6
-				change_ez_mantle_value = false
-		else:
-			ez_mantle_proxy = lerp(ez_mantle_proxy, 0.0, 0.1)
-			if is_equal_approx(ez_mantle_proxy, 0.0):
-				ez_mantle_proxy = 0.0
-				change_ez_mantle_value = false
-		RenderingServer.global_shader_parameter_set('ez_mantle_effect', ez_mantle_proxy)
-	if change_ez_mantle_roughness:
-		if placing_piece:
-			ez_roughness_proxy = lerp(ez_roughness_proxy, 1.0, 0.15)
-			if is_equal_approx(ez_roughness_proxy, 1.0):
-				ez_roughness_proxy = 1.0
-				change_ez_mantle_roughness = false
-		else:
-			ez_roughness_proxy = lerp(ez_roughness_proxy, 0.0, 0.01)
-			if is_equal_approx(ez_roughness_proxy, 0.0):
-				ez_roughness_proxy = 0.0
-				change_ez_mantle_roughness = false
-		RenderingServer.global_shader_parameter_set('ez_mantle_roughness', ez_roughness_proxy)
+	pass
 
 
 func _save_puzzle():

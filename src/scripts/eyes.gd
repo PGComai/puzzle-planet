@@ -12,10 +12,6 @@ signal vscan(y)
 @onready var piece_target = $h/v/Camera3D/piece_target
 @onready var mesh_maker = $MeshMaker
 @onready var pieces = $Pieces
-@onready var sun = $Sun
-@onready var space = $Space
-@onready var shadow_light = $h/v/Camera3D/ShadowLight
-@onready var roto_window = $"../../RotoWindow"
 @onready var atmosphere = $Atmosphere
 @onready var error_sound = $ErrorSound
 @onready var rings = $Rings
@@ -81,13 +77,6 @@ func _ready():
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready)
 	global.puzzle_done.connect(_on_global_puzzle_done)
-	#Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
-	#h = sub_viewport.size.y
-	#h_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
-	#v_sensitivity *= 180.0/self.get_viewport().get_visible_rect().size.x
-#	RenderingServer.global_shader_parameter_set('atmo_daylight', Color('779ddc'))
-#	RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e5152a'))
-	#generate_type = global.generate_type
 	if global.title_screen:
 		_atmo_change()
 		_load_title_planet()
@@ -174,12 +163,10 @@ func _process(delta):
 		_place_piece()
 	if fit:
 		if !placed_signal:
-			#current_piece.remove_from_group('pieces')
 			global.pieces_placed_so_far[0] += 1
 			print(global.pieces_placed_so_far)
 			global._save_puzzle_status()
 			placed_signal = true
-			#placed_counting = true
 			fit = false
 	
 	if scanning:
@@ -210,6 +197,7 @@ func _atmo_change():
 	elif type == 4 or type == 1 or type == 11:
 		atmosphere.visible = false
 		rings.visible = false
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('black'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('black'))
 	elif type == 6:
@@ -248,11 +236,6 @@ func _on_generate_button_up():
 	ufo.in_browser = false
 	ufo.browser_drop_off_begin = false
 	global.ufo_reset = true
-	shadow_light._on = false
-	sun._on = true
-	#global.piece_in_space = false
-	space._on = false
-	roto_window.visible = false
 	mesh_maker.queue_free()
 	for n in get_tree().get_nodes_in_group('pieces'):
 		n.queue_free()
@@ -278,8 +261,6 @@ func _on_generate_button_up():
 	nmm.build_planet = true
 	mesh_maker = nmm ### why did i do it like this? why does this work?
 	ready_for_nmm = true
-	#last_type = generate_type
-	#generate_type = global.generate_type
 
 
 func _on_resume_button_up():
@@ -288,11 +269,6 @@ func _on_resume_button_up():
 	ufo.in_browser = false
 	ufo.browser_drop_off_begin = false
 	global.ufo_reset = true
-	shadow_light._on = false
-	sun._on = true
-	#global.piece_in_space = false
-	space._on = false
-	roto_window.visible = false
 	for n in get_tree().get_nodes_in_group('pieces'):
 		n.queue_free()
 	for n in get_tree().get_nodes_in_group("title_pieces"):
@@ -310,41 +286,35 @@ func _on_ufo_ufo_take_me_home():
 func _on_pieces_child_entered_tree(node):
 	if node.get_parent() == pieces:
 		emit_signal("piece_added")
-		#node.ready_for_launch.connect(_on_ready_for_launch)
 
 
 func _on_universe_rect_gui_input(event):
 	if event is InputEventScreenDrag:
 		fling = false
-		#var touchborder = h# + v_split.split_offset - 15
-		#print(touchborder)
-		if true:#event.position.y < touchborder:
-			dx = event.relative.x * h_sensitivity * global.sensitivity_multiplier
-			dy = event.relative.y * v_sensitivity * global.sensitivity_multiplier
-			if !drag:
-				#first touch
-				pass
-			else:
-				pass
-			drag = true
-			if is_equal_approx($h/v.rotation.x, -(15*PI)/32) or $h/v.rotation.x < -(15*PI)/32:
-				if dy_final > 0.0:
-					#print('uplimit')
-					upper_limit_reached = true
-					limit_pull += abs(dy_final)
-			else:
-				#limit_pull = 0.0
-				upper_limit_reached = false
-			if is_equal_approx($h/v.rotation.x, (15*PI)/32) or $h/v.rotation.x > (15*PI)/32:
-				if dy_final < 0.0:
-					#print('downlimit')
-					lower_limit_reached = true
-					limit_pull += abs(dy_final)
-			else:
-				#limit_pull = 0.0
-				lower_limit_reached = false
+		dx = event.relative.x * h_sensitivity * global.sensitivity_multiplier
+		dy = event.relative.y * v_sensitivity * global.sensitivity_multiplier
+		if !drag:
+			#first touch
+			pass
 		else:
-			drag = false
+			pass
+		drag = true
+		if is_equal_approx($h/v.rotation.x, -(15*PI)/32) or $h/v.rotation.x < -(15*PI)/32:
+			if dy_final > 0.0:
+				#print('uplimit')
+				upper_limit_reached = true
+				limit_pull += abs(dy_final)
+		else:
+			#limit_pull = 0.0
+			upper_limit_reached = false
+		if is_equal_approx($h/v.rotation.x, (15*PI)/32) or $h/v.rotation.x > (15*PI)/32:
+			if dy_final < 0.0:
+				#print('downlimit')
+				lower_limit_reached = true
+				limit_pull += abs(dy_final)
+		else:
+			#limit_pull = 0.0
+			lower_limit_reached = false
 	if event is InputEventScreenTouch:
 		if event.pressed == false:
 			drag = false
@@ -398,7 +368,6 @@ func _on_global_loaded_pieces_ready(data):
 		newpiece.lon = piece_dict["lon"]
 		newpiece.orient_upright = piece_dict["orient_upright"]
 		newpiece.idx = piece_dict["idx"]
-		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
 		
 		if not pieces_tracked[i]:
 			newpiece.remove_from_group("pieces")
@@ -408,36 +377,8 @@ func _on_global_loaded_pieces_ready(data):
 			ufo_locations[i] = piece_dict["direction"]
 		
 		pieces.add_child(newpiece)
-		#pieces.call_deferred("add_child", newpiece)
 	global.ufo_locations = ufo_locations
 	global.ready_to_start = true
-
-
-#func _on_ready_for_launch(_idx):
-#	var _pieces = get_tree().get_nodes_in_group('pieces')
-#	for p in _pieces:
-#		if p.idx == _idx:
-#			p.reparent(piece_target, false)
-#			#p.visible = false
-#			current_piece = p
-#			current_piece_mesh = current_piece.get_child(0)
-#			p.position.y = -6.0
-#			p.in_space = true
-#			if !p.is_connected('take_me_home', _on_piece_take_me_home):
-#				p.take_me_home.connect(_on_piece_take_me_home)
-#			#shadow_light._on = true
-#			#space._on = true
-#			#sun._on = false
-#			#sun_2._on = false
-#			looking = true
-
-
-#func _on_piece_take_me_home(_idx):
-#	#shadow_light._on = false
-#	#space._on = false
-#	#sun._on = true
-#	#sun_2._on = true
-#	looking = false
 
 
 func _on_global_wheel_rot_signal(rot):
@@ -472,10 +413,6 @@ func _place_piece():
 	fit = true
 	looking = false
 	fit_timer = 0.0
-	#shadow_light._on = false
-	#sun._on = true
-	#space._on = false
-	#rotowindow.visible = false
 
 
 func _load_title_planet():

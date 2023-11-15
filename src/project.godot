@@ -73,11 +73,3 @@ atmo_sunset={
 "type": "color",
 "value": Color(0.898039, 0.0823529, 0.164706, 1)
 }
-ez_mantle_effect={
-"type": "float",
-"value": 0.0
-}
-ez_mantle_roughness={
-"type": "float",
-"value": 0.0
-}
