@@ -75,6 +75,8 @@ var watermelon_mesh_maker = preload("res://scenes/mesh_maker_watermelon.tscn")
 var vertical_scan := 1.0
 var scanning := false
 
+var title_planet_queued := false
+
 func _ready():
 	global = get_node('/root/Global')
 	global.universe_node = self
@@ -83,9 +85,13 @@ func _ready():
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	global.loaded_pieces_ready.connect(_on_global_loaded_pieces_ready)
 	global.puzzle_done.connect(_on_global_puzzle_done)
+	global.title_planet_ready.connect(_on_global_title_planet_ready)
 	if global.title_screen:
 		_atmo_change()
-		_load_title_planet()
+		if global.title_planet:
+			_load_title_planet()
+		else:
+			title_planet_queued = true
 
 func _process(delta):
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
@@ -392,6 +398,7 @@ func _on_global_loaded_pieces_ready(data):
 		newpiece.lon = piece_dict["lon"]
 		newpiece.orient_upright = piece_dict["orient_upright"]
 		newpiece.idx = piece_dict["idx"]
+		newpiece.particle_edges = piece_dict["particle_edges"]
 		
 		if not pieces_tracked[i]:
 			newpiece.remove_from_group("pieces")
@@ -470,6 +477,7 @@ func _load_title_planet():
 		newpiece.lon = piece_dict["lon"]
 		newpiece.orient_upright = piece_dict["orient_upright"]
 		newpiece.idx = piece_dict["idx"]
+		newpiece.particle_edges = piece_dict["particle_edges"]
 		#newpiece.ready_for_launch.connect(_on_ready_for_launch)
 		newpiece.remove_from_group("pieces")
 		newpiece.add_to_group("title_pieces")
@@ -506,3 +514,8 @@ func _on_global_puzzle_done():
 
 func _on_puzzle_done_effect_timeout():
 	scanning = true
+
+
+func _on_global_title_planet_ready():
+	if title_planet_queued:
+		_load_title_planet()

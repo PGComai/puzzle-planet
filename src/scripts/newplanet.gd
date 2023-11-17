@@ -81,7 +81,8 @@ func _on_piece_rotation_button_toggled(button_pressed):
 
 
 func _on_visibility_changed():
-	global.menu_open = visible
+	if global:
+		global.menu_open = visible
 
 
 func _on_planet_type_option_button_item_selected(index):

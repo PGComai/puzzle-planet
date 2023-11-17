@@ -16,7 +16,6 @@ point_count = 3
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nx1bn"]
 resource_local_to_scene = true
-render_priority = 4
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 roughness = 0.46
@@ -61,15 +60,14 @@ height = 0.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ofrj5"]
 resource_local_to_scene = true
-render_priority = 4
 diffuse_mode = 3
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 roughness = 0.01
 emission = Color(0.813096, 0.883004, 0.71694, 1)
 rim_enabled = true
-rim = 0.14
-rim_tint = 0.66
+rim = 0.9
+rim_tint = 0.65
 clearcoat = 0.0
 anisotropy = -1.0
 texture_filter = 0
@@ -77,11 +75,14 @@ texture_repeat = false
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_knalo"]
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_r2ohu"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yoo5a"]
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(0.776471, 0.776471, 0.776471, 1)
+texture_filter = 0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rhrep"]
 resource_local_to_scene = true
-render_priority = 5
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
 albedo_color = Color(0.431373, 0.431373, 0.431373, 1)
@@ -96,7 +97,6 @@ radius = 0.05
 height = 0.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q6s22"]
-render_priority = 3
 no_depth_test = true
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
@@ -136,7 +136,9 @@ material_overlay = SubResource("StandardMaterial3D_ofrj5")
 mesh = SubResource("ArrayMesh_knalo")
 
 [node name="wall_effect" type="MeshInstance3D" parent="themesh"]
-mesh = SubResource("ArrayMesh_r2ohu")
+visible = false
+material_overlay = SubResource("StandardMaterial3D_yoo5a")
+cast_shadow = 0
 
 [node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="themesh"]
 material_overlay = SubResource("StandardMaterial3D_rhrep")

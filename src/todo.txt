@@ -21,6 +21,7 @@ LOW PRIORITY:
 - palm trees
 - planet construction animation
 - add fun loading comments past loading time threshold
+- try to make storms more swirly
 
 GLITCHES:
 - rendered planet without one chunk of ocean on IOS - a while ago

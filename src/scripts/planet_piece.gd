@@ -71,7 +71,7 @@ var placed := false:
 			remove_from_group("pieces")
 			global.num_pieces_arranged = 0
 			placement_delay.start()
-#var particle_edges: PackedVector3Array
+var particle_edges: PackedVector3Array
 #var rearrange_offset: int
 var repos: Vector3
 var rerot: Vector3
@@ -122,7 +122,7 @@ var remember_rotation_z: float
 var been_scanned := false
 var scanimation := false
 var scan_counter := 0.0
-var scan_bump_size := 1.2
+var scan_bump_size := 1.1
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -248,6 +248,20 @@ func _ready():
 	
 	walls.mesh = wallmesh
 	
+	temparr = Array(particle_edges)
+	temparr = temparr.map(func(v): return v - direction)
+	
+	var wall_effect_mesh = ArrayMesh.new()
+	
+	surface_array = []
+	surface_array.resize(Mesh.ARRAY_MAX)
+	
+	surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array(temparr)
+	
+	wall_effect_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINE_STRIP, surface_array)
+	
+	wall_effect.mesh = wall_effect_mesh
+	
 	self.position = direction * offset
 
 
@@ -307,8 +321,8 @@ func _process(delta):
 	else:
 		if !placement_finished:
 			_placement()
-		if scanimation:
-			_scanimate(delta)
+	if scanimation:
+		_scanimate(delta)
 
 
 func _placement():
@@ -393,51 +407,6 @@ func _on_picked_you(_idx):
 		print("placing piece: %s" % global.placing_piece)
 		global.chosen_piece = self
 		global.wheel_target_rot = remember_rotation_z
-#	if in_transit:
-#		pass
-#	else:
-#		if in_space:
-#			time_to_return = true
-#			global.placing_piece = false
-##			if global.rotation and idx == _idx:
-##				rotowindow.visible = false
-##				#print('hide roto')
-#		else:
-#			if idx == _idx:
-##				if global.rotation:
-##					ghost.mesh = themesh.mesh
-##					ghostwalls.mesh = walls.mesh
-##					ghostwater.mesh = water.mesh
-##					#ghostoutline.mesh = themesh.mesh
-##					#ghostwallsoutline.mesh = walls.mesh
-##					ghost.rotation = themesh.rotation
-##					#ghostoutline.rotation = themesh.rotation
-##					ghostball.rotation.z = rotation.z
-##					rotowindow.visible = true
-##					#print('show roto')
-#				emit_signal('this_is_my_rotation', self.rotation.z)
-#				picked = true
-#				in_transit = true
-#			else:
-#				picked = false
-
-
-#func _picked_animation():
-#	self.position.x = lerp(self.position.x, 0.0, 0.1)
-#	self.position.z = lerp(self.position.z, 0.0, 0.1)
-#	self.position.y = lerp(self.position.y, 15.0, 0.02)
-#	if self.position.y > 7.0:
-#		emit_signal("ready_for_launch", idx)
-#		in_transit = false
-#
-#
-#func _unpicked_animation():
-#	self.position.x = lerp(self.position.x, good_pos.x, 0.02)
-#	self.position.z = lerp(self.position.z, good_pos.z, 0.02)
-#	self.position.y = lerp(self.position.y, 0.0, 0.1)
-#	if self.position.is_equal_approx(Vector3(good_pos.x, 0.0, good_pos.z)):
-#		self.position = Vector3(good_pos.x, 0.0, good_pos.z)
-#		in_transit = false
 
 
 func _abducted_animation():
@@ -516,13 +485,14 @@ func _on_global_wheel_rot_signal(rot):
 func _in_space_set():
 	if not in_space:
 		position = Vector3(good_pos.x, 0.0, good_pos.z)
+		wall_effect.visible = false
 #		themesh.material_overlay.no_depth_test = false
 #		water.material_overlay.no_depth_test = false
 #		multi_mesh_instance_3d.material_overlay.no_depth_test = false
 #		themesh.visible = true
 #		transparent.visible = false
 	else:
-		pass
+		wall_effect.visible = true
 #		themesh.material_overlay.no_depth_test = true
 #		water.material_overlay.no_depth_test = true
 #		multi_mesh_instance_3d.material_overlay.no_depth_test = true

@@ -30,7 +30,8 @@ func _on_menu_button_pressed():
 
 
 func _on_visibility_changed():
-	global.menu_open = visible
+	if global:
+		global.menu_open = visible
 
 
 func _on_start_game_timer_timeout():

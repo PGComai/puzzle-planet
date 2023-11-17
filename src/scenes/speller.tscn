@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmnp66bky2tg2"]
+
+[ext_resource type="Script" path="res://scripts/speller.gd" id="1_871gc"]
+
+[node name="Speller" type="Node3D"]
+script = ExtResource("1_871gc")

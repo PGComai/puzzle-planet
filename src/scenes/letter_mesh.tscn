@@ -1,0 +1,26 @@
+[gd_scene load_steps=6 format=3 uid="uid://caene2uff6e8a"]
+
+[ext_resource type="FontFile" uid="uid://bx4n7k21konqq" path="res://fonts/PixelOperatorMonoHB8.ttf" id="1_qkp0i"]
+
+[sub_resource type="TextMesh" id="TextMesh_ipnnl"]
+text = "p"
+font = ExtResource("1_qkp0i")
+uppercase = true
+
+[sub_resource type="Gradient" id="Gradient_rcxae"]
+offsets = PackedFloat32Array(0, 0.00572246, 0.984263, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1, 0.128344, 0.128344, 0.128344, 1, 0.900705, 0.900705, 0.900705, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_w6rbq"]
+gradient = SubResource("Gradient_rcxae")
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0.4)
+metadata/_snap_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5fnpu"]
+albedo_texture = SubResource("GradientTexture2D_w6rbq")
+
+[node name="LetterMesh" type="MeshInstance3D"]
+cast_shadow = 0
+mesh = SubResource("TextMesh_ipnnl")
+surface_material_override/0 = SubResource("StandardMaterial3D_5fnpu")

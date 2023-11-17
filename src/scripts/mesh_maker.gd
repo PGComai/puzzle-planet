@@ -437,7 +437,7 @@ func _generate_terrain(
 		if global.rotation:
 			var randrot = randf_range(0.0, 2*PI)
 			newpiece.random_rotation_offset = randrot
-		#newpiece.particle_edges = WALL_STUFF[6]
+		newpiece.particle_edges = WALL_STUFF[6]
 		newpiece.offset = piece_offset
 		# checking who stays
 		if pieces_stayed < pieces_at_start:

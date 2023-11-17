@@ -26,6 +26,7 @@ signal default_vsplit_changed(split)
 signal new_chosen_piece(piece)
 signal num_pieces_arranged_changed(num)
 signal wheel_target_rot_set(rot)
+signal title_planet_ready
 
 var pieces: Array[Node3D]
 var chosen_piece: Node3D:
@@ -201,8 +202,6 @@ func _ready():
 		save_data = FileAccess.open("user://save_data.dat", FileAccess.READ)
 		unfinished_puzzle_exists = !save_data.get_var()
 		print("unfinished puzzle exists: %s" % unfinished_puzzle_exists)
-#		print(save_data.get_var(true))
-#		print(save_data.get_var(true))
 		save_data.close()
 	if not FileAccess.file_exists("user://save_preferences.dat"):
 		print("no save_preferences file exists")
@@ -279,6 +278,7 @@ func get_node_data(n: Node) -> Dictionary:
 		"orient_upright": n.orient_upright,
 		"circle_idx": n.circle_idx,
 		"idx": n.idx,
+		"particle_edges": n.particle_edges,
 	}
 	return return_dict
 
@@ -403,6 +403,7 @@ func _load_planet_for_title():
 	else:
 		title_planet = ResourceLoader.load("res://planets/%s" % files.pick_random())
 		atmo_type = title_planet.planet_style
+		emit_signal("title_planet_ready")
 
 
 func _transport_chosen_piece():

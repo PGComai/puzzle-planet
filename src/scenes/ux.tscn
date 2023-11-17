@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=46 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -78,6 +78,12 @@ shadow_size = 0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kjmdu"]
 content_margin_bottom = 70.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6rr66"]
+bg_color = Color(0.219501, 0.219501, 0.219501, 1)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_1uxdt"]
+size = Vector2(32, 32)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oq1p0"]
 
@@ -270,12 +276,12 @@ script = ExtResource("9_xhe56")
 [node name="PopupMenu" type="PopupMenu" parent="MenuButton"]
 transparent_bg = true
 canvas_item_default_texture_filter = 0
-size = Vector2i(652, 417)
+size = Vector2i(652, 498)
 theme_override_constants/v_separation = 10
 theme_override_font_sizes/font_size = 70
 theme_override_styles/panel = ExtResource("6_qwkga")
 theme_override_styles/separator = SubResource("StyleBoxEmpty_kjmdu")
-item_count = 5
+item_count = 6
 item_0/text = "New Planet"
 item_0/id = 0
 item_1/text = "Settings"
@@ -288,7 +294,52 @@ item_3/id = 3
 item_4/text = "Save planet"
 item_4/id = 4
 item_4/disabled = true
+item_5/text = ""
+item_5/id = 5
+item_5/disabled = true
+item_5/separator = true
 script = ExtResource("4_esiwd")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 150
+theme_override_constants/margin_bottom = 20
+
+[node name="ItemList" type="ItemList" parent="MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_6rr66")
+item_count = 11
+icon_scale = 4.0
+item_0/text = "Mercury"
+item_0/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_1/text = "Venus"
+item_1/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_2/text = "Earth"
+item_2/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_3/text = "The Moon"
+item_3/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_4/text = "Mars"
+item_4/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_5/text = "Jupiter"
+item_5/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_6/text = "Saturn"
+item_6/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_7/text = "Uranus"
+item_7/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_8/text = "Neptune"
+item_8/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_9/text = "Pluto"
+item_9/icon = SubResource("PlaceholderTexture2D_1uxdt")
+item_10/text = "Watermelon"
+item_10/icon = SubResource("PlaceholderTexture2D_1uxdt")
 
 [node name="NewPlanetPopup" type="PopupPanel" parent="."]
 canvas_item_default_texture_filter = 0
@@ -304,7 +355,7 @@ offset_bottom = 732.0
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_bottom = 40
 
 [node name="VBoxContainer" type="VBoxContainer" parent="NewPlanetPopup/MarginContainer"]
 layout_mode = 2
@@ -339,7 +390,7 @@ autowrap_mode = 2
 [node name="PlanetTypeOptionButton" type="OptionButton" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PlanetType"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
-size_flags_horizontal = 10
+action_mode = 1
 alignment = 1
 item_count = 11
 selected = 0
@@ -365,6 +416,12 @@ popup/item_9/text = "Pluto"
 popup/item_9/id = 9
 popup/item_10/text = "Watermelon"
 popup/item_10/id = 10
+
+[node name="AltPlanetSelector" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PlanetType"]
+visible = false
+layout_mode = 2
+theme = ExtResource("21_7jta7")
+text = "Earth"
 
 [node name="HSeparator" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
