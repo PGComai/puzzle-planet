@@ -74,6 +74,7 @@ var planet_height_for_ufo: float
 var pieces_placed_so_far := [0, 0]:
 	set(value):
 		pieces_placed_so_far = value
+		print(pieces_placed_so_far)
 var drawing_mode := false:
 	set(value):
 		drawing_mode = value
@@ -113,6 +114,7 @@ var puzzle_finished := false:
 			print("puzzle finished")
 			emit_signal("puzzle_done")
 			pieces = []
+			_update_stats()
 		else:
 			print("puzzle unfinished")
 var ready_to_start := false:
@@ -161,11 +163,12 @@ var stop_music := false:
 
 var save_data: FileAccess
 var save_preferences: FileAccess
+var stats: FileAccess
+var stat_dict: Dictionary
 
 var preferences_dict: Dictionary
 var node_data := {}
 var current_puzzle_was_loaded := false
-var title_planet_resource := preload("res://planets/title_planet_resource.tres")
 var title_planet: Resource
 
 var tablet_mode := false:
@@ -191,8 +194,20 @@ var sensitivity_multiplier := 1.0:
 		if preferences_have_been_read:
 			_write_preferences_dict()
 
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	if not FileAccess.file_exists("user://stats.dat"):
+		print("no stats file exists")
+		stats = FileAccess.open("user://stats.dat", FileAccess.WRITE_READ)
+		stat_dict = {"puzzles_completed": 0,
+					}
+		stats.store_var(stat_dict, true)
+		stats.close()
+	else:
+		stats = FileAccess.open("user://stats.dat", FileAccess.READ)
+		stat_dict = stats.get_var(true)
+		stats.close()
 	if not FileAccess.file_exists("user://save_data.dat"):
 		print("no save_data file exists")
 		save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
@@ -217,7 +232,7 @@ func _ready():
 	else:
 		_read_preferences_dict()
 	preferences_have_been_read = true
-	_load_planet_for_title()
+	#_load_planet_for_title() # moving to universe
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -235,7 +250,6 @@ func _save_puzzle():
 		piece_tracker[n.idx] = is_in_pieces_group
 		node_data[n.idx] = get_node_data(n)
 	print(piece_tracker)
-	#saving_nodes = saving_nodes.map(pack_scene)
 	if save_data.is_open():
 		save_data.close()
 	save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)
@@ -396,13 +410,11 @@ func _save_planet_for_title():
 
 func _load_planet_for_title():
 	var files := Array(DirAccess.get_files_at("res://planets/"))
-	files.erase("title_planet_resource.tres")
 	print(files)
 	if files.size() == 0:
 		pass
 	else:
 		title_planet = ResourceLoader.load("res://planets/%s" % files.pick_random())
-		atmo_type = title_planet.planet_style
 		emit_signal("title_planet_ready")
 
 
@@ -413,3 +425,15 @@ func _transport_chosen_piece():
 	else:
 		chosen_piece._disappear()
 		chosen_piece.reparent(browser_node, false)
+
+
+func _update_stats():
+	if stat_dict:
+		stat_dict["puzzles_completed"] += 1
+	if stats:
+		if stats.is_open():
+			stats.close()
+	stats = FileAccess.open("user://stats.dat", FileAccess.WRITE_READ)
+	stats.store_var(stat_dict, true)
+	stats.close()
+	print("saved stats")

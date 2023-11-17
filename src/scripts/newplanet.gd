@@ -1,7 +1,5 @@
 extends PopupPanel
 
-@onready var pct = $MarginContainer/VBoxContainer/PuzzleSize/Pct
-@onready var pct_fill_slider = $MarginContainer/VBoxContainer/PctFillSlider
 @onready var planet_type_option_button = $MarginContainer/VBoxContainer/PlanetType/PlanetTypeOptionButton
 @onready var piece_rotation_button = $MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton
 @onready var generate = $MarginContainer/VBoxContainer/Generate
@@ -22,10 +20,6 @@ func _ready():
 	global.puzzle_done.connect(_on_global_puzzle_done)
 	resume.disabled = !global.unfinished_puzzle_exists
 	piece_rotation_button.set_pressed_no_signal(global.rotation)
-	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
-	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
-	pct_fill_slider.max_value = global.total_pieces - 10
-	pct_fill_slider.tick_count = global.total_pieces - 10
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -43,11 +37,6 @@ func _on_popup_menu_id_pressed(id):
 		self.visible = true
 
 
-func _on_pct_fill_slider_value_changed(value):
-	pct.text = str(value) + '/' + str(global.total_pieces)
-	global.pieces_at_start = value
-
-
 func _on_generate_button_up():
 	global.current_puzzle_was_loaded = false
 	self.visible = false
@@ -56,10 +45,6 @@ func _on_generate_button_up():
 	global.rotation = queue_rotation_flag
 	global.drawing_mode = false
 	piece_rotation_button.set_pressed_no_signal(queue_rotation_flag)
-	pct.text = str(global.pieces_at_start) + '/' + str(global.total_pieces)
-	pct_fill_slider.set_value_no_signal(global.pieces_at_start)
-	pct_fill_slider.max_value = global.total_pieces - 10
-	pct_fill_slider.tick_count = global.total_pieces - 10
 	global.debug_message = "Generate button pressed"
 	global.stop_music = true
 	global.atmo_type = global.generate_type

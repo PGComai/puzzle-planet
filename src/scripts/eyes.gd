@@ -10,7 +10,7 @@ signal vscan(y)
 
 @onready var camera_3d = $h/v/Camera3D
 @onready var piece_target = $h/v/Camera3D/piece_target
-@onready var mesh_maker = $MeshMaker
+@onready var mesh_maker: Node
 @onready var pieces = $Pieces
 @onready var atmosphere = $Atmosphere
 @onready var error_sound = $ErrorSound
@@ -87,11 +87,7 @@ func _ready():
 	global.puzzle_done.connect(_on_global_puzzle_done)
 	global.title_planet_ready.connect(_on_global_title_planet_ready)
 	if global.title_screen:
-		_atmo_change()
-		if global.title_planet:
-			_load_title_planet()
-		else:
-			title_planet_queued = true
+		global._load_planet_for_title()
 
 func _process(delta):
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
@@ -173,13 +169,6 @@ func _process(delta):
 		_piece_fit(delta)
 	if fit_timer > 1.5:
 		_place_piece()
-	if fit:
-		if !placed_signal:
-			global.pieces_placed_so_far[0] += 1
-			print(global.pieces_placed_so_far)
-			global._save_puzzle_status()
-			placed_signal = true
-			fit = false
 	
 	if scanning:
 		_scan_v(delta)
@@ -254,14 +243,14 @@ func _on_generate_button_up():
 	ufo.in_browser = false
 	ufo.browser_drop_off_begin = false
 	global.ufo_reset = true
-	mesh_maker.queue_free()
+	if mesh_maker:
+		mesh_maker.queue_free()
 	for n in get_tree().get_nodes_in_group('pieces'):
 		n.queue_free()
 	for n in get_tree().get_nodes_in_group("title_pieces"):
 		n.queue_free()
 	for n in pieces.get_children():
 		n.queue_free()
-	#if global.generate_type != generate_type:
 	_atmo_change()
 	var nmm
 	if global.generate_type == 3:
@@ -441,14 +430,17 @@ func _place_piece():
 	current_piece_mesh.rotation = Vector3.ZERO
 	current_piece.global_position = piece_target.global_position
 	current_piece.placed = true
-	fit = true
 	looking = false
 	fit_timer = 0.0
+	global.pieces_placed_so_far[0] += 1
+	print(global.pieces_placed_so_far)
+	global._save_puzzle_status()
 
 
 func _load_title_planet():
 	var node_data: Dictionary = global.title_planet.node_data
 	var new_circle_idx := 0
+	global.atmo_type = global.title_planet.planet_style
 	if global.title_planet.planet_style == 7:
 		rings.visible = true
 	for i in node_data.keys():
@@ -517,5 +509,4 @@ func _on_puzzle_done_effect_timeout():
 
 
 func _on_global_title_planet_ready():
-	if title_planet_queued:
-		_load_title_planet()
+	_load_title_planet()

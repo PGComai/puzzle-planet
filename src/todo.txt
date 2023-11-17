@@ -4,7 +4,6 @@ FEEDBACK:
 
 HIGH PRIORITY:
 - splash screen
-- figure out planet size
 - icon art
 - figure out ufo dropoff issues
 - how to play

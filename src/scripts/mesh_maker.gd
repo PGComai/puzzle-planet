@@ -46,6 +46,8 @@ extends Node3D
 @export var turb2 := 1.0
 @export var vturb1 := 1.0
 @export var vturb2 := 1.0
+@export var terrain_turb := 1.0
+@export var terrain_vturb := 1.0
 @export var canyon_size_multiplier := 17.0
 @export var canyon_height_multiplier := 1.0
 @export var sand_threshold := 1.1
@@ -704,8 +706,8 @@ func make_walls(og_verts: PackedVector3Array,
 #			v1p = v1p.normalized() * 1.2
 #			vp = vp.normalized() * 1.2
 			
-			var mm0 = terraform_wall(v0)
-			var mm1 = terraform_wall(v1)
+			var mm0 = terraform(v0)
+			var mm1 = terraform(v1)
 			
 			
 			var v0_atmo_thickness = v0.distance_to(v0p)
@@ -1014,7 +1016,9 @@ func shift_mountains(mountains: Array):
 
 
 func terraform(vec: Vector3):
-	var nval = noise3d.get_noise_3dv(vec)
+	var nval = noise3d.get_noise_3dv(Vector3(vec.x * terrain_turb,
+											vec.y * terrain_vturb,
+											vec.z * terrain_turb))
 	var newlength: float = crust_thickness * remap(nval,
 												-1.0,
 												1.0,
@@ -1059,50 +1063,52 @@ func terraform(vec: Vector3):
 	return vec.normalized() * newlength
 
 
-func terraform_wall(vec: Vector3):
-	var nval = noise3d.get_noise_3dv(vec)
-	var newlength: float = remap(nval,
-								-1.0,
-								1.0,
-								min_terrain_height_unclamped,
-								max_terrain_height_unclamped)
-	
-	var my_craters = []
-	for cr in crater_array:
-		var dist = vec.normalized().distance_squared_to(cr[0])
-		var crsize = 0.01 * crater_size_multiplier
-		if dist <= cr[1] * crsize:
-			var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
-			var vecproj = spl.project(vec).normalized()
-			var vdist = vecproj.distance_squared_to(cr[0])
-			var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
-			var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
-			my_craters.append(dist_mapped*vdist_mapped)
-	for mycr_i in len(my_craters):
-		var mountain_noise_multiplier: float = (1.0 + abs(mountain_noise.get_noise_3dv(vec * newlength) * 5.0))
-		mountain_noise_multiplier = lerp(1.0, mountain_noise_multiplier, float(craters_to_mountains))
-		newlength *= 1.0 + (crater_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters))) * mountain_noise_multiplier
-	
-	var my_canyons = []
-	for cn in canyon_array:
-		var dist = vec.normalized().distance_squared_to(cn[0])
-		var cnsize = 0.01 * canyon_size_multiplier
-		if dist <= cn[1] * cnsize:
-			var dist_mapped = remap(dist, 0.0, cn[1] * cnsize, 0.0, 1.0)
-			my_canyons.append(dist_mapped)
-	for mycn_i in len(my_canyons):
-		newlength *= 1.0 - (canyon_height_curve.sample_baked(remap(canyon_noise.get_noise_3dv(Vector3(vec.x * 0.4,
-																								vec.y,
-																								vec.z * 0.4).normalized()),
-																0.5,
-																1.0,
-																0.0,
-																1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
-	
-	newlength = clamp(newlength, 1.02, 1.3)
-	newlength = lerp(newlength, max_terrain_height_unclamped, float(gas_giant))
-	
-	return vec.normalized() * newlength
+#func terraform_wall(vec: Vector3):
+#	var nval = noise3d.get_noise_3dv(Vector3(vec.x * terrain_turb,
+#											vec.y * terrain_vturb,
+#											vec.z * terrain_turb))
+#	var newlength: float = remap(nval,
+#								-1.0,
+#								1.0,
+#								min_terrain_height_unclamped,
+#								max_terrain_height_unclamped)
+#
+#	var my_craters = []
+#	for cr in crater_array:
+#		var dist = vec.normalized().distance_squared_to(cr[0])
+#		var crsize = 0.01 * crater_size_multiplier
+#		if dist <= cr[1] * crsize:
+#			var spl = Plane(cr[0], Vector3.ZERO, Vector3.UP)
+#			var vecproj = spl.project(vec).normalized()
+#			var vdist = vecproj.distance_squared_to(cr[0])
+#			var vdist_mapped = remap(vdist, 0.0, cr[1] * crsize, 1.0, storm_flatness)
+#			var dist_mapped = remap(dist, 0.0, cr[1] * crsize, 0.0, 1.0)
+#			my_craters.append(dist_mapped*vdist_mapped)
+#	for mycr_i in len(my_craters):
+#		var mountain_noise_multiplier: float = (1.0 + abs(mountain_noise.get_noise_3dv(vec * newlength) * 5.0))
+#		mountain_noise_multiplier = lerp(1.0, mountain_noise_multiplier, float(craters_to_mountains))
+#		newlength *= 1.0 + (crater_curve.sample_baked(my_craters[mycr_i]) * (0.02 * crater_height_multiplier) * ((mycr_i + 1) / len(my_craters))) * mountain_noise_multiplier
+#
+#	var my_canyons = []
+#	for cn in canyon_array:
+#		var dist = vec.normalized().distance_squared_to(cn[0])
+#		var cnsize = 0.01 * canyon_size_multiplier
+#		if dist <= cn[1] * cnsize:
+#			var dist_mapped = remap(dist, 0.0, cn[1] * cnsize, 0.0, 1.0)
+#			my_canyons.append(dist_mapped)
+#	for mycn_i in len(my_canyons):
+#		newlength *= 1.0 - (canyon_height_curve.sample_baked(remap(canyon_noise.get_noise_3dv(Vector3(vec.x * 0.4,
+#																								vec.y,
+#																								vec.z * 0.4).normalized()),
+#																0.5,
+#																1.0,
+#																0.0,
+#																1.0)) * canyon_fade_curve.sample_baked(my_canyons[mycn_i]))
+#
+#	newlength = clamp(newlength, 1.02, 1.3)
+#	newlength = lerp(newlength, max_terrain_height_unclamped, float(gas_giant))
+#
+#	return vec.normalized() * newlength
 
 
 func colorize(vec: Vector3, doing_water := false):

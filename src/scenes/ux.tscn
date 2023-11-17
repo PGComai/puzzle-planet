@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3 uid="uid://djo67ptd1f4hw"]
+[gd_scene load_steps=47 format=3 uid="uid://djo67ptd1f4hw"]
 
 [ext_resource type="Script" path="res://scripts/ux.gd" id="1_f5jjs"]
 [ext_resource type="Theme" uid="uid://1o6egjxby32y" path="res://tex/ux.tres" id="1_kqae3"]
@@ -11,7 +11,6 @@
 [ext_resource type="Script" path="res://scripts/splitscreen.gd" id="6_dj3jp"]
 [ext_resource type="Script" path="res://scripts/newplanet.gd" id="6_ql4kd"]
 [ext_resource type="StyleBox" uid="uid://dd6v7dxm3exou" path="res://tex/NewPlanetPanelBox.tres" id="6_qwkga"]
-[ext_resource type="FontFile" uid="uid://cjyeuvrbo2f8p" path="res://fonts/PixelOperatorSC.ttf" id="7_wkm7n"]
 [ext_resource type="Script" path="res://scripts/StartPuzzle.gd" id="9_7ob1j"]
 [ext_resource type="Script" path="res://scripts/MenuButton.gd" id="9_xhe56"]
 [ext_resource type="Theme" uid="uid://ccaso356i774l" path="res://tex/toggle_buttons.tres" id="9_yt3th"]
@@ -21,6 +20,7 @@
 [ext_resource type="Script" path="res://scripts/SoundButton.gd" id="12_7nn8l"]
 [ext_resource type="Script" path="res://scripts/VibrateButton.gd" id="13_0f10h"]
 [ext_resource type="Script" path="res://scripts/MusicButton.gd" id="13_g8tjt"]
+[ext_resource type="Script" path="res://scripts/PuzzleSize.gd" id="14_fu4mo"]
 [ext_resource type="Script" path="res://scripts/DebugButton.gd" id="15_yt5gt"]
 [ext_resource type="Script" path="res://scripts/PieceRotationButton.gd" id="16_1c00m"]
 [ext_resource type="Theme" uid="uid://bumainmrcuw5b" path="res://tex/non_toggle_buttons.tres" id="21_7jta7"]
@@ -86,6 +86,8 @@ bg_color = Color(0.219501, 0.219501, 0.219501, 1)
 size = Vector2(32, 32)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oq1p0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_el28j"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7l88b"]
 draw_center = false
@@ -276,7 +278,7 @@ script = ExtResource("9_xhe56")
 [node name="PopupMenu" type="PopupMenu" parent="MenuButton"]
 transparent_bg = true
 canvas_item_default_texture_filter = 0
-size = Vector2i(652, 498)
+size = Vector2i(652, 578)
 theme_override_constants/v_separation = 10
 theme_override_font_sizes/font_size = 70
 theme_override_styles/panel = ExtResource("6_qwkga")
@@ -430,6 +432,7 @@ theme_override_constants/separation = 20
 [node name="PuzzleSize" type="HBoxContainer" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 0
+script = ExtResource("14_fu4mo")
 
 [node name="PctFillLabel" type="Label" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
 layout_mode = 2
@@ -437,15 +440,34 @@ size_flags_horizontal = 2
 text = "Size"
 autowrap_mode = 2
 
-[node name="Pct" type="Label" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
-visible = false
+[node name="Pieces10" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
 layout_mode = 2
-size_flags_horizontal = 10
-theme_override_fonts/font = ExtResource("7_wkm7n")
-theme_override_font_sizes/font_size = 34
-text = "15/30"
-horizontal_alignment = 2
-autowrap_mode = 2
+theme = ExtResource("9_yt3th")
+toggle_mode = true
+text = "10"
+
+[node name="VSeparator" type="VSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
+layout_mode = 2
+theme_override_constants/separation = 10
+theme_override_styles/separator = SubResource("StyleBoxEmpty_el28j")
+
+[node name="Pieces15" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
+layout_mode = 2
+theme = ExtResource("9_yt3th")
+toggle_mode = true
+button_pressed = true
+text = "15"
+
+[node name="VSeparator2" type="VSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
+layout_mode = 2
+theme_override_constants/separation = 10
+theme_override_styles/separator = SubResource("StyleBoxEmpty_el28j")
+
+[node name="Pieces20" type="Button" parent="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize"]
+layout_mode = 2
+theme = ExtResource("9_yt3th")
+toggle_mode = true
+text = "20"
 
 [node name="HSeparator2" type="HSeparator" parent="NewPlanetPopup/MarginContainer/VBoxContainer"]
 visible = false
@@ -874,7 +896,9 @@ one_shot = true
 [connection signal="visibility_changed" from="MenuButton/PopupMenu" to="MenuButton/PopupMenu" method="_on_visibility_changed"]
 [connection signal="visibility_changed" from="NewPlanetPopup" to="NewPlanetPopup" method="_on_visibility_changed"]
 [connection signal="item_selected" from="NewPlanetPopup/MarginContainer/VBoxContainer/PlanetType/PlanetTypeOptionButton" to="NewPlanetPopup" method="_on_planet_type_option_button_item_selected"]
-[connection signal="value_changed" from="NewPlanetPopup/MarginContainer/VBoxContainer/PctFillSlider" to="NewPlanetPopup" method="_on_pct_fill_slider_value_changed"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize/Pieces10" to="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize" method="_on_pieces_10_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize/Pieces15" to="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize" method="_on_pieces_15_button_up"]
+[connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize/Pieces20" to="NewPlanetPopup/MarginContainer/VBoxContainer/PuzzleSize" method="_on_pieces_20_button_up"]
 [connection signal="toggled" from="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton" to="NewPlanetPopup" method="_on_piece_rotation_button_toggled"]
 [connection signal="toggled" from="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton" to="NewPlanetPopup/MarginContainer/VBoxContainer/PieceRotation/PieceRotationButton" method="_on_toggled"]
 [connection signal="button_up" from="NewPlanetPopup/MarginContainer/VBoxContainer/Generate" to="SubViewportBrowser/Browser" method="_on_generate_button_up"]

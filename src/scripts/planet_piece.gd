@@ -337,13 +337,6 @@ func _placement():
 			rotation.z = 0.0
 			global_position = direction
 			placement_finished = true
-#	if placement_lerp_1 > 0.92 and !sound_playing:
-#		if global.sound:
-#			#note_player.play()
-#			print("click")
-#			sound_playing = true
-#	placement_lerp_1 = lerp(placement_lerp_1, 1.0, 0.03)
-#	placement_lerp_2 = placement_curve.sample_baked(placement_lerp_1)
 
 
 func arrange(re = false):
