@@ -1,9 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://dh4yuxiqdo80d"]
+[gd_scene load_steps=14 format=3 uid="uid://dh4yuxiqdo80d"]
 
 [ext_resource type="Script" path="res://scripts/browser.gd" id="1_n1lns"]
 [ext_resource type="ArrayMesh" uid="uid://jc8722fqtglo" path="res://models/wheel.obj" id="2_5ymt6"]
 [ext_resource type="Script" path="res://scripts/browsercam.gd" id="2_6jj64"]
+[ext_resource type="Script" path="res://scripts/browser_environment.gd" id="2_7hvdy"]
 [ext_resource type="AudioStream" uid="uid://dpsh6dap1paog" path="res://audio/puzzle planet carousel click.wav" id="3_6n0dn"]
+[ext_resource type="Script" path="res://scripts/BrowserLight.gd" id="3_gsdts"]
 [ext_resource type="Script" path="res://scripts/clicker.gd" id="4_v12kr"]
 [ext_resource type="Script" path="res://scripts/UFO_orbit.gd" id="5_cocbr"]
 
@@ -19,7 +21,7 @@ background_mode = 1
 sky = SubResource("Sky_6rrgr")
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 0.06
+ambient_light_energy = 0.0
 tonemap_mode = 2
 tonemap_white = 2.0
 fog_light_color = Color(0.0980392, 0.0980392, 0.0980392, 1)
@@ -27,7 +29,7 @@ fog_density = 0.2641
 fog_sky_affect = 0.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hstdb"]
-albedo_color = Color(0.176471, 0.176471, 0.176471, 1)
+albedo_color = Color(0.403922, 0.403922, 0.403922, 1)
 
 [sub_resource type="Curve" id="Curve_pddqo"]
 _data = [Vector2(0, 0.0306748), 0.0, 62.5583, 0, 0, Vector2(0.02589, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
@@ -38,6 +40,7 @@ script = ExtResource("1_n1lns")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_44v1c")
+script = ExtResource("2_7hvdy")
 
 [node name="camrot" type="Node3D" parent="."]
 
@@ -48,20 +51,11 @@ fov = 90.0
 far = 100.0
 script = ExtResource("2_6jj64")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="camrot/Camera3D"]
+[node name="BrowserLight" type="DirectionalLight3D" parent="camrot/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)
+light_energy = 0.0
 light_cull_mask = 4294967231
-
-[node name="WheelLight" type="DirectionalLight3D" parent="camrot/Camera3D"]
-transform = Transform3D(1, 0, 0, 0, 0.813416, 0.581683, 0, -0.581683, 0.813416, 0, 0, -10.8)
-layers = 64
-light_energy = 2.036
-light_cull_mask = 4293918784
-
-[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="camrot/Camera3D"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, -10.8)
-visible = false
-light_energy = 0.54
+script = ExtResource("3_gsdts")
 
 [node name="wheel" type="Node3D" parent="camrot/Camera3D"]
 transform = Transform3D(0.612, 0, 0, 0, 0.612, 6.52278e-15, 0, -6.52278e-15, 0.612, 0, 12, -4)
@@ -81,6 +75,8 @@ script = ExtResource("5_cocbr")
 spinny_curve = SubResource("Curve_pddqo")
 
 [connection signal="click" from="." to="AudioStreamPlayer" method="_on_browser_click"]
+[connection signal="env_toggle" from="." to="WorldEnvironment" method="_on_browser_env_toggle"]
+[connection signal="light_toggle" from="." to="camrot/Camera3D/BrowserLight" method="_on_browser_light_toggle"]
 [connection signal="picked_you" from="." to="." method="_on_picked_you"]
 [connection signal="at_angle" from="UFO_orbit" to="." method="_on_ufo_orbit_at_angle"]
 [connection signal="drop_off_done" from="UFO_orbit" to="." method="_on_ufo_orbit_drop_off_done"]

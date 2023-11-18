@@ -2,9 +2,9 @@ extends MeshInstance3D
 
 const TITLE_Z := -0.7
 const HIDDEN_Z := 0.1
-const TITLE_TEXT := "star\npuzzle"
+const TITLE_TEXT := "puzzle\n "
 const TITLE_SIZE := 14
-const TITLE_SPACING := 10
+const TITLE_SPACING := 1
 const COMPLETE_TEXT := "puzzle\ncomplete"
 const COMPLETE_SIZE := 10
 const COMPLETE_SPACING := 5
@@ -15,6 +15,7 @@ var transition_completed := false
 var deployed := true
 
 @onready var timer = $Timer
+@onready var planetarium = $planetarium
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -48,6 +49,7 @@ func _on_global_title_screen_signal(status):
 
 
 func _on_global_puzzle_done():
+	planetarium.visible = false
 	deployed = true
 	transition_completed = false
 	mesh.text = COMPLETE_TEXT

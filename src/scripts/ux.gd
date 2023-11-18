@@ -10,6 +10,7 @@ func _ready():
 	elif ar < 0.6 and global.tablet_mode:
 		global.tablet_mode = false
 
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass

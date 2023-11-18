@@ -122,7 +122,7 @@ var remember_rotation_z: float
 var been_scanned := false
 var scanimation := false
 var scan_counter := 0.0
-var scan_bump_size := 1.1
+var scan_bump_size := 1.09
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

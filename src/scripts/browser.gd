@@ -4,6 +4,8 @@ signal found_you(idx)
 signal picked_you(idx)
 signal click(speed)
 signal ufo_at_angle(angle, pos)
+signal light_toggle(energy)
+signal env_toggle(energy)
 
 @onready var camrot = $camrot
 @onready var camera_3d = $camrot/Camera3D
@@ -11,7 +13,6 @@ signal ufo_at_angle(angle, pos)
 @onready var wheelmesh = $camrot/Camera3D/wheel/wheelmesh
 @onready var audio_stream_player = $AudioStreamPlayer
 @onready var ufo_orbit = $UFO_orbit
-@onready var directional_light_3d = $camrot/Camera3D/DirectionalLight3D
 
 const LIGHT_ENERGY := 1.0
 const BONUS_CAM_DIST := 1.0
@@ -145,13 +146,13 @@ func _process(delta):
 				dx = 0.0
 			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
 			camrot.rotation.y = rot_h
-			_toggle_light(false)
+			#_toggle_light(false)
 		else:
 			rotating = false
 			if global.rotation:
 				toggle_wheel('up')
 			rot_h -= dx_final
-			_toggle_light(true)
+			#_toggle_light(true)
 		if rot_h < 0.0:
 			rot_h = 2*PI-abs(rot_h)
 		if rot_h >= 2*PI:
@@ -249,6 +250,8 @@ func _resetti_spaghetti(set_rot := true):
 	wheel.position.y = 12.0
 	wheel_moving = false
 	wheel_up = true
+	emit_signal("light_toggle", 0.0)
+	emit_signal("env_toggle", 0.0)
 
 
 func toggle_wheel(direction := 'down'):
@@ -285,9 +288,10 @@ func _on_global_ufo_done_signal():
 	#pieces_ready = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
 	rotosnaps = len(pieces)
-	h_sensitivity *= 15.0/float(rotosnaps)
-	#print(rotosnaps)
 	max_rotosnaps = rotosnaps
+	#h_sensitivity *= max_rotosnaps/float(rotosnaps) ### sensitivity issue
+	#print(rotosnaps)
+	
 	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST
 	#recam = true
 	camera_3d.position.z = cam_dist
@@ -305,6 +309,8 @@ func _on_global_ufo_done_signal():
 		p.drop_off_original_dist = cam_dist
 		p.visible = true
 		p.arrange()
+	emit_signal("light_toggle", 1.0)
+	emit_signal("env_toggle", 0.58)
 
 
 func _on_generate_button_up():
@@ -370,17 +376,17 @@ func _on_browser_rect_gui_input(event):
 			elif event.pressed == true:
 				pick = true
 
-func _toggle_light(tog: bool):
-	if tog:
-		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, LIGHT_ENERGY, 0.1)
-		if is_equal_approx(directional_light_3d.light_energy, LIGHT_ENERGY):
-			directional_light_3d.light_energy = LIGHT_ENERGY
-			light_toggle_complete = true
-	else:
-		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 0.5, 0.1)
-		if is_equal_approx(directional_light_3d.light_energy, 0.5):
-			directional_light_3d.light_energy = 0.5
-			light_toggle_complete = true
+#func _toggle_light(tog: bool):
+#	if tog:
+#		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, LIGHT_ENERGY, 0.1)
+#		if is_equal_approx(directional_light_3d.light_energy, LIGHT_ENERGY):
+#			directional_light_3d.light_energy = LIGHT_ENERGY
+#			light_toggle_complete = true
+#	else:
+#		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 0.5, 0.1)
+#		if is_equal_approx(directional_light_3d.light_energy, 0.5):
+#			directional_light_3d.light_energy = 0.5
+#			light_toggle_complete = true
 
 
 func _on_global_num_arranged_changed(num):
