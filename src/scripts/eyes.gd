@@ -192,9 +192,9 @@ func _atmo_change():
 	elif type == 5:
 		atmosphere.visible = true
 		rings.visible = false
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 1.0)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('d4995a'))
-		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
+		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('207be3'))
 	elif type == 4 or type == 1 or type == 11:
 		atmosphere.visible = false
 		rings.visible = false
@@ -204,31 +204,31 @@ func _atmo_change():
 	elif type == 6:
 		atmosphere.visible = true
 		rings.visible = false
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.9)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
 	elif type == 7:
 		atmosphere.visible = true
 		rings.visible = true
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.9)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('c5a37f'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('e2a277'))
 	elif type == 8:
 		atmosphere.visible = true
 		rings.visible = false
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.9)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7a9cae'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7a9cae'))
 	elif type == 9:
 		atmosphere.visible = true
 		rings.visible = false
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.9)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('7199c9'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('7199c9'))
 	elif type == 10:
 		atmosphere.visible = true
 		rings.visible = false
-		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 0.75)
+		RenderingServer.global_shader_parameter_set('atmo_fresnel_power', 1.4)
 		RenderingServer.global_shader_parameter_set('atmo_daylight', Color('81cfff'))
 		RenderingServer.global_shader_parameter_set('atmo_sunset', Color('81cfff'))
 

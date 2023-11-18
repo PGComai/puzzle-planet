@@ -208,6 +208,7 @@ func _ready():
 		stats = FileAccess.open("user://stats.dat", FileAccess.READ)
 		stat_dict = stats.get_var(true)
 		stats.close()
+		print("puzzles completed: %s" % stat_dict["puzzles_completed"])
 	if not FileAccess.file_exists("user://save_data.dat"):
 		print("no save_data file exists")
 		save_data = FileAccess.open("user://save_data.dat", FileAccess.WRITE_READ)

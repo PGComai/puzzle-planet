@@ -227,6 +227,10 @@ func _ready():
 	
 	themesh.mesh = newmesh
 	#transparent.mesh = newmesh_transparent
+	
+	if planet_style == 6:
+		scan_bump_size = 1.06
+	
 	if planet_style > 5 and planet_style < 10:
 		themesh.material_overlay.roughness = 0.65
 	else:
