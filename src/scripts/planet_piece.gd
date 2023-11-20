@@ -228,7 +228,7 @@ func _ready():
 	themesh.mesh = newmesh
 	#transparent.mesh = newmesh_transparent
 	
-	if planet_style == 6:
+	if planet_style == 6 or planet_style == 7 or planet_style == 2:
 		scan_bump_size = 1.06
 	
 	if planet_style > 5 and planet_style < 10:
@@ -331,8 +331,8 @@ func _process(delta):
 
 func _placement():
 	if not placement_wind_up:
-		global_position = lerp(global_position, direction * 1.1, 0.2)
-		if global_position.is_equal_approx(direction * 1.1):
+		global_position = lerp(global_position, direction * 1.06, 0.2)
+		if global_position.is_equal_approx(direction * 1.06):
 			placement_wind_up = true
 			click_delay.start()
 	else:

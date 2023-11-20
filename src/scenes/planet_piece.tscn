@@ -175,7 +175,7 @@ stream = ExtResource("5_kjry7")
 volume_db = -11.957
 
 [node name="ClickDelay" type="Timer" parent="."]
-wait_time = 0.05
+wait_time = 0.07
 one_shot = true
 
 [connection signal="child_entered_tree" from="." to="." method="_on_child_entered_tree"]
