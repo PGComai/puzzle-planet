@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Star Puzzle"
+config/name="Puzzle Planetarium"
 run/main_scene="res://scenes/ux.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.1", "Mobile")

@@ -8,7 +8,6 @@ func _ready():
 	global = get_node("/root/Global")
 	var sz = ux.size
 	size.x = sz.x
-	print(sz)
 	position.y = sz.y - size.y
 
 
