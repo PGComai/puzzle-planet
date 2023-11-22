@@ -29,6 +29,10 @@ func _process(delta):
 
 func _on_global_tablet_mode_signal(onoff):
 	if onoff:
+#		size_2d_override.x = TABLET_SIZE.x
+#		size_2d_override.y = TABLET_SIZE.y
+#		size.x = 1024
+#		size.y = 1024
 		size.x = TABLET_SIZE.x
 		size.y = TABLET_SIZE.y
 		sub_viewport_browser.size.x = TABLET_SIZE.x
