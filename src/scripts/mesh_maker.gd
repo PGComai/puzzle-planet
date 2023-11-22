@@ -651,6 +651,8 @@ func make_walls(og_verts: PackedVector3Array,
 		else:
 			v0pw_color = colorize(v0pw, true)
 			v1pw_color = colorize(v1pw, true)
+		v0pw_color = v0pw_color.lerp(Color("black"), 0.1)
+		v1pw_color = v1pw_color.lerp(Color("black"), 0.1)
 		var n: Vector3
 		
 		## PIECE WALLS BEGIN ## -----------------------------
@@ -672,40 +674,37 @@ func make_walls(og_verts: PackedVector3Array,
 			n = Plane(v1, v0p, v1p).normal
 			_triangle(n, n, n, wall_tri_normals)
 			
-			var water_no_clip := 0.01
-			var wo2 = pow(water_offset, 2.0)
-			
-			if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
-				_triangle(v0p.limit_length(water_offset), v0pw, v1p.limit_length(water_offset), cutwater_triangles)
-			else:
-				_triangle(v0p.limit_length(water_offset).move_toward(vp, water_no_clip), v0pw.move_toward(vp, water_no_clip), v1p.limit_length(water_offset).move_toward(vp, water_no_clip), cutwater_triangles)
-			
-			var c1 = v0pw_color.lerp(deep_water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.1, 1.0))
-			var c3 = v1pw_color.lerp(deep_water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.1, 1.0))
-			_tricolor(c1, v0pw_color, c3, cutwater_tri_colors)
-			
-			n = Plane(v0p,v0pw,v1p).normal
-			_triangle(n, n, n, cutwater_tri_normals)
-			
-			###
-			if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
-				_triangle(v1p.limit_length(water_offset), v0pw, v1pw, cutwater_triangles)
-			else:
-				_triangle(v1p.limit_length(water_offset).move_toward(vp, water_no_clip), v0pw.move_toward(vp, water_no_clip), v1pw.move_toward(vp, water_no_clip), cutwater_triangles)
-			#_triangle(v1p.limit_length(water_offset), v0pw.lerp(vp, 0.001), v1pw.lerp(vp, 0.001), cutwater_triangles)
-			
-			c1 = v1pw_color.lerp(deep_water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.0, 1.0))
-			_tricolor(c1, v0pw_color, v1pw_color, cutwater_tri_colors)
-			
-			n = Plane(v1p,v0pw,v1pw).normal
-			_triangle(n, n, n, cutwater_tri_normals)
+			if ocean:
+				var water_no_clip := 0.01
+				var wo2 = pow(water_offset, 2.0)
+				
+				if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
+					_triangle(v0p.limit_length(water_offset), v0pw, v1p.limit_length(water_offset), cutwater_triangles)
+				else:
+					_triangle(v0p.limit_length(water_offset).move_toward(vp, water_no_clip), v0pw.move_toward(vp, water_no_clip), v1p.limit_length(water_offset).move_toward(vp, water_no_clip), cutwater_triangles)
+				
+				var c1 = v0pw_color.lerp(deep_water_color, clamp(remap(clamp(-v0pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.1, 1.0))
+				c1 = c1.lerp(Color("black"), 0.1)
+				var c3 = v1pw_color.lerp(deep_water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.1, 1.0))
+				c3 = c3.lerp(Color("black"), 0.1)
+				_tricolor(c1, v0pw_color, c3, cutwater_tri_colors)
+				
+				n = Plane(v0p,v0pw,v1p).normal
+				_triangle(n, n, n, cutwater_tri_normals)
+				
+				###
+				if v0p.length_squared() < wo2 and v1p.length_squared() < wo2:
+					_triangle(v1p.limit_length(water_offset), v0pw, v1pw, cutwater_triangles)
+				else:
+					_triangle(v1p.limit_length(water_offset).move_toward(vp, water_no_clip), v0pw.move_toward(vp, water_no_clip), v1pw.move_toward(vp, water_no_clip), cutwater_triangles)
+				
+				c1 = v1pw_color.lerp(deep_water_color, clamp(remap(clamp(-v1pw_depth, 0.0, 1.0), underwater_depth_start, underwater_depth_end, 0.0, 1.0), 0.0, 1.0))
+				c1 = c1.lerp(Color("black"), 0.1)
+				_tricolor(c1, v0pw_color, v1pw_color, cutwater_tri_colors)
+				
+				n = Plane(v1p,v0pw,v1pw).normal
+				_triangle(n, n, n, cutwater_tri_normals)
 		else:
-			
-			
-#			v0p = v0p.normalized() * 1.2
-#			v1p = v1p.normalized() * 1.2
-#			vp = vp.normalized() * 1.2
-			
 			var mm0 = terraform(v0)
 			var mm1 = terraform(v1)
 			
@@ -716,23 +715,31 @@ func make_walls(og_verts: PackedVector3Array,
 			# quarter way up
 			var v01 = v0.move_toward(v0p, v0_atmo_thickness * 0.25)
 			var v01_color = colorize(mm0*0.97).lerp(low_crust_color, 0.75)
+			v01_color = v01_color.lerp(Color("black"), 0.3)
 			var v11 = v1.move_toward(v1p, v1_atmo_thickness * 0.25)
 			var v11_color = colorize(mm1*0.97).lerp(low_crust_color, 0.75)
+			v11_color = v11_color.lerp(Color("black"), 0.3)
 			
 			# halfway up
 			var v02 = v0.move_toward(v0p, v0_atmo_thickness * 0.5)
 			var v02_color = colorize(mm0*0.98).lerp(low_crust_color, 0.5)
+			v02_color = v02_color.lerp(Color("black"), 0.3)
 			var v12 = v1.move_toward(v1p, v1_atmo_thickness * 0.5)
 			var v12_color = colorize(mm1*0.98).lerp(low_crust_color, 0.5)
+			v12_color = v12_color.lerp(Color("black"), 0.3)
 			
 			# three quarters up
 			var v03 = v0.move_toward(v0p, v0_atmo_thickness * 0.75)
 			var v03_color = colorize(mm0*0.99).lerp(low_crust_color, 0.25)
+			v03_color = v03_color.lerp(Color("black"), 0.3)
 			var v13 = v1.move_toward(v1p, v1_atmo_thickness * 0.75)
 			var v13_color = colorize(mm1*0.99).lerp(low_crust_color, 0.25)
+			v13_color = v13_color.lerp(Color("black"), 0.3)
 			
 			var v0p_color = colorize(mm0)
+			v0p_color = v0p_color.lerp(Color("black"), 0.3)
 			var v1p_color = colorize(mm1)
+			v1p_color = v1p_color.lerp(Color("black"), 0.3)
 			
 			_triangle(v0, v01, v1, wall_triangles)
 			_tricolor(low_crust_color, v01_color, low_crust_color, wall_tri_colors)

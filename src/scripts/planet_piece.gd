@@ -19,6 +19,8 @@ signal drop_off_sound
 @onready var placement_delay = $PlacementDelay
 @onready var placement_click = $PlacementClick
 @onready var click_delay = $ClickDelay
+@onready var waterwalls = $themesh/waterwalls
+
 
 var offset := 1.0
 
@@ -136,36 +138,23 @@ func _ready():
 	
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
 	remember_rotation_z = random_rotation_offset
-#	zbasis_offset_ax = direction.normalized().cross(self.transform.basis.z).normalized()
-#	zbasis_offset = direction.normalized().signed_angle_to(self.transform.basis.z, zbasis_offset_ax)
+	
 	var newmesh = ArrayMesh.new()
-#	var newmesh_transparent = ArrayMesh.new()
 	
 	var surface_array = []
 	surface_array.resize(Mesh.ARRAY_MAX)
-#	var surface_array_trans = []
-#	surface_array_trans.resize(Mesh.ARRAY_MAX)
 	
 	var temparr = Array(vertex)
 	temparr = temparr.map(func(v): return v - direction)
-#	var transarray = Array(color)
-#	transarray = transarray.map(func(c: Color): return Color(c, 0.5))
-	#vertex = PackedVector3Array(temparr)
 	surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array(temparr)
 	surface_array[Mesh.ARRAY_NORMAL] = normal
 	surface_array[Mesh.ARRAY_COLOR] = color
 	
-#	surface_array_trans[Mesh.ARRAY_VERTEX] = surface_array[Mesh.ARRAY_VERTEX]
-#	surface_array_trans[Mesh.ARRAY_NORMAL] = surface_array[Mesh.ARRAY_NORMAL]
-#	surface_array_trans[Mesh.ARRAY_COLOR] = PackedColorArray(transarray)
-	
 	if trees_on:
-		#var mmi := MultiMeshInstance3D.new()
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.mesh = treemesh
 		mm.use_colors = true
-		#multi_mesh_instance_3d.material_overlay = tree_material
 		mm.instance_count = tree_positions.size()
 		for tp in tree_positions.size():
 			var bas := Basis().looking_at(-tree_positions[tp])
@@ -175,44 +164,34 @@ func _ready():
 			mm.set_instance_transform(tp, tf)
 			var clr := tree_color_1.lerp(tree_color_2, clamp(randfn(0.5, 0.5), 0.0, 1.0))
 			mm.set_instance_color(tp, clr)
-#			var t = tree.instantiate()
-#			t.spawn_position = tp - direction
-#			themesh.add_child(t)
 		mm.visible_instance_count = mm.instance_count
-		#multi_mesh_instance_3d.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		multi_mesh_instance_3d.multimesh = mm
-		#themesh.add_child(mmi)
 	
-#	var random_vertex = randi_range(0, vertex.size())
-#	var t := tree.instantiate()
-#	t.spawn_position = vertex[random_vertex]
-#	themesh.add_child(t)
 	
 	newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
-	#newmesh_transparent.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array_trans)
 	
 	if ocean:
+		var waterwall_mesh = ArrayMesh.new()
 		surface_array = []
 		surface_array.resize(Mesh.ARRAY_MAX)
 		
 		temparr = Array(vertex_cw)
 		temparr = temparr.map(func(v): return v - direction)
-		#vertex_cw = PackedVector3Array(temparr)
 		
 		surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array(temparr)
 		surface_array[Mesh.ARRAY_NORMAL] = normal_cw
 		surface_array[Mesh.ARRAY_COLOR] = color_cw
 		
-		newmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+		waterwall_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface_array)
+		waterwalls.mesh = waterwall_mesh
 		
-		if not (len(vertex_w) == 0):
+		if len(vertex_w) != 0:
 			var watermesh = ArrayMesh.new()
 			surface_array = []
 			surface_array.resize(Mesh.ARRAY_MAX)
 			
 			temparr = Array(vertex_w)
 			temparr = temparr.map(func(v): return v - direction)
-			#vertex_w = PackedVector3Array(temparr)
 			
 			surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array(temparr)
 			surface_array[Mesh.ARRAY_NORMAL] = normal_w
@@ -226,7 +205,6 @@ func _ready():
 				water.material_overlay.roughness = 0.04
 	
 	themesh.mesh = newmesh
-	#transparent.mesh = newmesh_transparent
 	
 	if planet_style == 6 or planet_style == 7 or planet_style == 2:
 		scan_bump_size = 1.06
@@ -243,7 +221,6 @@ func _ready():
 
 	temparr = Array(wall_vertex)
 	temparr = temparr.map(func(v): return v - direction)
-	#wall_vertex = PackedVector3Array(temparr)
 	surface_array[Mesh.ARRAY_VERTEX] = PackedVector3Array(temparr)
 	surface_array[Mesh.ARRAY_NORMAL] = wall_normal
 	surface_array[Mesh.ARRAY_COLOR] = wall_color
