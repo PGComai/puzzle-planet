@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=17 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
@@ -42,22 +42,6 @@ distance_fade_max_distance = 0.3
 [sub_resource type="ArrayMesh" id="ArrayMesh_ker4h"]
 resource_local_to_scene = true
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b5ptj"]
-albedo_color = Color(0.282353, 0.372549, 0.882353, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_u1pd2"]
-material = SubResource("StandardMaterial3D_b5ptj")
-radius = 0.05
-height = 0.1
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_15kp0"]
-albedo_color = Color(0.788235, 0.164706, 0.160784, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_sox24"]
-material = SubResource("StandardMaterial3D_15kp0")
-radius = 0.05
-height = 0.1
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ofrj5"]
 resource_local_to_scene = true
 diffuse_mode = 3
@@ -80,7 +64,7 @@ resource_local_to_scene = true
 diffuse_mode = 3
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
-roughness = 0.8
+roughness = 0.94
 emission = Color(0.813096, 0.883004, 0.71694, 1)
 rim = 0.9
 rim_tint = 0.65
@@ -102,20 +86,6 @@ vertex_color_is_srgb = true
 albedo_color = Color(0.431373, 0.431373, 0.431373, 1)
 albedo_texture_force_srgb = true
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_du276"]
-albedo_color = Color(0.231373, 0.572549, 0.207843, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_gl2kt"]
-material = SubResource("StandardMaterial3D_du276")
-radius = 0.05
-height = 0.1
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q6s22"]
-no_depth_test = true
-vertex_color_use_as_albedo = true
-vertex_color_is_srgb = true
-albedo_color = Color(0.533333, 0.533333, 0.533333, 1)
-
 [node name="planet_piece" type="Node3D" groups=["persist", "pieces"]]
 script = ExtResource("1_jrwu8")
 placement_curve = SubResource("Curve_wdrif")
@@ -125,48 +95,36 @@ scan_bump_curve = SubResource("Curve_8fl2o")
 layers = 9
 material_overlay = SubResource("StandardMaterial3D_nx1bn")
 cast_shadow = 0
+gi_mode = 0
 mesh = SubResource("ArrayMesh_4ibd5")
 script = ExtResource("2_neaqm")
 
 [node name="walls" type="MeshInstance3D" parent="themesh"]
 layers = 41
 material_overlay = SubResource("StandardMaterial3D_iyjmg")
+gi_mode = 0
 mesh = SubResource("ArrayMesh_ker4h")
-skeleton = NodePath("../..")
-
-[node name="fwd" type="MeshInstance3D" parent="themesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
-visible = false
-mesh = SubResource("SphereMesh_u1pd2")
-skeleton = NodePath("../..")
-
-[node name="right" type="MeshInstance3D" parent="themesh"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0)
-visible = false
-mesh = SubResource("SphereMesh_sox24")
 skeleton = NodePath("../..")
 
 [node name="water" type="MeshInstance3D" parent="themesh"]
 material_overlay = SubResource("StandardMaterial3D_ofrj5")
+gi_mode = 0
 mesh = SubResource("ArrayMesh_knalo")
 
 [node name="waterwalls" type="MeshInstance3D" parent="themesh"]
 material_overlay = SubResource("StandardMaterial3D_mc6oh")
 cast_shadow = 0
+gi_mode = 0
 mesh = SubResource("ArrayMesh_knalo")
 
 [node name="wall_effect" type="MeshInstance3D" parent="themesh"]
 visible = false
 material_overlay = SubResource("StandardMaterial3D_yoo5a")
 cast_shadow = 0
+gi_mode = 0
 
 [node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="themesh"]
 material_overlay = SubResource("StandardMaterial3D_rhrep")
-
-[node name="up" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-visible = false
-mesh = SubResource("SphereMesh_gl2kt")
 
 [node name="DropOffSound" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("3_p3cpx")
@@ -176,12 +134,6 @@ max_db = 1.0
 pitch_scale = 0.6
 max_polyphony = 3
 script = ExtResource("4_wo60a")
-
-[node name="transparent" type="MeshInstance3D" parent="."]
-visible = false
-material_overlay = SubResource("StandardMaterial3D_q6s22")
-cast_shadow = 0
-skeleton = NodePath("../themesh")
 
 [node name="InvisTimer" type="Timer" parent="."]
 wait_time = 0.1

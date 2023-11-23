@@ -284,6 +284,7 @@ func _on_picked_you(idx):
 
 
 func _on_global_ufo_done_signal():
+	global.placing_piece = false
 	global.num_pieces_arranged = 0
 	#pieces_ready = true
 	var pieces = get_tree().get_nodes_in_group('pieces')
@@ -291,7 +292,6 @@ func _on_global_ufo_done_signal():
 	max_rotosnaps = rotosnaps
 	#h_sensitivity *= max_rotosnaps/float(rotosnaps) ### sensitivity issue
 	#print(rotosnaps)
-	
 	cam_dist = remap(float(rotosnaps), 20.0, 40.0, 5.0, 10.0) + BONUS_CAM_DIST
 	#recam = true
 	camera_3d.position.z = cam_dist

@@ -13,7 +13,6 @@ signal drop_off_sound
 @onready var walls = $themesh/walls
 @onready var water = $themesh/water
 @onready var wall_effect = $themesh/wall_effect
-@onready var transparent = $transparent
 @onready var multi_mesh_instance_3d = $themesh/MultiMeshInstance3D
 @onready var invis_timer = $InvisTimer
 @onready var placement_delay = $PlacementDelay
@@ -64,7 +63,7 @@ var angle = 0.0
 var rot_offset = 0.0
 var ax_offset = Vector3.ZERO
 var good_global_rot: Vector3
-var rad = 10
+var rad := 10.0
 #var staying = false
 var placed := false:
 	set(value):
@@ -213,6 +212,10 @@ func _ready():
 		themesh.material_overlay.roughness = 0.65
 	else:
 		themesh.material_overlay.roughness = 0.79
+	
+	if planet_style == 2:
+		themesh.material_overlay.roughness = 1.0
+		themesh.material_overlay.rim_enabled = false
 	
 	var wallmesh = ArrayMesh.new()
 	
@@ -460,18 +463,8 @@ func _in_space_set():
 	if not in_space:
 		position = Vector3(good_pos.x, 0.0, good_pos.z)
 		wall_effect.visible = false
-#		themesh.material_overlay.no_depth_test = false
-#		water.material_overlay.no_depth_test = false
-#		multi_mesh_instance_3d.material_overlay.no_depth_test = false
-#		themesh.visible = true
-#		transparent.visible = false
 	else:
 		wall_effect.visible = true
-#		themesh.material_overlay.no_depth_test = true
-#		water.material_overlay.no_depth_test = true
-#		multi_mesh_instance_3d.material_overlay.no_depth_test = true
-#		themesh.visible = false
-#		transparent.visible = true
 
 
 func _disappear():
