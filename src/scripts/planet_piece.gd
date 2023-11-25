@@ -4,7 +4,6 @@ signal i_am_here(idx, ang)
 signal ready_for_launch(idx)
 signal take_me_home(idx)
 signal this_is_my_rotation(rot)
-signal drop_off_sound
 
 @export var placement_curve: Curve
 @export var scan_bump_curve: Curve
@@ -134,6 +133,7 @@ func _ready():
 	global.wheel_rot_signal.connect(_on_global_wheel_rot_signal)
 	global.piece_placed.connect(_on_global_piece_placed)
 	global.universe_node.vscan.connect(_on_universe_vscan)
+	global.clear_mesh_data.connect(_on_global_clear_mesh_data)
 	
 	new_up = Vector3.UP.rotated(Vector3.FORWARD, random_rotation_offset)
 	remember_rotation_z = random_rotation_offset
@@ -252,8 +252,6 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if !placed:
-#		if !drop_off_finished:
-#			_dropped_off_animation()
 		if being_abducted:
 			_abducted_animation()
 		if repositioning:
@@ -266,24 +264,13 @@ func _process(delta):
 				good_global_rot = self.global_rotation
 				good_rot = good_global_rot.y
 				repositioning = false
-				#global.num_pieces_arranged += 1
-#				if global.rotation:
-#					rotowindow.visible = false
-#					print('hide roto')
 		else:
 			if found:
 				found_rotate(delta)
 			else:
 				self.rotation.y = lerp_angle(self.rotation.y, good_rot, 0.05)
 				found_spin = 0.0
-#			if picked and in_transit:
-#				found = false
-#				_picked_animation()
-#			elif !picked and in_transit:
-#				found = false
-#				_unpicked_animation()
 			if in_space:
-				#print(to_global(upright_vec).angle_to(Vector3.UP))
 				found = false
 				self.rotation.y = good_global_rot.y - angle
 				position.x = 0.0
@@ -297,11 +284,6 @@ func _process(delta):
 				if position.y < -1.5:
 					emit_signal('take_me_home', idx)
 					time_to_return = false
-#			if back_from_space:
-#				position = Vector3.ZERO
-#				position.y = 20.0
-#				in_transit = true
-#				back_from_space = false
 	else:
 		if !placement_finished:
 			_placement()
@@ -415,38 +397,11 @@ func _on_global_ufo_abduction_done_signal():
 		abduction_finished = true
 
 
-func _on_ufo_at_angle(ang, pos):
+func _on_ufo_at_angle(ang, pos): ### unecessary
 	if is_equal_approx(ang, angle) and visible == false:
 		drop_off_start_pos = pos
 		visible = true
 		drop_off_finished = false
-		emit_signal("drop_off_sound")
-
-
-func _dropped_off_animation():
-	if !drop_off_started:
-		position = position.limit_length(drop_off_original_dist - 1.3) + Vector3(0.0, 0.2, 0.0)
-		scale = Vector3(0.1, 0.1, 0.1)
-		drop_off_started = true
-		water.material_overlay.emission_enabled = true
-		themesh.material_overlay.emission_enabled = true
-		walls.material_overlay.emission_enabled = true
-		water.material_overlay.emission_energy_multiplier = 1.0
-		themesh.material_overlay.emission_energy_multiplier = 1.0
-		walls.material_overlay.emission_energy_multiplier = 1.0
-	else:
-		water.material_overlay.emission_energy_multiplier = lerp(water.material_overlay.emission_energy_multiplier, 0.0, 0.1)
-		themesh.material_overlay.emission_energy_multiplier = lerp(themesh.material_overlay.emission_energy_multiplier, 0.0, 0.1)
-		walls.material_overlay.emission_energy_multiplier = lerp(walls.material_overlay.emission_energy_multiplier, 0.0, 0.1)
-		position = lerp(position, drop_off_original_position, 0.1)
-		scale = lerp(scale, Vector3(1.0, 1.0, 1.0), 0.1)
-		if position.is_equal_approx(drop_off_original_position) and scale.is_equal_approx(Vector3(1.0, 1.0, 1.0)):
-			water.material_overlay.emission_enabled = false
-			themesh.material_overlay.emission_enabled = false
-			walls.material_overlay.emission_enabled = false
-			position = drop_off_original_position
-			scale = Vector3(1.0, 1.0, 1.0)
-			drop_off_finished = true
 
 
 func _on_child_entered_tree(node):
@@ -510,3 +465,21 @@ func _scanimate(delta):
 		scanimation = false
 		scan_counter = 0.0
 		global_position = direction
+
+
+func _on_global_clear_mesh_data():
+	vertex = PackedVector3Array([])
+	normal = PackedVector3Array([])
+	color = PackedColorArray([])
+
+	wall_vertex = PackedVector3Array([])
+	wall_normal = PackedVector3Array([])
+	wall_color = PackedColorArray([])
+
+	vertex_w = PackedVector3Array([])
+	normal_w = PackedVector3Array([])
+	color_w = PackedColorArray([])
+
+	vertex_cw = PackedVector3Array([])
+	normal_cw = PackedVector3Array([])
+	color_cw = PackedColorArray([])

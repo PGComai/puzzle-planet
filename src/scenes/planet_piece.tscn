@@ -1,9 +1,7 @@
-[gd_scene load_steps=17 format=3 uid="uid://bovl5mukppx3n"]
+[gd_scene load_steps=15 format=3 uid="uid://bovl5mukppx3n"]
 
 [ext_resource type="Script" path="res://scripts/planet_piece.gd" id="1_jrwu8"]
 [ext_resource type="Script" path="res://scripts/themesh.gd" id="2_neaqm"]
-[ext_resource type="AudioStream" uid="uid://d0dcs5p5din0n" path="res://audio/ufo-abduct-one.wav" id="3_p3cpx"]
-[ext_resource type="Script" path="res://scripts/DropOffSound.gd" id="4_wo60a"]
 [ext_resource type="AudioStream" uid="uid://586ykcyd0bj2" path="res://audio/click with reverb and drum.ogg" id="5_kjry7"]
 
 [sub_resource type="Curve" id="Curve_wdrif"]
@@ -126,15 +124,6 @@ gi_mode = 0
 [node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="themesh"]
 material_overlay = SubResource("StandardMaterial3D_rhrep")
 
-[node name="DropOffSound" type="AudioStreamPlayer3D" parent="."]
-stream = ExtResource("3_p3cpx")
-volume_db = -1.586
-unit_size = 2.23
-max_db = 1.0
-pitch_scale = 0.6
-max_polyphony = 3
-script = ExtResource("4_wo60a")
-
 [node name="InvisTimer" type="Timer" parent="."]
 wait_time = 0.1
 one_shot = true
@@ -151,7 +140,6 @@ wait_time = 0.07
 one_shot = true
 
 [connection signal="child_entered_tree" from="." to="." method="_on_child_entered_tree"]
-[connection signal="drop_off_sound" from="." to="DropOffSound" method="_on_planet_piece_drop_off_sound"]
 [connection signal="timeout" from="InvisTimer" to="." method="_on_invis_timer_timeout"]
 [connection signal="timeout" from="PlacementDelay" to="." method="_on_placement_delay_timeout"]
 [connection signal="timeout" from="ClickDelay" to="." method="_on_click_delay_timeout"]

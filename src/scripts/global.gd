@@ -27,6 +27,7 @@ signal new_chosen_piece(piece)
 signal num_pieces_arranged_changed(num)
 signal wheel_target_rot_set(rot)
 signal title_planet_ready
+signal clear_mesh_data
 
 var pieces: Array[Node3D]
 var chosen_piece: Node3D:
@@ -265,6 +266,7 @@ func _save_puzzle():
 	save_data.close()
 	print("puzzle saved")
 	ufo_time = true ### THIS LINE STARTS THE GAME
+	emit_signal("clear_mesh_data")
 
 
 func get_node_data(n: Node) -> Dictionary:
