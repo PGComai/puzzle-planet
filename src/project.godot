@@ -14,6 +14,7 @@ config/name="Puzzle Planetarium"
 run/main_scene="res://scenes/ux.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.1", "Mobile")
+boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/use_filter=false
 config/icon="res://icon.svg"
 
