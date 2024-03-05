@@ -1,0 +1,114 @@
+[gd_scene load_steps=17 format=3 uid="uid://iio7w8kfb5vf"]
+
+[ext_resource type="FontFile" uid="uid://rshxqg6l3crs" path="res://fonts/PixelOperatorHB8.ttf" id="1_fkr45"]
+[ext_resource type="Material" uid="uid://cra75xomptwt4" path="res://tex/blocktext_material.tres" id="2_343bx"]
+[ext_resource type="FontFile" uid="uid://dr2d6whs8m3oy" path="res://fonts/PixelOperatorMono-Bold.ttf" id="2_cqfbd"]
+[ext_resource type="Shader" uid="uid://dgxug6nv5jt4n" path="res://tex/blocktext.tres" id="2_onske"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_bu753"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_hyfct"]
+sky_material = SubResource("ProceduralSkyMaterial_bu753")
+
+[sub_resource type="Environment" id="Environment_csnfq"]
+sky = SubResource("Sky_hyfct")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="TextMesh" id="TextMesh_m1dsk"]
+text = "puzzle
+ "
+font = ExtResource("1_fkr45")
+font_size = 14
+uppercase = true
+line_spacing = 1.0
+
+[sub_resource type="TextMesh" id="TextMesh_hd6qm"]
+text = "planetarium"
+font = ExtResource("2_cqfbd")
+uppercase = true
+pixel_size = 0.0093
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ttk5r"]
+render_priority = 0
+shader = ExtResource("2_onske")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_54onu"]
+size = Vector2(4, 0.665)
+orientation = 2
+
+[sub_resource type="Gradient" id="Gradient_ionxu"]
+interpolation_mode = 2
+offsets = PackedFloat32Array(0, 0.4, 0.6, 1)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.486275, 0, 0, 0, 0.486275, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bysfe"]
+gradient = SubResource("Gradient_ionxu")
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+metadata/_snap_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oakmv"]
+transparency = 1
+shading_mode = 0
+disable_ambient_light = true
+albedo_texture = SubResource("GradientTexture2D_bysfe")
+distance_fade_mode = 1
+distance_fade_max_distance = 0.55
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p8bii"]
+shading_mode = 0
+albedo_color = Color(0.411765, 0.411765, 0.411765, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_6aj7b"]
+material = SubResource("StandardMaterial3D_p8bii")
+size = Vector2(10, 10)
+orientation = 2
+
+[node name="PromoStudio" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_csnfq")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.28358)
+keep_aspect = 0
+cull_mask = 1047551
+current = true
+size = 3.555
+far = 40.0
+
+[node name="piece_target" type="Node3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.26584)
+
+[node name="TitleMesh" type="MeshInstance3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.7)
+cast_shadow = 0
+mesh = SubResource("TextMesh_m1dsk")
+surface_material_override/0 = ExtResource("2_343bx")
+
+[node name="Timer" type="Timer" parent="Camera3D/TitleMesh"]
+wait_time = 5.0
+one_shot = true
+
+[node name="planetarium" type="MeshInstance3D" parent="Camera3D/TitleMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0585498, 0)
+mesh = SubResource("TextMesh_hd6qm")
+surface_material_override/0 = SubResource("ShaderMaterial_ttk5r")
+
+[node name="text_bg" type="MeshInstance3D" parent="Camera3D/TitleMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.068516)
+visible = false
+mesh = SubResource("PlaneMesh_54onu")
+surface_material_override/0 = SubResource("StandardMaterial3D_oakmv")
+
+[node name="bg_screenshot" type="MeshInstance3D" parent="Camera3D/TitleMesh/text_bg"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0116556)
+visible = false
+mesh = SubResource("PlaneMesh_6aj7b")
+
+[connection signal="timeout" from="Camera3D/TitleMesh/Timer" to="Camera3D/TitleMesh" method="_on_timer_timeout"]

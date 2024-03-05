@@ -1,0 +1,66 @@
+[gd_resource type="VisualShader" load_steps=5 format=3 uid="uid://dgxug6nv5jt4n"]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_lhyvi"]
+input_name = "color"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_pu2lp"]
+input_name = "normal"
+
+[sub_resource type="VisualShaderNodeDotProduct" id="VisualShaderNodeDotProduct_727xs"]
+default_input_values = [0, Vector3(0, 0, 0), 1, Vector3(0, 0, 1)]
+
+[sub_resource type="VisualShaderNodeClamp" id="VisualShaderNodeClamp_vakov"]
+default_input_values = [0, 0.0, 1, 0.1, 2, 0.9]
+
+[resource]
+code = "shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx;
+
+
+
+
+void vertex() {
+// Input:2
+	vec3 n_out2p0 = NORMAL;
+
+
+// DotProduct:3
+	vec3 n_in3p1 = vec3(0.00000, 0.00000, 1.00000);
+	float n_out3p0 = dot(n_out2p0, n_in3p1);
+
+
+// Clamp:4
+	float n_in4p1 = 0.10000;
+	float n_in4p2 = 0.90000;
+	float n_out4p0 = clamp(n_out3p0, n_in4p1, n_in4p2);
+
+
+// Output:0
+	COLOR.rgb = vec3(n_out4p0);
+
+
+}
+
+void fragment() {
+// Input:2
+	vec4 n_out2p0 = COLOR;
+
+
+// Output:0
+	ALBEDO = vec3(n_out2p0.xyz);
+
+
+}
+"
+nodes/vertex/0/position = Vector2(1900, 240)
+nodes/vertex/2/node = SubResource("VisualShaderNodeInput_pu2lp")
+nodes/vertex/2/position = Vector2(40, 140)
+nodes/vertex/3/node = SubResource("VisualShaderNodeDotProduct_727xs")
+nodes/vertex/3/position = Vector2(720, 280)
+nodes/vertex/4/node = SubResource("VisualShaderNodeClamp_vakov")
+nodes/vertex/4/position = Vector2(1080, 280)
+nodes/vertex/connections = PackedInt32Array(2, 0, 3, 0, 3, 0, 4, 0, 4, 0, 0, 6)
+nodes/fragment/0/position = Vector2(1380, 60)
+nodes/fragment/2/node = SubResource("VisualShaderNodeInput_lhyvi")
+nodes/fragment/2/position = Vector2(400, 160)
+nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0)

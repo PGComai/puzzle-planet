@@ -1015,10 +1015,10 @@ func shift_mountains(mountains: Array):
 	for m1 in len(mountains):
 		for m2 in len(mountains):
 			if m1 != m2:
-				if mountains[m1] == mountains[m2]:
-					mountains[m1] = mountains[m1].rotated((mountains[m2].cross(mountains[m1]).normalized()), PI/32.0)
-				var sep = abs(mountains[m1].angle_to(mountains[m2]))
-				mountains[m2] = mountains[m2].rotated((mountains[m2].cross(mountains[m1]).normalized()), mountain_shift_curve.sample_baked(sep) * 2.0)
+				if mountains[m1][0] == mountains[m2][0]:
+					mountains[m1][0] = mountains[m1][0].rotated((mountains[m2].cross(mountains[m1][0]).normalized()), PI/32.0)
+				var sep = abs(mountains[m1][0].angle_to(mountains[m2][0]))
+				mountains[m2][0] = mountains[m2][0].rotated((mountains[m2][0].cross(mountains[m1][0]).normalized()), mountain_shift_curve.sample_baked(sep) * 2.0)
 	return mountains
 
 

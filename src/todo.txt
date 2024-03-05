@@ -1,11 +1,9 @@
 FEEDBACK:
 - add competition / timing
-- more POP in gas giant walls
+- leaving submenus should return to main menu
 
 HIGH PRIORITY:
 - splash screen
-- icon art
-- figure out ufo dropoff issues
 - how to play
 
 LOW PRIORITY:
