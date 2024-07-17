@@ -326,6 +326,7 @@ func _on_ufo_take_me_home():
 	for p in pieces:
 		p.visible = true
 
+
 func _on_ufo_orbit_at_angle(angle, pos):
 	if angle < 0.0:
 		angle = (PI - abs(angle)) + PI
@@ -335,8 +336,10 @@ func _on_ufo_orbit_at_angle(angle, pos):
 	var ufo_snap_to = snappedf(angle, 2*PI/rotosnaps)
 	emit_signal("ufo_at_angle", ufo_snap_to, pos)
 
+
 func _on_ufo_orbit_drop_off_done():
 	pieces_ready = true
+
 
 func _on_browser_rect_gui_input(event):
 	if pieces_ready:
@@ -375,18 +378,6 @@ func _on_browser_rect_gui_input(event):
 				pick = false
 			elif event.pressed == true:
 				pick = true
-
-#func _toggle_light(tog: bool):
-#	if tog:
-#		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, LIGHT_ENERGY, 0.1)
-#		if is_equal_approx(directional_light_3d.light_energy, LIGHT_ENERGY):
-#			directional_light_3d.light_energy = LIGHT_ENERGY
-#			light_toggle_complete = true
-#	else:
-#		directional_light_3d.light_energy = lerp(directional_light_3d.light_energy, 0.5, 0.1)
-#		if is_equal_approx(directional_light_3d.light_energy, 0.5):
-#			directional_light_3d.light_energy = 0.5
-#			light_toggle_complete = true
 
 
 func _on_global_num_arranged_changed(num):

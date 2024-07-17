@@ -1,5 +1,29 @@
 extends Node3D
 
+const piece = preload("res://scenes/planet_piece.tscn")
+const save_template = preload("res://scripts/save_template.gd")
+const mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
+const mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
+const mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
+const moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
+const moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
+const jupiter_storm_curve = preload("res://tex/jupiter_storm_curve.tres")
+const mantle_jupiter_material = preload("res://tex/mantle_jupiter_material.tres")
+const mantle_saturn_material = preload("res://tex/mantle_saturn_material.tres")
+const mantle_uranus_material = preload("res://tex/mantle_uranus_material.tres")
+const neptune_storm_curve = preload("res://tex/neptune_storm_curve.tres")
+const neptune_storm_color_curve = preload("res://tex/neptune_storm_color_curve.tres")
+const earth_mountain_curve = preload("res://tex/earth_mountain_curve.tres")
+const earth_mountain_shift_curve = preload("res://tex/earth_mountain_shift_curve.tres")
+const earth_mountain_color_curve = preload("res://tex/earth_mountain_color_curve.tres")
+const mercury_crater_curve = preload("res://tex/mercury_crater_curve.tres")
+const mercury_land_color_curve = preload("res://tex/mercury_land_color_curve.tres")
+const mars_mountain_curve = preload("res://tex/mars_mountain_curve.tres")
+const venus_color_ease_curve = preload("res://tex/venus_color_ease_curve.tres")
+const pluto_color_ease_curve = preload("res://tex/pluto_color_ease_curve.tres")
+const mars_color_ease_curve = preload("res://tex/mars_land_color_curve.tres")
+const earth_color_ease_curve = preload("res://tex/earth_land_color_curve.tres")
+
 @export var debug := false
 @export var max_points = 30
 @export var generations = 100
@@ -95,32 +119,6 @@ extends Node3D
 @export_category("Misc")
 @export var mantle_material: Material
 @export var nval_ratio := Vector2(1.0, 0.0)
-
-var piece = preload("res://scenes/planet_piece.tscn")
-var save_template = preload("res://scripts/save_template.gd")
-var mantle_earth_material = preload("res://tex/mantle_earth_material.tres")
-var mantle_mars_material = preload("res://tex/mantle_mars_material.tres")
-var mantle_moon_material = preload("res://tex/mantle_moon_material.tres")
-var moon_crater_curve = preload("res://tex/moon_crater_curve.tres")
-var moon_land_curve = preload("res://tex/moon_land_color_curve.tres")
-var jupiter_storm_curve = preload("res://tex/jupiter_storm_curve.tres")
-var mantle_jupiter_material = preload("res://tex/mantle_jupiter_material.tres")
-var mantle_saturn_material = preload("res://tex/mantle_saturn_material.tres")
-var mantle_uranus_material = preload("res://tex/mantle_uranus_material.tres")
-var neptune_storm_curve = preload("res://tex/neptune_storm_curve.tres")
-var neptune_storm_color_curve = preload("res://tex/neptune_storm_color_curve.tres")
-var earth_mountain_curve = preload("res://tex/earth_mountain_curve.tres")
-var earth_mountain_shift_curve = preload("res://tex/earth_mountain_shift_curve.tres")
-var earth_mountain_color_curve = preload("res://tex/earth_mountain_color_curve.tres")
-var mercury_crater_curve = preload("res://tex/mercury_crater_curve.tres")
-var mercury_land_color_curve = preload("res://tex/mercury_land_color_curve.tres")
-var mars_mountain_curve: Curve = preload("res://tex/mars_mountain_curve.tres")
-var venus_color_ease_curve: Curve = preload("res://tex/venus_color_ease_curve.tres")
-var pluto_color_ease_curve: Curve = preload("res://tex/pluto_color_ease_curve.tres")
-var mars_color_ease_curve: Curve = preload("res://tex/mars_land_color_curve.tres")
-var earth_color_ease_curve: Curve = preload("res://tex/earth_land_color_curve.tres")
-
-var _draw_mode := false
 
 
 var saver = ResourceSaver
@@ -232,7 +230,7 @@ func _generate_mesh(userdata = null):
 	var verts := PackedVector3Array()
 	var vi_to_borders := Dictionary()
 	
-	if mesh_source == 1:
+	if mesh_source == 1: # probably not necessary
 		### MAKE PUZZLE PIECE LOCATIONS ###
 		while len(verts) < max_points:
 			verts = array_of_points(verts)

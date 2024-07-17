@@ -101,7 +101,7 @@ var pluto_color_ease_curve: Curve = preload("res://tex/pluto_color_ease_curve.tr
 var mars_color_ease_curve: Curve = preload("res://tex/mars_land_color_curve.tres")
 var earth_color_ease_curve: Curve = preload("res://tex/earth_land_color_curve.tres")
 #var mantle_watermelon_material := preload("res://tex/mantle_watermelon_material.tres")
-var mantle_compatibility_material := preload("res://tex/mantle_compatibility_material.tres")
+#var mantle_compatibility_material := preload("res://tex/mantle_compatibility_material.tres")
 
 var _draw_mode := false
 var manual_mountain_color := false
@@ -454,7 +454,7 @@ func _set_parameters():
 		crater_size_multiplier = 2.0
 		crater_height_multiplier = 0.7
 		snow = false
-		mantle.mesh.material = mantle_compatibility_material
+		#mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -519,7 +519,7 @@ func _set_parameters():
 		crater_size_multiplier = 3.0
 		crater_height_multiplier = 1.2
 		snow = true
-		mantle.mesh.material = mantle_compatibility_material
+		#mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = true
 		h_bands = false
@@ -583,7 +583,7 @@ func _set_parameters():
 		water_color = Color('0541ff')
 		shallow_water_color = Color('2091bf')
 		snow = true
-		mantle.mesh.material = mantle_compatibility_material
+		#mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_mars
 		lava_lamp.visible = true
 		h_bands = false
@@ -1017,7 +1017,7 @@ func _set_parameters():
 		craters_to_mountains = false
 		manual_mountain_color = false
 		snow = false
-		mantle.mesh.material = mantle_compatibility_material
+		#mantle.mesh.material = mantle_compatibility_material
 		lava_lamp.light_color = lava_lamp_color_earth
 		lava_lamp.visible = false
 		h_bands = true

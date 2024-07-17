@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Puzzle Planetarium"
+config/tags=PackedStringArray("mobile", "released")
 run/main_scene="res://scenes/ux.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.2", "Mobile")

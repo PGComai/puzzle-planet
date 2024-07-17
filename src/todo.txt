@@ -4,11 +4,9 @@ FEEDBACK:
 
 HIGH PRIORITY:
 - splash screen
-- how to play
 
 LOW PRIORITY:
 - adjust ufo height per planet
-- optimize snap_to_existing function
 - volcanoes
 - triangle normal dot gravity is cliff steepness
 - planet builder
@@ -21,14 +19,4 @@ LOW PRIORITY:
 - try to make storms more swirly
 
 GLITCHES:
-- rendered planet without one chunk of ocean on IOS - a while ago
-
-NAMES:
-- Puzzle Space Program
-- Puzzle Galactica
-- Puzzle Worlds
-- Puzzle Astronomica
-- Puzzle Atlas
-- PuzzleNaut
-- Puzzlenaut
-- Puzzle Planetarium
+- rotation mode glitch

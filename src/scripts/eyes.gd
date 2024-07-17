@@ -89,6 +89,7 @@ func _ready():
 	if global.title_screen:
 		global._load_planet_for_title()
 
+
 func _process(delta):
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
 		add_child(mesh_maker)

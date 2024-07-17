@@ -5,6 +5,9 @@ signal ready_for_launch(idx)
 signal take_me_home(idx)
 signal this_is_my_rotation(rot)
 
+const water_material = preload("res://tex/water2.tres")
+const water_material_nd = preload("res://tex/water2_nodepth.tres")
+
 @export var placement_curve: Curve
 @export var scan_bump_curve: Curve
 
@@ -34,8 +37,7 @@ var wall_color: PackedColorArray
 var vertex_w: PackedVector3Array
 var normal_w: PackedVector3Array
 var color_w: PackedColorArray
-var water_material = preload("res://tex/water2.tres")
-var water_material_nd = preload("res://tex/water2_nodepth.tres")
+
 #var upright_vec: Vector3
 
 var vertex_cw: PackedVector3Array
