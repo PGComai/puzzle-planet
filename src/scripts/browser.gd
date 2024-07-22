@@ -98,12 +98,14 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	var lerp_equalizer: float = delta * 60.0
+	
 	if puzzle_done:
 		if !wheel_up:
 			toggle_wheel('up')
 	elif !pieces_ready:
 		if recam:
-			camera_3d.position.z = lerp(camera_3d.position.z, cam_dist, 0.05)
+			camera_3d.position.z = lerp(camera_3d.position.z, cam_dist, 0.05 * lerp_equalizer)
 			if is_equal_approx(camera_3d.position.z, cam_dist):
 				camera_3d.position.z = cam_dist
 				recam = false
@@ -111,9 +113,9 @@ func _process(delta):
 	else:
 		if drag:
 			if abs(dx) < 0.01:
-				dx = lerp(dx, 0.0, 0.1)
+				dx = lerp(dx, 0.0, 0.1 * lerp_equalizer)
 			if abs(dy) < 0.01:
-				dy = lerp(dy, 0.0, 0.1)
+				dy = lerp(dy, 0.0, 0.1 * lerp_equalizer)
 			snap_ease = 0.0
 			dx_acc.append(dx)
 			if len(dx_acc) > 5:
@@ -128,9 +130,9 @@ func _process(delta):
 				dx_acc.remove_at(0)
 			if len(dy_acc) > 0:
 				dy_acc.remove_at(0)
-			dx_final = lerp(dx_final, 0.0, 0.05)
-			dy_final = lerp(dy_final, 0.0, 0.05)
-			snap_ease = lerp(snap_ease, 5.0, 0.01)
+			dx_final = lerp(dx_final, 0.0, 0.05 * lerp_equalizer)
+			dy_final = lerp(dy_final, 0.0, 0.05 * lerp_equalizer)
+			snap_ease = lerp(snap_ease, 5.0, 0.01 * lerp_equalizer)
 			front_piece = snappedf(snap_to, 0.01)
 			if front_piece == 6.28:
 				front_piece = 0.0
@@ -139,18 +141,18 @@ func _process(delta):
 		if global.placing_piece:
 			if global.rotation:
 				rotating = true
-				toggle_wheel('down')
+				toggle_wheel(lerp_equalizer, 'down')
 				wheelmesh.rotation.z += dx_final
 				global.wheel_rot =  wheelmesh.rotation.z
 			else:
 				dx = 0.0
-			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1)
+			rot_h = lerp_angle(rot_h, stay_at_angle, 0.1 * lerp_equalizer)
 			camrot.rotation.y = rot_h
 			#_toggle_light(false)
 		else:
 			rotating = false
 			if global.rotation:
-				toggle_wheel('up')
+				toggle_wheel(lerp_equalizer, 'up')
 			rot_h -= dx_final
 			#_toggle_light(true)
 		if rot_h < 0.0:
@@ -158,7 +160,7 @@ func _process(delta):
 		if rot_h >= 2*PI:
 			rot_h -= 2*PI
 		if !holding:
-			rot_h = lerp_angle(rot_h, snap_to, 0.03*snap_ease*(1.0-spin_speed))
+			rot_h = lerp_angle(rot_h, snap_to, 0.03*snap_ease*(1.0-spin_speed) * lerp_equalizer)
 		camrot.rotation.y = rot_h
 		if pick:
 			picktimer += delta
@@ -166,7 +168,7 @@ func _process(delta):
 				picktimer = 0.0
 				pick = false
 		if recam:
-			camera_3d.position.z = lerp(camera_3d.position.z, cam_dist, 0.05)
+			camera_3d.position.z = lerp(camera_3d.position.z, cam_dist, 0.05 * lerp_equalizer)
 			if is_equal_approx(camera_3d.position.z, cam_dist):
 				camera_3d.position.z = cam_dist
 				recam = false
@@ -254,20 +256,20 @@ func _resetti_spaghetti(set_rot := true):
 	emit_signal("env_toggle", 0.0)
 
 
-func toggle_wheel(direction := 'down'):
+func toggle_wheel(delta, direction := 'down'):
 	if wheel_moving:
 		if direction == 'down':
-			camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.1)
-			wheel.position.y = lerp(wheel.position.y, 5.636, 0.1)
+			camera_3d.position.y = lerp(camera_3d.position.y, 1.5, 0.1 * delta)
+			wheel.position.y = lerp(wheel.position.y, 5.636, 0.1 * delta)
 			if is_equal_approx(camera_3d.position.y, 1.5) and is_equal_approx(wheel.position.y, 5.636):
 				camera_3d.position.y = 1.5
 				wheel.position.y = 5.636
 				wheel_moving = false
 				wheel_up = false
 		else:
-			camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.1)
+			camera_3d.position.y = lerp(camera_3d.position.y, 0.0, 0.1 * delta)
 			wheelmesh.rotation.z = 0.0
-			wheel.position.y = lerp(wheel.position.y, 12.0, 0.1)
+			wheel.position.y = lerp(wheel.position.y, 12.0, 0.1 * delta)
 			if is_equal_approx(camera_3d.position.y, 0.0) and is_equal_approx(wheel.position.y, 12.0):
 				camera_3d.position.y = 0.0
 				wheel.position.y = 12.0

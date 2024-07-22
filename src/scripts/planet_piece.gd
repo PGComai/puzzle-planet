@@ -253,11 +253,13 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	var lerp_equalizer: float = delta * 60.0
+	
 	if !placed:
 		if being_abducted:
 			_abducted_animation()
 		if repositioning:
-			self.position = lerp(self.position, repos, 0.1)
+			self.position = lerp(self.position, repos, 0.1 * lerp_equalizer)
 			#var dist = position.distance_to(repos)
 			self.look_at(Vector3(0.0, self.global_position.y, 0.0), new_up)
 			if self.position.is_equal_approx(repos):
@@ -270,37 +272,37 @@ func _process(delta):
 			if found:
 				found_rotate(delta)
 			else:
-				self.rotation.y = lerp_angle(self.rotation.y, good_rot, 0.05)
+				self.rotation.y = lerp_angle(self.rotation.y, good_rot, 0.05 * lerp_equalizer)
 				found_spin = 0.0
 			if in_space:
 				found = false
 				self.rotation.y = good_global_rot.y - angle
 				position.x = 0.0
 				position.z = 0.0
-				position.y = lerp(self.position.y, 0.0, 0.1)
+				position.y = lerp(self.position.y, 0.0, 0.1 * lerp_equalizer)
 				if !orient_upright:
 					pass
 			if time_to_return:
 				picked = false
-				position.y = lerp(self.position.y, -10.0, 0.1)
+				position.y = lerp(self.position.y, -10.0, 0.1 * lerp_equalizer)
 				if position.y < -1.5:
 					emit_signal('take_me_home', idx)
 					time_to_return = false
 	else:
 		if !placement_finished:
-			_placement()
+			_placement(lerp_equalizer)
 	if scanimation:
 		_scanimate(delta)
 
 
-func _placement():
+func _placement(delta):
 	if not placement_wind_up:
-		global_position = lerp(global_position, direction * 1.06, 0.2)
+		global_position = lerp(global_position, direction * 1.06, 0.2 * delta)
 		if global_position.is_equal_approx(direction * 1.06):
 			placement_wind_up = true
 			click_delay.start()
 	else:
-		global_position = lerp(global_position, direction, 0.3)
+		global_position = lerp(global_position, direction, 0.3 * delta)
 		if global_position.is_equal_approx(direction):
 			rotation.z = 0.0
 			global_position = direction

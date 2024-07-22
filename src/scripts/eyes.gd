@@ -59,7 +59,6 @@ var fit_timer: float = 0.0
 var fit: bool = false
 var placed_signal := false
 
-var new_mesh_maker = preload("res://scenes/mesh_maker.tscn")
 var earth_mesh_maker = preload("res://scenes/mesh_maker_earth.tscn")
 var moon_mesh_maker = preload("res://scenes/mesh_maker_moon.tscn")
 var mars_mesh_maker = preload("res://scenes/mesh_maker_mars.tscn")
@@ -91,6 +90,8 @@ func _ready():
 
 
 func _process(delta):
+	var lerp_equalizer: float = delta * 60.0
+	
 	if ready_for_nmm and len(get_tree().get_nodes_in_group('pieces')) == 0:
 		add_child(mesh_maker)
 		ready_for_nmm = false
@@ -114,16 +115,16 @@ func _process(delta):
 			fling = false
 			limit_pull = 0.0
 		if not (global.title_screen or global.puzzle_finished):
-			dx_final = lerp(dx_final, 0.0, 0.05)
+			dx_final = lerp(dx_final, 0.0, 0.05 * lerp_equalizer)
 		else:
-			dx_final = lerp(dx_final, 0.001, 0.05)
-			rot_v = lerp(rot_v, 0.0, 0.01)
-		dy_final = lerp(dy_final, 0.0, 0.05)
+			dx_final = lerp(dx_final, 0.001, 0.05 * lerp_equalizer)
+			rot_v = lerp(rot_v, 0.0, 0.01 * lerp_equalizer)
+		dy_final = lerp(dy_final, 0.0, 0.05 * lerp_equalizer)
 	else:
 		if abs(dx) < 0.01:
-			dx = lerp(dx, 0.0, 0.1)
+			dx = lerp(dx, 0.0, 0.1 * lerp_equalizer)
 		if abs(dy) < 0.01:
-			dy = lerp(dy, 0.0, 0.1)
+			dy = lerp(dy, 0.0, 0.1 * lerp_equalizer)
 		dx_acc.append(dx)
 		dy_acc.append(dy)
 		if len(dx_acc) > 5:
@@ -276,8 +277,6 @@ func _on_generate_button_up():
 		nmm = pluto_mesh_maker.instantiate()
 	elif global.generate_type == 11:
 		nmm = watermelon_mesh_maker.instantiate()
-	else:
-		nmm = new_mesh_maker.instantiate()
 	nmm.build_planet = true
 	mesh_maker = nmm ### why did i do it like this? why does this work?
 	ready_for_nmm = true
